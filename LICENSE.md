@@ -24,6 +24,6 @@ SOFTWARE.
 
 **Disclaimer on Third-Party Assets**
 
-This project includes assets (such as models, textures, and sounds) that are the intellectual property of Riot Games, Inc., extracted from *Valorant*. These assets are **not** licensed under the MIT License. They are included **solely for educational and non-commercial purposes**. No copyright infringement is intended.
+This project includes assets (such as models, textures, and sounds) that are the intellectual property of Riot Games, Inc., extracted from VALORANT. These assets are **not** licensed under the MIT License. They are included **solely for educational and non-commercial purposes**. No copyright infringement is intended.
 
-All rights to *Valorant* and its associated content belong to Riot Games, Inc.
+All rights to VALORANT and its associated content belong to Riot Games, Inc.
