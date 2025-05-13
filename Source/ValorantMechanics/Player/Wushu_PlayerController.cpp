@@ -5,7 +5,7 @@
 #include "Wushu_Character.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "GameFramework/CharacterMovementComponent.h"
+// #include "GameFramework/CharacterMovementComponent.h"
 // #include "MeshPaintVisualize.h"
 // #include "GameFramework/CharacterMovementComponent.h"
 // #include "rapidjson/document.h"
@@ -14,47 +14,20 @@
 void AWushu_PlayerController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	// canMove = isAction_Move_W ^ isAction_Move_S || isAction_Move_A ^ isAction_Move_D;
-	canMove = isAction_Move_W ^ isAction_Move_S || isAction_Move_A ^ isAction_Move_D;
 
-
-#pragma region AirStrafe
 	
-if (PlayerCharacterMovementComponent->IsFalling())
-{
-	// for bunny hop (air strafe)
-	bool isLookMoveLeft = LastLookVector.X < 0 && isAction_Move_A;
-	bool isLookMoveRight = LastLookVector.X > 0 && isAction_Move_D;
-	bool isNotValidLookMove = !isLookMoveLeft && !isLookMoveRight;
-
-	canBunny_Hop_A = false; // reset bunny hops
-	canBunny_Hop_D = false;
-	
-	if (isNotValidLookMove) { PlayerCharacter->UnallowPlayerAirControl(); }
-	else
-	{
-        if (isLookMoveLeft) { canBunny_Hop_A = true; PlayerCharacter->AllowPlayerAirControl(); }
-		else if (isLookMoveRight) { canBunny_Hop_D = true; PlayerCharacter->AllowPlayerAirControl(); }
-		else
-		{
-			canBunny_Hop_A = false;
-			canBunny_Hop_D = false;
-			PlayerCharacter->AllowPlayerAirControl();
-		} // to allow air strafe without mouse movement
-	}
-}
-	
-#pragma endregion
-	
-	if (canMove) {
-		FVector2d MoveVector = CalculateMovementAdditive();
+	if (HasMovementInput()) {
+		FVector2d MoveVector = GetAdditiveMovementInput();
 		constexpr float MinThreshold = 0.05f;
 		constexpr float MaxScale = 10.0f;
+		constexpr float MaxInput = 1.0f;
+
 		
-		if (FMath::Abs(LastLookVector.X) > MinThreshold)
+		
+		if (FMath::Abs(lastLookVector.X) > MinThreshold)
 		{
 			float ScaleFactor = FMath::Clamp(
-				1.0f / FMath::Pow(FMath::Abs(LastLookVector.X), 0.5f), 
+				1.0f / FMath::Pow(FMath::Abs(lastLookVector.X), 0.5f), 
 				1.0f / MaxScale,
 				MaxScale  
 			);
@@ -62,10 +35,10 @@ if (PlayerCharacterMovementComponent->IsFalling())
 			MoveVector.X *= ScaleFactor;
 		}
 
-		if (FMath::Abs(LastLookVector.Y) > MinThreshold)
+		if (FMath::Abs(lastLookVector.Y) > MinThreshold)
 		{
 			float ScaleFactor = FMath::Clamp(
-				1.0f / FMath::Pow(FMath::Abs(LastLookVector.Y), 0.5f), 
+				1.0f / FMath::Pow(FMath::Abs(lastLookVector.Y), 0.5f), 
 				1.0f / MaxScale,
 				MaxScale
 			);
@@ -89,11 +62,11 @@ FVector2D AWushu_PlayerController::InputReductionScaling(const FVector2D& Curren
 	FVector2D ScaledMove = CurrentMove;
 
 	// X-axis scaling
-	if (FMath::Abs(LastLookVector.X) > MinThreshold)
+	if (FMath::Abs(lastLookVector.X) > MinThreshold)
 	{
 		// Exponential inverse scaling
 		float ScaleFactor = FMath::Clamp(
-			1.0f / FMath::Pow(FMath::Abs(LastLookVector.X), 0.5f), 
+			1.0f / FMath::Pow(FMath::Abs(lastLookVector.X), 0.5f), 
 			1.0f / MaxScale,  // Lower bound
 			MaxScale          // Upper bound
 		);
@@ -102,10 +75,10 @@ FVector2D AWushu_PlayerController::InputReductionScaling(const FVector2D& Curren
 	}
 
 	// Y-axis scaling (similar logic)
-	if (FMath::Abs(LastLookVector.Y) > MinThreshold)
+	if (FMath::Abs(lastLookVector.Y) > MinThreshold)
 	{
 		float ScaleFactor = FMath::Clamp(
-			1.0f / FMath::Pow(FMath::Abs(LastLookVector.Y), 0.5f), 
+			1.0f / FMath::Pow(FMath::Abs(lastLookVector.Y), 0.5f), 
 			1.0f / MaxScale,  // Lower bound
 			MaxScale          // Upper bound
 		);
@@ -126,7 +99,7 @@ void AWushu_PlayerController::PlayerLook(const FInputActionInstance& InputAction
 
 	// if (ActionTrigger == ETriggerEvent::Canceled || ActionTrigger == ETriggerEvent::Completed)
 	// 	UE_LOG(LogTemp, Warning, TEXT("Cancelled or Completed -> X: %f, Y: %f"), LookAxisVector.X, LookAxisVector.Y);
-	LastLookVector = LookAxisVector;
+	lastLookVector = LookAxisVector;
 	
 	AddYawInput(LookAxisVector.X * Sensitivity);
 	AddPitchInput(LookAxisVector.Y * Sensitivity);
@@ -215,11 +188,12 @@ void AWushu_PlayerController::OnPossess(APawn* aPawn)
 	InputSubsystem->AddMappingContext(InputMappingContext, 0);
 
 
-#pragma region EIC_Input_Bindings
+#pragma region EIC Bindings
 	/*
 	 * TODO: the system for started, canceled, and completed events for movement keys can be improved
 	 * doing it this way to add inputs instead of "whichever is pressed next"
 	 */
+	
 	EnhancedInputComponent->BindAction(Action_Move_W, ETriggerEvent::Triggered, this, &AWushu_PlayerController::PlayerMove); 
 	EnhancedInputComponent->BindAction(Action_Move_A, ETriggerEvent::Triggered, this, &AWushu_PlayerController::PlayerMove); 
 	EnhancedInputComponent->BindAction(Action_Move_D, ETriggerEvent::Triggered, this, &AWushu_PlayerController::PlayerMove); 

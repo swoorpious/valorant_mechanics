@@ -25,6 +25,26 @@ class VALORANTMECHANICS_API AWushu_PlayerController : public APlayerController
 	GENERATED_BODY()
 
 public:
+	FVector2d GetLastLookActionVector() const { return lastLookVector; }
+	bool HasMovementInput() const { return isAction_Move_W ^ isAction_Move_S || isAction_Move_A ^ isAction_Move_D; }
+
+
+#pragma region MovementAdditives
+	FVector2d GetAdditiveMovementInput() const	{ return FVector2d(CalculateMovementAdditiveX(), CalculateMovementAdditiveY());	}
+
+	int8 CalculateMovementAdditiveX() const
+	{
+		const double MovementInX = isAction_Move_A * -1 + isAction_Move_D * 1;
+		return canBunny_Hop_A || canBunny_Hop_D ? 0 : MovementInX;
+	}
+
+	int8 CalculateMovementAdditiveY() const
+	{
+		const double MovementInY = isAction_Move_W * 1 + isAction_Move_S * -1;
+		return MovementInY;
+	}
+#pragma endregion
+	
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="General")
 	float Sensitivity = 1.0f;
@@ -87,13 +107,6 @@ protected:
 	virtual void OnUnPossess() override;
 
 private:
-
-
-	static double InterpMovementSpeed(bool ShouldInterp, int8 InitialMovementValue, int8 FinalMovementValue, float DeltaSeconds)
-	{
-		return ShouldInterp ? FMath::FInterpTo(static_cast<float>(InitialMovementValue), static_cast<float>(FinalMovementValue), DeltaSeconds, 25) : FinalMovementValue;
-	}
-
 	bool HasPlayerMovementInX() const { return isAction_Move_A ^ isAction_Move_D; }
 	bool HasPlayerMovementInY() const { return isAction_Move_W ^ isAction_Move_S; }
 
@@ -102,34 +115,13 @@ private:
 	 * TODO: make additive for separate axes
 	 * i don't remember why
 	 */
-#pragma region MovementAdditives
-	FVector2d CalculateMovementAdditive() const	{ return FVector2d(CalculateMovementAdditiveX(), CalculateMovementAdditiveY());	}
-
-	int8 CalculateMovementAdditiveX() const
-	{
-		const double MovementInX = isAction_Move_A * -1 + isAction_Move_D * 1;
-		return canBunny_Hop_A || canBunny_Hop_D ? 0 : MovementInX;
-	}
-
-	int8 CalculateMovementAdditiveY() const
-	{
-		const double MovementInY = isAction_Move_W * 1 + isAction_Move_S * -1;
-		return MovementInY;
-	}
-#pragma endregion
 	
-	
-	UPROPERTY()
 	TObjectPtr<AWushu_Character> PlayerCharacter = nullptr;
-
-	UPROPERTY()
 	TObjectPtr<UEnhancedInputComponent> EnhancedInputComponent = nullptr;
-
-	UPROPERTY()
 	TObjectPtr<UCharacterMovementComponent> PlayerCharacterMovementComponent = nullptr;
 
 
-	FVector2d LastLookVector;
+	FVector2d lastLookVector;
 	
 	
 	// is movement key pressed
@@ -146,10 +138,13 @@ private:
     // additive of movements in last tick
     int8 MovementX = 0; // additive of movements in X -> A/D | integer
     int8 MovementY = 0; // additive of movements in Y -> W/S | integer
-    bool canMove = false; // false when all 4 keys are and are not pressed
 	float DeltaSecondsSinceLastTickX = 0.0f;
 	float DeltaSecondsSinceLastTickY = 0.0f;
-	
+
+
+	FVector2D currentVelocity = FVector2D::ZeroVector;
+	float AccelerationRate = 10.0f;
+	float MaxSpeed = 1.0f;
 
 };
 

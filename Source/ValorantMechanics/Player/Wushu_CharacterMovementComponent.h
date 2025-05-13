@@ -7,9 +7,18 @@
 #include "Wushu_CharacterMovementComponent.generated.h"
 
 
-// TODO 
+/*
+ * Things to do in Wushu_CharacterMovementComponent, Wushu_Character, and Wushu_PlayerController
+ * TODO move all movement code from PlayerController to MovementComponent
+ * TODO add movement smoothing
+ * TODO redo jump/jump slowdown (stun) logic
+ * TODO implement crouching
+ * TODO refine air movement parameters/behavior
+ * TODO refactor code and optimize logic
+ */
 
 
+class AWushu_PlayerController;
 class AWushu_Character;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -20,17 +29,50 @@ class VALORANTMECHANICS_API UWushu_CharacterMovementComponent : public UCharacte
 public:
 	UWushu_CharacterMovementComponent();
 
-protected:
-	virtual void BeginPlay() override;
+	void SetMoveVector(FVector2d InMoveVector) { this->MoveVector = InMoveVector; }
 
+protected:
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void BeginPlay() override;
+	
 	void HandleAirMovement(float DeltaTime);
 
-public:
-	TObjectPtr<AWushu_Character> PlayerCharacter = nullptr;
-	
+
+private:
+
+#pragma region AirControl
+	UPROPERTY(EditAnywhere, Category = "Air Movement", meta = (ClampMin = "0.0", ClampMax = "100.0")) // 10
+	float _MaxAirControl = 0.7f;
+    
+	UPROPERTY(EditAnywhere, Category = "Air Movement", meta = (ClampMin = "0.0", ClampMax = "100.0")) // 10
+	float _MidAirControl = 0.3f;
+    
+	UPROPERTY(EditAnywhere, Category = "Air Movement", meta = (ClampMin = "0.0", ClampMax = "100.0")) // 100
+	float _MinAirControl = 0.1f;
+    
+	UPROPERTY(EditAnywhere, Category = "Air Movement", meta = (ClampMn = "1.0", ClampMax = "50.0")) // 5
+	float _MaxAirStrafeMultiplier = 1.5f;
+    
+	UPROPERTY(EditAnywhere, Category = "Air Movement", meta = (ClampMin = "0.0", ClampMax = "50.0")) // 5
+	float _AirStrafeAccelerationRate = 0.5f;
+    
+	UPROPERTY(EditAnywhere, Category = "Air Movement", meta = (ClampMin = "0.0", ClampMax = "100.0")) // 10
+	float _AirStrafeDecayRate = 2.0f;
+    
+	UPROPERTY(EditAnywhere, Category = "Air Movement", meta = (ClampMin = "0.0", ClampMax = "10000.0"))
+	float _AirStrafeForce = 250.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Air Movement", meta = (ClampMin = "0.0", ClampMax = "10.0"))
+	float _ForceFactorX = 1.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Air Movement", meta = (ClampMin = "0.0", ClampMax = "10.0"))
+	float _ForceFactorY = 1.0f;
+#pragma endregion
+
 
 	
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	TObjectPtr<AWushu_Character> PlayerCharacter = nullptr;
+	TObjectPtr<AWushu_PlayerController> PlayerController = nullptr;
 
 	enum class FAirMovementDirection
 	{
@@ -40,8 +82,9 @@ public:
 		Neutral
 	};
 
-	float AirStrafeTime = 0.0f;
-	float CurrentAirStrafeMultiplier = 1.0f;
-	float PreviousYaw = 0.0f;
-	FAirMovementDirection LastAirMovementDirection;
+	
+	float airStrafeTime = 0.0f;
+	float currentAirStrafeMultiplier = 1.0f;
+	FAirMovementDirection lastAirMovementDirection;
+	FVector2d MoveVector;
 };
