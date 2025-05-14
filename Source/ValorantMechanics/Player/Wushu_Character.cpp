@@ -8,6 +8,8 @@
 #include "Engine/LocalPlayer.h"
 #include "Wushu_PlayerController.h"
 #include "Wushu_CharacterMovementComponent.h"
+#include "ValorantMechanics/Weapons/CommonWeapon.h"
+
 
 #include "Components/SceneCaptureComponent2D.h"
 #include "Engine/TextureRenderTarget2D.h"
@@ -37,6 +39,9 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UWushu_CharacterMovementCompone
 	// Wushu_GameplayCaptureCamera->bUsePawnControlRotation = true;
 
 	PlayerController = Cast<AWushu_PlayerController>(GetController());
+
+
+	
 	
 
 	
@@ -47,6 +52,8 @@ void AWushu_Character::BeginPlay()
 	Super::BeginPlay();
 	PlayerCharacterMovementComponent->MaxAcceleration = RegularAcceleration;
 	PlayerCharacterMovementComponent->MaxWalkSpeed = RunSpeed;
+
+	
 }
 
 
@@ -90,7 +97,9 @@ void AWushu_Character::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (isLanded && !isJumping)
+	
+#pragma region Jump Logic
+	/*if (isLanded && !isJumping)
 	{
 		if (TimeSinceLanded < BunnyHopTimeThreshold)
 		{
@@ -117,7 +126,9 @@ void AWushu_Character::Tick(float DeltaTime)
 			PlayerCharacterMovementComponent->MaxAcceleration = RegularAcceleration;
 			PlayerCharacterMovementComponent->MaxWalkSpeed = RunSpeed;
 		}
-	}
+	}*/
+#pragma endregion
+	
 }
 
 void AWushu_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

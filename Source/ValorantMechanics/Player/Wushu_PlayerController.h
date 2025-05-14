@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 
 #include "InputAction.h"
-#include "InputActionValue.h"
 #include "GameFramework/PlayerController.h"
 #include "Wushu_PlayerController.generated.h"
 
@@ -48,9 +47,6 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="General")
 	float Sensitivity = 1.0f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="General")
-	float StrafeMovementReductionFactor = 1.0f;
 
 	
 #pragma region InputActions

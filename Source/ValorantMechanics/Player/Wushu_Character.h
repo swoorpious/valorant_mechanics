@@ -9,6 +9,7 @@
 class USkeletalMeshComponent;
 class UCameraComponent;
 class AWushu_PlayerController;
+class ACommonWeapon;
 
 UCLASS()
 class VALORANTMECHANICS_API AWushu_Character : public ACharacter
@@ -36,6 +37,17 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* Wushu_MeshCaptureCamera;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Equipped Weapons")
+	TSubclassOf<ACommonWeapon> _MeleeWeaponToEquip = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Equipped Weapons")
+	TSubclassOf<ACommonWeapon> _SecondaryWeaponToEquip = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Equipped Weapons")
+	TSubclassOf<ACommonWeapon> _PrimaryWeaponToEquip = nullptr;
+
+	
+
 	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	// UCameraComponent* Wushu_GameplayCaptureCamera;
 
@@ -44,15 +56,17 @@ protected:
 
 
 	virtual void Tick(float DeltaTime) override;
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 
 private:
-	UPROPERTY()
 	TObjectPtr<AWushu_PlayerController> PlayerController = nullptr;
-	
-	UPROPERTY()
 	TObjectPtr<UCharacterMovementComponent> PlayerCharacterMovementComponent = nullptr;
+	TSubclassOf<ACommonWeapon> currentEquippedWeapon = nullptr;
+	TSubclassOf<ACommonWeapon> meleeWeapon = nullptr;
+	TSubclassOf<ACommonWeapon> secondaryWeapon = nullptr;
+	TSubclassOf<ACommonWeapon> primaryWeapon = nullptr;
+	
 	
 	
 	float RunSpeed = 750.0f;
