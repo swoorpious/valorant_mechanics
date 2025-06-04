@@ -10,6 +10,7 @@ class USkeletalMeshComponent;
 class UCameraComponent;
 class AWushu_PlayerController;
 class ACommonWeapon;
+class UAnimMontage;
 
 UCLASS()
 class VALORANTMECHANICS_API AWushu_Character : public ACharacter
@@ -31,15 +32,19 @@ public:
 	void UnallowPlayerAirControl() const;
 
 
+
+	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Mesh, meta = (AllowPrivateAccess = "true"))
-	USkeletalMeshComponent* Wushu_Mesh;
+	TObjectPtr<USkeletalMeshComponent> Wushu_Mesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	UCameraComponent* Wushu_MeshCaptureCamera;
+	TObjectPtr<UCameraComponent> Wushu_MeshCaptureCamera;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equipped Weapons")
 	TSubclassOf<ACommonWeapon> _MeleeWeaponToEquip = nullptr;
 
+	// can be used to spawn with weapons
 	UPROPERTY(EditDefaultsOnly, Category = "Equipped Weapons")
 	TSubclassOf<ACommonWeapon> _SecondaryWeaponToEquip = nullptr;
 
@@ -60,12 +65,13 @@ protected:
 
 
 private:
-	TObjectPtr<AWushu_PlayerController> PlayerController = nullptr;
-	TObjectPtr<UCharacterMovementComponent> PlayerCharacterMovementComponent = nullptr;
-	TSubclassOf<ACommonWeapon> currentEquippedWeapon = nullptr;
-	TSubclassOf<ACommonWeapon> meleeWeapon = nullptr;
-	TSubclassOf<ACommonWeapon> secondaryWeapon = nullptr;
-	TSubclassOf<ACommonWeapon> primaryWeapon = nullptr;
+	UPROPERTY()	TObjectPtr<AWushu_PlayerController> PlayerController = nullptr;
+	UPROPERTY()	TObjectPtr<UCharacterMovementComponent> PlayerCharacterMovementComponent = nullptr;
+	
+	UPROPERTY() TObjectPtr<ACommonWeapon> currentEquippedWeapon = nullptr;
+	UPROPERTY() TObjectPtr<ACommonWeapon> meleeWeapon = nullptr;
+	UPROPERTY() TObjectPtr<ACommonWeapon> secondaryWeapon = nullptr;
+	UPROPERTY() TObjectPtr<ACommonWeapon> primaryWeapon = nullptr;
 	
 	
 	

@@ -112,9 +112,9 @@ private:
 	 * i don't remember why
 	 */
 	
-	TObjectPtr<AWushu_Character> PlayerCharacter = nullptr;
-	TObjectPtr<UEnhancedInputComponent> EnhancedInputComponent = nullptr;
-	TObjectPtr<UCharacterMovementComponent> PlayerCharacterMovementComponent = nullptr;
+	UPROPERTY() TObjectPtr<AWushu_Character> PlayerCharacter = nullptr;
+	UPROPERTY() TObjectPtr<UEnhancedInputComponent> EnhancedInputComponent = nullptr;
+	UPROPERTY() TObjectPtr<UCharacterMovementComponent> PlayerCharacterMovementComponent = nullptr;
 
 
 	FVector2d lastLookVector;
@@ -129,14 +129,7 @@ private:
     // bunny hop
     bool canBunny_Hop_A = false;
     bool canBunny_Hop_D = false;
-    bool hasPlayerAirControl = false;
-
-    // additive of movements in last tick
-    int8 MovementX = 0; // additive of movements in X -> A/D | integer
-    int8 MovementY = 0; // additive of movements in Y -> W/S | integer
-	float DeltaSecondsSinceLastTickX = 0.0f;
-	float DeltaSecondsSinceLastTickY = 0.0f;
-
+	
 
 	FVector2D currentVelocity = FVector2D::ZeroVector;
 	float AccelerationRate = 10.0f;

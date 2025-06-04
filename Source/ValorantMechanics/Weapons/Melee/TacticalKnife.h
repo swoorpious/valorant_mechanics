@@ -4,7 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "ValorantMechanics/Weapons/CommonWeapon.h"
+#include "ValorantMechanics/Weapons/WeaponDataAssets/MeleeAnimDataAsset.h"
+
+
+
 #include "TacticalKnife.generated.h"
+
+
+
+class UAnimMontage;
+
 
 UCLASS()
 class VALORANTMECHANICS_API ATacticalKnife : public ACommonWeapon
@@ -12,14 +21,17 @@ class VALORANTMECHANICS_API ATacticalKnife : public ACommonWeapon
     GENERATED_BODY()
 
 public:
-    // Sets default values for this actor's properties
     ATacticalKnife();
+    virtual void Tick(float DeltaTime) override;
+
+    
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
+    TObjectPtr<UMeleeAnimDataAsset> AnimationData;
+
 
 protected:
-    // Called when the game starts or when spawned
     virtual void BeginPlay() override;
 
-public:
-    // Called every frame
-    virtual void Tick(float DeltaTime) override;
+    
+    
 };

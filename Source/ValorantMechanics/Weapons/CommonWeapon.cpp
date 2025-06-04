@@ -5,6 +5,7 @@
 #include "Components/SkeletalMeshComponent.h"
 
 
+
 // Sets default values
 ACommonWeapon::ACommonWeapon()
 {
@@ -24,7 +25,7 @@ void ACommonWeapon::Reload()
 {
 }
 
-void ACommonWeapon::Equip(FEquipType EquipType)
+void ACommonWeapon::Equip(EEquipType EquipType)
 {
 }
 

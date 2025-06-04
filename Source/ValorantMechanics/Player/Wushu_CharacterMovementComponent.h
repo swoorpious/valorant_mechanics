@@ -28,6 +28,7 @@ class VALORANTMECHANICS_API UWushu_CharacterMovementComponent : public UCharacte
 
 public:
 	UWushu_CharacterMovementComponent();
+	virtual bool DoJump(bool bReplayingMoves, float DeltaTime) override;
 
 	void SetMoveVector(FVector2d InMoveVector) { this->MoveVector = InMoveVector; }
 
@@ -70,8 +71,9 @@ private:
 #pragma endregion
 
 
-	
+	UPROPERTY()
 	TObjectPtr<AWushu_Character> PlayerCharacter = nullptr;
+	UPROPERTY()
 	TObjectPtr<AWushu_PlayerController> PlayerController = nullptr;
 
 	enum class FAirMovementDirection

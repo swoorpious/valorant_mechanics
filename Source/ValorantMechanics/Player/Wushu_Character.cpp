@@ -8,7 +8,10 @@
 #include "Engine/LocalPlayer.h"
 #include "Wushu_PlayerController.h"
 #include "Wushu_CharacterMovementComponent.h"
+
+
 #include "ValorantMechanics/Weapons/CommonWeapon.h"
+#include "ValorantMechanics/Weapons/Melee/TacticalKnife.h"
 
 
 #include "Components/SceneCaptureComponent2D.h"
@@ -53,7 +56,12 @@ void AWushu_Character::BeginPlay()
 	PlayerCharacterMovementComponent->MaxAcceleration = RegularAcceleration;
 	PlayerCharacterMovementComponent->MaxWalkSpeed = RunSpeed;
 
-	
+	meleeWeapon = GetWorld()->SpawnActor<ACommonWeapon>(_MeleeWeaponToEquip);
+	if (meleeWeapon)
+	{
+		meleeWeapon->SetOwner(this);
+		meleeWeapon->AttachToComponent(Wushu_Mesh, FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("R_WeaponMasterSocket"));
+	}
 }
 
 
@@ -73,11 +81,11 @@ void AWushu_Character::Jump()
 void AWushu_Character::Landed(const FHitResult& Hit)
 {
 	Super::Landed(Hit);
-	// PlayerController->OnLanded();
-
-	isLanded = true;
-	isJumping = false;
-	UE_LOG(LogTemp, Warning, TEXT("Landed")); 
+	// // PlayerController->OnLanded();
+	//
+	// isLanded = true;
+	// isJumping = false;
+	// UE_LOG(LogTemp, Warning, TEXT("Landed")); 
 }
 
 void AWushu_Character::Walk()

@@ -13,6 +13,11 @@ UWushu_CharacterMovementComponent::UWushu_CharacterMovementComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
+bool UWushu_CharacterMovementComponent::DoJump(bool bReplayingMoves, float DeltaTime)
+{
+	return Super::DoJump(bReplayingMoves, DeltaTime);
+}
+
 
 void UWushu_CharacterMovementComponent::BeginPlay()
 {
@@ -31,7 +36,11 @@ void UWushu_CharacterMovementComponent::TickComponent(float DeltaTime, ELevelTic
 	
 }
 
-
+/*
+ * TODO: Function needs tweaking
+ * * air strafing does not feel responsive
+ * * the character still drifts
+ */
 void UWushu_CharacterMovementComponent::HandleAirMovement(float DeltaTime)
 {
 	if (!IsFalling())

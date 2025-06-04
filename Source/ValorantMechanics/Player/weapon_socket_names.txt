@@ -1,0 +1,6 @@
+﻿L_Weapon_HandTargetSocket
+    L_Weapon_HandOffsetSocket
+    
+R_WeaponMasterSocket
+    R_WeaponSwitcherSocket
+R_Weapon_HandTargetSocket
