@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "Wushu_Character.generated.h"
 
+class UWushuAnimInstance;
+
 class USkeletalMeshComponent;
 class UCameraComponent;
 class AWushu_PlayerController;
@@ -31,8 +33,6 @@ public:
 	void AllowPlayerAirControl() const;
 	void UnallowPlayerAirControl() const;
 
-
-
 	
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Mesh, meta = (AllowPrivateAccess = "true"))
@@ -42,15 +42,18 @@ public:
 	TObjectPtr<UCameraComponent> Wushu_MeshCaptureCamera;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equipped Weapons")
-	TSubclassOf<ACommonWeapon> _MeleeWeaponToEquip = nullptr;
+	TSubclassOf<ACommonWeapon> MeleeWeaponToEquip = nullptr;
 
 	// can be used to spawn with weapons
 	UPROPERTY(EditDefaultsOnly, Category = "Equipped Weapons")
-	TSubclassOf<ACommonWeapon> _SecondaryWeaponToEquip = nullptr;
+	TSubclassOf<ACommonWeapon> SecondaryWeaponToEquip = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equipped Weapons")
-	TSubclassOf<ACommonWeapon> _PrimaryWeaponToEquip = nullptr;
+	TSubclassOf<ACommonWeapon> PrimaryWeaponToEquip = nullptr;
 
+
+	UFUNCTION(BlueprintCallable, Category="Equipped Weapons")
+	ACommonWeapon* SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToEquip, FName socketName);
 	
 
 	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))

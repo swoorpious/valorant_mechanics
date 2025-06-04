@@ -12,9 +12,6 @@
 
 
 
-class UAnimMontage;
-
-
 UCLASS()
 class VALORANTMECHANICS_API ATacticalKnife : public ACommonWeapon
 {

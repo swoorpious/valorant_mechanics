@@ -19,6 +19,9 @@ class VALORANTMECHANICS_API UWushuAnimInstance : public UAnimInstance
 {
     GENERATED_BODY()
 
+public:
+
+    
     UFUNCTION(BlueprintCallable, Category = "Wushu")
     void UpdateAnimDataAsset(EWeaponType WeaponType, UDataAsset* AnimDataAsset);
     

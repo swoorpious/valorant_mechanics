@@ -9,6 +9,7 @@
 #include "Wushu_PlayerController.h"
 #include "Wushu_CharacterMovementComponent.h"
 
+#include "ValorantMechanics/Anim/WushuAnimInstance.h"
 
 #include "ValorantMechanics/Weapons/CommonWeapon.h"
 #include "ValorantMechanics/Weapons/Melee/TacticalKnife.h"
@@ -42,13 +43,24 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UWushu_CharacterMovementCompone
 	// Wushu_GameplayCaptureCamera->bUsePawnControlRotation = true;
 
 	PlayerController = Cast<AWushu_PlayerController>(GetController());
-
-
-	
-	
-
 	
 }
+
+ACommonWeapon* AWushu_Character::SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToEquip, FName socketName)
+{
+	if (!weaponToEquip) return nullptr;
+	
+	ACommonWeapon* spawnedWeapon = GetWorld()->SpawnActor<ACommonWeapon>(weaponToEquip);
+	
+	if (spawnedWeapon)
+	{
+		spawnedWeapon->SetOwner(this);
+		spawnedWeapon->AttachToComponent(Wushu_Mesh, FAttachmentTransformRules::SnapToTargetIncludingScale, socketName);
+	}
+
+	return spawnedWeapon;
+}
+
 
 void AWushu_Character::BeginPlay()
 {
@@ -56,12 +68,7 @@ void AWushu_Character::BeginPlay()
 	PlayerCharacterMovementComponent->MaxAcceleration = RegularAcceleration;
 	PlayerCharacterMovementComponent->MaxWalkSpeed = RunSpeed;
 
-	meleeWeapon = GetWorld()->SpawnActor<ACommonWeapon>(_MeleeWeaponToEquip);
-	if (meleeWeapon)
-	{
-		meleeWeapon->SetOwner(this);
-		meleeWeapon->AttachToComponent(Wushu_Mesh, FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("R_WeaponMasterSocket"));
-	}
+	meleeWeapon = SpawnWeapon(MeleeWeaponToEquip, TEXT("R_WeaponMasterSocket"));
 }
 
 
