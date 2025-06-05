@@ -1,5 +1,5 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-//TODO: Bunny hop
+﻿// Copyright © 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
+
 
 #include "Wushu_PlayerController.h"
 #include "Wushu_Character.h"
