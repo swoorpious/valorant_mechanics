@@ -33,7 +33,10 @@ public:
 	void AllowPlayerAirControl() const;
 	void UnallowPlayerAirControl() const;
 
-	
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wushu")
+	TObjectPtr<USceneComponent> SceneComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Mesh, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USkeletalMeshComponent> Wushu_Mesh;
@@ -62,7 +65,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-
+	
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 

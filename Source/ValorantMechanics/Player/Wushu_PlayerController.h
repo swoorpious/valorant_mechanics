@@ -87,6 +87,7 @@ public:
 #pragma endregion
 	
 protected:
+	void AddLookInput(FVector2D Look) const;
 	void PlayerLook(const FInputActionInstance& InputActionInstance);
 	void PlayerMove(const FInputActionInstance& InputActionInstance);
 	void PlayerJump(const FInputActionInstance& InputActionInstance);

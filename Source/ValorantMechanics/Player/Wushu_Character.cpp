@@ -27,15 +27,19 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UWushu_CharacterMovementCompone
 	PrimaryActorTick.bCanEverTick = true;
 	
 	PlayerCharacterMovementComponent = GetCharacterMovement();
+	RootComponent = GetCapsuleComponent();
+
+	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Scene"));
+	SceneComponent->SetupAttachment(GetCapsuleComponent());
 	
 	Wushu_Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Wushu_Mesh"));
-	Wushu_Mesh->SetupAttachment(GetCapsuleComponent());
+	Wushu_Mesh->SetupAttachment(SceneComponent);
 	Wushu_Mesh->CastShadow = false;
-	Wushu_Mesh->bCastDynamicShadow = false;
+	Wushu_Mesh->bCastDynamicShadow = true;
 	
 	Wushu_MeshCaptureCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Wushu_MeshCaptureCamera"));
 	Wushu_MeshCaptureCamera->SetupAttachment(Wushu_Mesh, TEXT("Camera"));
-	Wushu_MeshCaptureCamera->bUsePawnControlRotation = true;
+	Wushu_MeshCaptureCamera->bUsePawnControlRotation = false;
 
 	// Wushu_GameplayCaptureCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Wushu_GameplayCaptureCamera"));
 	// Wushu_GameplayCaptureCamera->SetupAttachment(Wushu_Mesh, TEXT("Camera"));
@@ -43,7 +47,11 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UWushu_CharacterMovementCompone
 	// Wushu_GameplayCaptureCamera->bUsePawnControlRotation = true;
 
 	PlayerController = Cast<AWushu_PlayerController>(GetController());
-	
+
+
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationRoll = false;
 }
 
 ACommonWeapon* AWushu_Character::SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToEquip, FName socketName)

@@ -91,18 +91,36 @@ FVector2D AWushu_PlayerController::InputReductionScaling(const FVector2D& Curren
 */
 
 
+void AWushu_PlayerController::AddLookInput(FVector2D Look) const
+{
+	if (!PlayerCharacter || !PlayerCharacter->SceneComponent) return;
+
+	// PlayerCharacter handles yaw
+	FRotator yaw = PlayerCharacter->GetActorRotation() + FRotator(0, Look.X, 0);
+	PlayerCharacter->SetActorRotation(yaw); // update yaw (left/right)
+
+
+	// SceneComponent handles pitch
+	FRotator pitch = PlayerCharacter->SceneComponent->GetRelativeRotation() + FRotator(Look.Y, 0, 0);
+	pitch.Pitch = FMath::Clamp(pitch.Pitch, -89.9f, 89.9f);
+	PlayerCharacter->SceneComponent->SetRelativeRotation(pitch); // update pitch (up/down)
+
+	
+	UE_LOG(LogPlayerInput, Log, TEXT("Look Input - X: %.2f, Y: %.2f | Actor Yaw: %.2f, Scene Pitch: %.2f"), Look.X, Look.Y, yaw.Yaw, pitch.Pitch);
+}
+
+
 void AWushu_PlayerController::PlayerLook(const FInputActionInstance& InputActionInstance)
 {
 	const FInputActionValue& InputActionValue = InputActionInstance.GetValue();
 	const FVector2D LookAxisVector = InputActionValue.Get<FVector2D>();
-	// const ETriggerEvent ActionTrigger = InputActionInstance.GetTriggerEvent();
-
-	// if (ActionTrigger == ETriggerEvent::Canceled || ActionTrigger == ETriggerEvent::Completed)
-	// 	UE_LOG(LogTemp, Warning, TEXT("Cancelled or Completed -> X: %f, Y: %f"), LookAxisVector.X, LookAxisVector.Y);
 	lastLookVector = LookAxisVector;
-	
-	AddYawInput(LookAxisVector.X * Sensitivity);
-	AddPitchInput(LookAxisVector.Y * Sensitivity);
+
+	/*
+	 * x -> yaw
+	 * y -> pitch
+	 */
+	AddLookInput(LookAxisVector * Sensitivity);
 }
 
 
@@ -170,7 +188,6 @@ void AWushu_PlayerController::PlayerUse(const FInputActionInstance& InputActionI
 
 void AWushu_PlayerController::OnPossess(APawn* aPawn)
 {
-	// APawn* pawn = aPawn; // to prevent losing context
 	Super::OnPossess(aPawn);
 	
 	PlayerCharacter = Cast<AWushu_Character>(aPawn);

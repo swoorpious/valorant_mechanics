@@ -15,5 +15,7 @@ public class ValorantMechanics : ModuleRules
 			"InputCore",
 			"EnhancedInput"
 		});
+		
+		OptimizeCode = CodeOptimization.InNonDebugBuilds;
 	}
 }
