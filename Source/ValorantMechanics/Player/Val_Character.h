@@ -31,9 +31,6 @@ public:
 	virtual void Landed(const FHitResult& Hit) override;
 	void Walk();
 	void Unwalk();
-	void AllowPlayerAirControl() const;
-	void UnallowPlayerAirControl() const;
-
 
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")

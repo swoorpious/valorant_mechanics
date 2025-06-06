@@ -3,7 +3,6 @@
 
 #include "Val_Character.h"
 
-#include "LandscapeGizmoActiveActor.h"
 #include "Val_CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -12,14 +11,8 @@
 #include "Val_PlayerController.h"
 #include "ValorantMechanics/Input/Val_InputComponent.h"
 
-#include "ValorantMechanics/Anim/WushuAnimInstance.h"
 
 #include "ValorantMechanics/Weapons/CommonWeapon.h"
-#include "ValorantMechanics/Weapons/Melee/TacticalKnife.h"
-
-
-#include "Components/SceneCaptureComponent2D.h"
-#include "Engine/TextureRenderTarget2D.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
@@ -166,22 +159,3 @@ void AVal_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
-
-
-// void AVal_Character::AllowPlayerAirControl() const
-// {
-// 	// hasPlayerAirControl = true;
-// 	movementComponent->AirControl = 200.0f;
-// 	movementComponent->AirControlBoostMultiplier = 20.0f;
-// 	movementComponent->AirControlBoostVelocityThreshold = 400.0f;
-// 	movementComponent->FallingLateralFriction = 0.5f;
-// }
-//
-// void AVal_Character::UnallowPlayerAirControl() const
-// {
-// 	// hasPlayerAirControl = false;
-// 	movementComponent->AirControl = 0;
-// 	movementComponent->AirControlBoostMultiplier = 0;
-// 	movementComponent->AirControlBoostVelocityThreshold = 0;
-// 	movementComponent->FallingLateralFriction = 0;
-// }

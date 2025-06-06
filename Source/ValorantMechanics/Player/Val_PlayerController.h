@@ -48,44 +48,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="General")
 	float Sensitivity = 1.0f;
 
-	
-// #pragma region InputActions
-// 	// UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Input")
-// 	// TObjectPtr<UInputAction> Action_Move = nullptr;
-// 	
-// 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Input")
-// 	TObjectPtr<UInputAction> Action_Move_W = nullptr;
-// 	
-// 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Input")
-// 	TObjectPtr<UInputAction> Action_Move_A = nullptr;
-// 	
-// 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Input")
-// 	TObjectPtr<UInputAction> Action_Move_S = nullptr;
-// 	
-// 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Input")
-// 	TObjectPtr<UInputAction> Action_Move_D = nullptr;
-// 	
-// 	
-// 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Input")
-// 	TObjectPtr<UInputAction> Action_Look = nullptr;
-//
-// 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Input")
-// 	TObjectPtr<UInputAction> Action_Jump = nullptr;
-//
-// 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Input")
-// 	TObjectPtr<UInputAction> Action_Crouch = nullptr;
-//
-// 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Input")
-// 	TObjectPtr<UInputAction> Action_Walk = nullptr;
-//
-// 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Input")
-// 	TObjectPtr<UInputAction> Action_Use = nullptr;
-//
-//
-// 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Input")
-// 	TObjectPtr<UInputMappingContext> InputMappingContext = nullptr;
-// #pragma endregion
-
 
 	virtual void PlayerLook(const FInputActionInstance& InputActionInstance);
 	virtual void PlayerMove(const FInputActionInstance& InputActionInstance);
@@ -94,9 +56,6 @@ public:
 	virtual void PlayerWalk(const FInputActionInstance& InputActionInstance);
 	virtual void PlayerUse(const FInputActionInstance& InputActionInstance);
 	virtual void Tick(float DeltaSeconds) override;
-
-
-
 
 
 	
@@ -109,7 +68,6 @@ protected:
 	
 	UPROPERTY() TObjectPtr<AVal_Character> playerCharacter = nullptr;
 	UPROPERTY() TObjectPtr<UVal_InputComponent> valInputComponent = nullptr;
-	// UPROPERTY() TObjectPtr<UCharacterMovementComponent> PlayerCharacterMovementComponent = nullptr;
 
 
 	FVector2d lastLookVector;
@@ -131,15 +89,10 @@ protected:
 	float MaxSpeed = 1.0f;
 
 	
-
-	// FVector2D InputReductionScaling(const FVector2D& CurrentMove);
-	
 	
 	virtual void OnPossess(APawn* aPawn) override;
 	virtual void OnUnPossess() override;
-
-private:
-
+	
 
 };
 
