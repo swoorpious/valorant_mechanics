@@ -4,23 +4,24 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Wushu_Character.generated.h"
+#include "Val_Character.generated.h"
 
 class UWushuAnimInstance;
-
+class UVal_InputComponent;
+class AVal_PlayerController;
 class USkeletalMeshComponent;
 class UCameraComponent;
-class AWushu_PlayerController;
 class ACommonWeapon;
 class UAnimMontage;
+class UVal_CharacterMovementComponent;
 
 UCLASS()
-class VALORANTMECHANICS_API AWushu_Character : public ACharacter
+class VALORANTMECHANICS_API AVal_Character : public ACharacter
 {
 	GENERATED_BODY()
 
 public:
-	explicit AWushu_Character(const FObjectInitializer& ObjectInitializer);
+	explicit AVal_Character(const FObjectInitializer& ObjectInitializer);
 
 	bool isJumping = false;
 	bool isLanded = false;
@@ -35,28 +36,31 @@ public:
 
 
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UVal_InputComponent> valInputComponent;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wushu")
 	TObjectPtr<USceneComponent> SceneComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Mesh, meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<USkeletalMeshComponent> Wushu_Mesh;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Mesh", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USkeletalMeshComponent> characterMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UCameraComponent> Wushu_MeshCaptureCamera;
+	TObjectPtr<UCameraComponent> characterMeshCamera;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equipped Weapons")
-	TSubclassOf<ACommonWeapon> MeleeWeaponToEquip = nullptr;
+	TSubclassOf<ACommonWeapon> meleeWeaponToEquip = nullptr;
 
 	// can be used to spawn with weapons
 	UPROPERTY(EditDefaultsOnly, Category = "Equipped Weapons")
-	TSubclassOf<ACommonWeapon> SecondaryWeaponToEquip = nullptr;
+	TSubclassOf<ACommonWeapon> secondaryWeaponToEquip = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equipped Weapons")
-	TSubclassOf<ACommonWeapon> PrimaryWeaponToEquip = nullptr;
+	TSubclassOf<ACommonWeapon> primaryWeaponToEquip = nullptr;
 
 
 	UFUNCTION(BlueprintCallable, Category="Equipped Weapons")
-	ACommonWeapon* SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToEquip, FName socketName);
+	ACommonWeapon* SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToEquip, FName socketName, bool isHidden);
 	
 
 	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -71,8 +75,8 @@ protected:
 
 
 private:
-	UPROPERTY()	TObjectPtr<AWushu_PlayerController> PlayerController = nullptr;
-	UPROPERTY()	TObjectPtr<UCharacterMovementComponent> PlayerCharacterMovementComponent = nullptr;
+	UPROPERTY()	TObjectPtr<AVal_PlayerController> playerController = nullptr;
+	UPROPERTY()	TObjectPtr<UVal_CharacterMovementComponent> movementComponent = nullptr;
 	
 	UPROPERTY() TObjectPtr<ACommonWeapon> currentEquippedWeapon = nullptr;
 	UPROPERTY() TObjectPtr<ACommonWeapon> meleeWeapon = nullptr;

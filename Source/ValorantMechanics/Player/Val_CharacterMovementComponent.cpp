@@ -1,39 +1,39 @@
 ﻿// Copyright © 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
 
 
-#include "Wushu_CharacterMovementComponent.h"
-#include "Wushu_Character.h"
+#include "Val_CharacterMovementComponent.h"
+#include "Val_Character.h"
 
-#include "Wushu_PlayerController.h"
+#include "Val_PlayerController.h"
 
 
 // Sets default values for this component's properties
-UWushu_CharacterMovementComponent::UWushu_CharacterMovementComponent()
+UVal_CharacterMovementComponent::UVal_CharacterMovementComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-bool UWushu_CharacterMovementComponent::DoJump(bool bReplayingMoves, float DeltaTime)
+bool UVal_CharacterMovementComponent::DoJump(bool bReplayingMoves, float DeltaTime)
 {
 	return Super::DoJump(bReplayingMoves, DeltaTime);
 }
 
 
-void UWushu_CharacterMovementComponent::BeginPlay()
+void UVal_CharacterMovementComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PlayerCharacter = Cast<AWushu_Character>(GetOwner());	
-	PlayerController = Cast<AWushu_PlayerController>(GetController());
+	PlayerCharacter = Cast<AVal_Character>(GetOwner());	
+	PlayerController = Cast<AVal_PlayerController>(GetController());
 
 }
 
-void UWushu_CharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UVal_CharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	HandleAirMovement(DeltaTime);
-	
+
 }
 
 /*
@@ -41,7 +41,7 @@ void UWushu_CharacterMovementComponent::TickComponent(float DeltaTime, ELevelTic
  * * air strafing does not feel responsive
  * * the character still drifts
  */
-void UWushu_CharacterMovementComponent::HandleAirMovement(float DeltaTime)
+void UVal_CharacterMovementComponent::HandleAirMovement(float DeltaTime)
 {
 	if (!IsFalling())
 	{
@@ -51,6 +51,9 @@ void UWushu_CharacterMovementComponent::HandleAirMovement(float DeltaTime)
 		return;
 	}
 
+	
+	UE_LOG(LogInput, Display, TEXT("HandleAirMovement(...) called"));
+
 	FVector viewVectorX = PlayerCharacter->GetActorForwardVector();
 	FVector viewVectorY = PlayerCharacter->GetActorRightVector();
 	FVector2d inputVector = PlayerController->GetAdditiveMovementInput();
@@ -59,19 +62,19 @@ void UWushu_CharacterMovementComponent::HandleAirMovement(float DeltaTime)
 
 	FVector currentDirection = Velocity.GetSafeNormal();
 	
-	bool IsMovingLeft = inputVector.X < -0.1f;
-	bool IsMovingRight = inputVector.X > 0.1f;
+	bool isMovingLeft = inputVector.X < -0.1f;
+	bool isMovingRight = inputVector.X > 0.1f;
 	// bool IsMovingForward = inputY > 0.1f;
 	// bool IsMovingBackward = inputY < -0.1f;
 
 
 	
 	FAirMovementDirection currentAirMovementDirection;
-	if (IsMovingLeft && viewDeltaX < -0.1f)
+	if (isMovingLeft && viewDeltaX < -0.1f)
 		currentAirMovementDirection = FAirMovementDirection::Matching;
-	else if (IsMovingRight && viewDeltaX > 0.1f)
+	else if (isMovingRight && viewDeltaX > 0.1f)
 		currentAirMovementDirection = FAirMovementDirection::Matching;
-	else if ((IsMovingLeft && viewDeltaX > 0.1f) || (IsMovingRight && viewDeltaX < -0.1f))
+	else if ((isMovingLeft && viewDeltaX > 0.1f) || (isMovingRight && viewDeltaX < -0.1f))
 		currentAirMovementDirection = FAirMovementDirection::Opposing;
 	else
 		currentAirMovementDirection = FAirMovementDirection::Neutral;

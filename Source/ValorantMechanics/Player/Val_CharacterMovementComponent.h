@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Wushu_CharacterMovementComponent.generated.h"
+#include "Val_CharacterMovementComponent.generated.h"
 
 
 /*
@@ -18,16 +18,16 @@
  */
 
 
-class AWushu_PlayerController;
-class AWushu_Character;
+class AVal_PlayerController;
+class AVal_Character;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class VALORANTMECHANICS_API UWushu_CharacterMovementComponent : public UCharacterMovementComponent
+class VALORANTMECHANICS_API UVal_CharacterMovementComponent : public UCharacterMovementComponent
 {
 	GENERATED_BODY()
 
 public:
-	UWushu_CharacterMovementComponent();
+	UVal_CharacterMovementComponent();
 	virtual bool DoJump(bool bReplayingMoves, float DeltaTime) override;
 
 	void SetMoveVector(FVector2d InMoveVector) { this->MoveVector = InMoveVector; }
@@ -72,9 +72,9 @@ private:
 
 
 	UPROPERTY()
-	TObjectPtr<AWushu_Character> PlayerCharacter = nullptr;
+	TObjectPtr<AVal_Character> PlayerCharacter = nullptr;
 	UPROPERTY()
-	TObjectPtr<AWushu_PlayerController> PlayerController = nullptr;
+	TObjectPtr<AVal_PlayerController> PlayerController = nullptr;
 
 	enum class FAirMovementDirection
 	{
