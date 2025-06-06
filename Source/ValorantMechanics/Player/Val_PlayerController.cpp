@@ -3,6 +3,8 @@
 
 #include "Val_PlayerController.h"
 #include "Val_Character.h"
+#include "Camera/CameraComponent.h"
+#include "GameFramework/InputSettings.h"
 #include "ValorantMechanics/Input/Val_InputComponent.h"
 
 
@@ -56,13 +58,18 @@ void AVal_PlayerController::AddLookInput(FVector2D Look) const
 {
 	if (!playerCharacter || !playerCharacter->SceneComponent) return;
 
+	// TODO: implement FOV scaling for ads weapons -> scaleFOV = currentFOV / baseFOV
+	// would use scaleFOV instead later
+	FVector2D viewportSize = GetWorld()->GetGameViewport()->Viewport->GetSizeXY();
+	float cameraFOV = playerCharacter->characterMeshCamera->FieldOfView;
+	
 	// playerCharacter handles yaw
-	FRotator yaw = playerCharacter->GetActorRotation() + FRotator(0, Look.X, 0);
+	FRotator yaw = playerCharacter->GetActorRotation() + FRotator(0, Look.X * (cameraFOV / viewportSize.X), 0);
 	playerCharacter->SetActorRotation(yaw); // update yaw (left/right)
 
 
 	// SceneComponent handles pitch
-	FRotator pitch = playerCharacter->SceneComponent->GetRelativeRotation() + FRotator(Look.Y, 0, 0);
+	FRotator pitch = playerCharacter->SceneComponent->GetRelativeRotation() + FRotator(Look.Y * (cameraFOV / viewportSize.X), 0, 0);
 	pitch.Pitch = FMath::Clamp(pitch.Pitch, -89.9f, 89.9f);
 	playerCharacter->SceneComponent->SetRelativeRotation(pitch); // update pitch (up/down)
 
@@ -74,7 +81,8 @@ void AVal_PlayerController::PlayerLook(const FInputActionInstance& InputActionIn
 	const FInputActionValue& InputActionValue = InputActionInstance.GetValue();
 	const FVector2D LookAxisVector = InputActionValue.Get<FVector2D>();
 	lastLookVector = LookAxisVector;
-	AddLookInput(LookAxisVector * Sensitivity);
+	
+	AddLookInput(LookAxisVector * Sensitivity); 
 
 	/*
 	 * x -> yaw
@@ -153,6 +161,12 @@ void AVal_PlayerController::OnPossess(APawn* aPawn)
 
 	valInputComponent->SetMappingContexts(this, InputComponent);
 	valInputComponent->SetInputActions(this);
+
+	InputComponent->bBlockInput = false;
+
+	UInputSettings* inputSettings = UInputSettings::GetInputSettings();
+	inputSettings->bUseMouseForTouch = false;
+	bEnableMouseOverEvents = true;
 	
 }
 

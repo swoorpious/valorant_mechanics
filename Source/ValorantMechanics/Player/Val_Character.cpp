@@ -52,10 +52,12 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UVal_CharacterMovementComponent
 	bUseControllerRotationRoll = false;
 }
 
+
 ACommonWeapon* AVal_Character::SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToEquip, FName socketName, bool isHidden)
 {
 	if (!weaponToEquip) return nullptr;
-	
+
+	UE_LOG(LogTemp, Display, TEXT("Spawning Weapon"));
 	ACommonWeapon* spawnedWeapon = GetWorld()->SpawnActor<ACommonWeapon>(weaponToEquip);
 	
 	if (spawnedWeapon)
