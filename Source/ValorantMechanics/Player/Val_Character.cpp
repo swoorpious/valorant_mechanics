@@ -57,7 +57,7 @@ ACommonWeapon* AVal_Character::SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToEq
 {
 	if (!weaponToEquip) return nullptr;
 
-	UE_LOG(LogTemp, Display, TEXT("Spawning Weapon"));
+	UE_LOG(LogTemp, Display, TEXT("SpawnWeapon is spawning weapon"));
 	ACommonWeapon* spawnedWeapon = GetWorld()->SpawnActor<ACommonWeapon>(weaponToEquip);
 	
 	if (spawnedWeapon)
@@ -77,9 +77,10 @@ void AVal_Character::BeginPlay()
 	movementComponent->MaxAcceleration = RegularAcceleration;
 	movementComponent->MaxWalkSpeed = RunSpeed;
 
-	meleeWeapon ? meleeWeapon = SpawnWeapon(meleeWeaponToEquip, TEXT("R_WeaponMasterSocket"), false) : meleeWeapon = nullptr;
-	secondaryWeapon ? secondaryWeapon = SpawnWeapon(secondaryWeaponToEquip, TEXT("R_WeaponMasterSocket"), true) : secondaryWeapon = nullptr;
-	primaryWeapon ? primaryWeapon = SpawnWeapon(primaryWeaponToEquip, TEXT("R_WeaponMasterSocket"), true) : primaryWeapon = nullptr;
+	
+	meleeWeaponToEquip ? meleeWeapon = SpawnWeapon(meleeWeaponToEquip, TEXT("R_WeaponMasterSocket"), false) : meleeWeapon = nullptr;
+	secondaryWeaponToEquip ? secondaryWeapon = SpawnWeapon(secondaryWeaponToEquip, TEXT("R_WeaponMasterSocket"), true) : secondaryWeapon = nullptr;
+	primaryWeaponToEquip ? primaryWeapon = SpawnWeapon(primaryWeaponToEquip, TEXT("R_WeaponMasterSocket"), true) : primaryWeapon = nullptr;
 }
 
 

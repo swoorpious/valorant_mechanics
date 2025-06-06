@@ -6,7 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Val_Character.generated.h"
 
-class UWushuAnimInstance;
+class UVal_AnimInstance;
 class UVal_InputComponent;
 class AVal_PlayerController;
 class USkeletalMeshComponent;
