@@ -70,7 +70,7 @@ void AVal_Character::SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToSpawn, FName
 		if (isHidden) spawnedWeapon->SetActorHiddenInGame(true);
 
 		EWeaponType type = spawnedWeapon->GetWeaponType();
-		playerInventory.Contains(type) ? playerInventory[type] = spawnedWeapon : playerInventory.Add(type, spawnedWeapon);
+		playerInventory.Find(type) ? playerInventory[type] = spawnedWeapon : playerInventory.Add(type, spawnedWeapon);
 	}
 	
 }
