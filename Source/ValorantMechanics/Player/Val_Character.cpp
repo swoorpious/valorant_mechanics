@@ -182,7 +182,7 @@ void AVal_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 
 
-// inventory implementation
+#pragma region Inventory Implementation
 void FPlayerInventory::UpdateInventoryWeapon(TObjectPtr<ACommonWeapon> weapon)
 {
 	EWeaponType weaponType = weapon->GetWeaponType();
@@ -210,5 +210,5 @@ TObjectPtr<ACommonWeapon> FPlayerInventory::GetCurrentWeapon() const
 	if (equippedWeaponType == EWeaponType::Empty) return nullptr;
 	return inventoryMap[equippedWeaponType];
 }
-
+#pragma endregion Inventory Implementation
 
