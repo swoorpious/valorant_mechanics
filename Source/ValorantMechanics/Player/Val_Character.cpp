@@ -57,7 +57,8 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UVal_CharacterMovementComponent
 }
 
 
-void AVal_Character::SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToSpawn, FName socketName, bool isHidden)
+// TODO: make common list for socket names, and remove @param socketName
+void AVal_Character::SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToSpawn, FName socketName, bool shouldAutoEquip)
 {
 	if (!weaponToSpawn) return;
 
@@ -67,15 +68,18 @@ void AVal_Character::SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToSpawn, FName
 	{
 		spawnedWeapon->SetOwner(this);
 		spawnedWeapon->AttachToComponent(characterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, socketName);
-		if (isHidden) spawnedWeapon->SetActorHiddenInGame(true);
+		spawnedWeapon->SetActorHiddenInGame(true); // hidden by default, EquipWeapon(...) will unhide 
 
 		EWeaponType type = spawnedWeapon->GetWeaponType();
-		playerInventory.Find(type) ? playerInventory[type] = spawnedWeapon : playerInventory.Add(type, spawnedWeapon);
+		if (playerInventory.HasWeapon(type)) playerInventory.UpdateInventoryWeapon(spawnedWeapon);
+		if (shouldAutoEquip) this->EquipWeapon(spawnedWeapon);
+
+		
 	}
 	
 }
 
-void AVal_Character::EquipWeapon(TSubclassOf<ACommonWeapon> weaponToEquip, FName socketName)
+void AVal_Character::EquipWeapon(ACommonWeapon* weaponToEquip)
 {
 	if (!playerAnimInstance || !weaponToEquip) return;
 	
@@ -175,3 +179,36 @@ void AVal_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
+
+
+
+// inventory implementation
+void FPlayerInventory::UpdateInventoryWeapon(TObjectPtr<ACommonWeapon> weapon)
+{
+	EWeaponType weaponType = weapon->GetWeaponType();
+	if (!weapon || weaponType == EWeaponType::Empty) return;
+	this->HasWeapon(weaponType) ?
+		inventoryMap[weaponType] = weapon :
+		inventoryMap.Add(weaponType, weapon);
+}
+
+void FPlayerInventory::UpdateCurrentWeapon(EWeaponType weaponType)
+{
+	if (!this->HasWeapon(weaponType)) return;
+	equippedWeaponType = weaponType;
+}
+
+
+TObjectPtr<ACommonWeapon> FPlayerInventory::GetInventoryWeapon(EWeaponType weaponType) const
+{
+	if (!this->HasWeapon(weaponType)) return nullptr;
+	return inventoryMap[weaponType];
+}
+
+TObjectPtr<ACommonWeapon> FPlayerInventory::GetCurrentWeapon() const
+{
+	if (equippedWeaponType == EWeaponType::Empty) return nullptr;
+	return inventoryMap[equippedWeaponType];
+}
+
+

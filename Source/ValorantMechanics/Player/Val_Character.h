@@ -23,6 +23,37 @@ class UVal_CharacterMovementComponent;
 
 
 
+// basic code for inventory
+USTRUCT()
+struct FPlayerInventory
+{
+	GENERATED_BODY();
+
+private:
+	UPROPERTY() EWeaponType equippedWeaponType = EWeaponType::Empty; // set to EWeaponType::Empty by default, updated to whichever the player spawns with
+	UPROPERTY() TMap<EWeaponType, TObjectPtr<ACommonWeapon>> inventoryMap; // cannot have EWeaponType::Empty
+
+public:
+
+	// does not update equippedWeaponType
+	// updates if weapon of EWeaponType exists
+	// otherwise adds weapon of EWeaponType
+	void UpdateInventoryWeapon(TObjectPtr<ACommonWeapon> weapon);
+
+	// only updates equippedWeaponType if weapon type exists in inventoryMap
+	// use UpdateInventoryWeapon to add/update inventory slots
+	void UpdateCurrentWeapon(EWeaponType weaponType);
+	
+	TObjectPtr<ACommonWeapon> GetInventoryWeapon(EWeaponType weaponType) const;
+	TObjectPtr<ACommonWeapon> GetCurrentWeapon() const;
+	TMap<EWeaponType, TObjectPtr<ACommonWeapon>> GetInventory() const { return inventoryMap; }
+	
+	bool HasWeapon(EWeaponType weaponType) const { return inventoryMap.FindRef(weaponType) != nullptr; } 
+};
+
+
+
+
 UCLASS()
 class VALORANTMECHANICS_API AVal_Character : public ACharacter
 {
@@ -65,14 +96,10 @@ public:
 
 
 	UFUNCTION(BlueprintCallable, Category="Equipped Weapons")
-	void SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToSpawn, FName socketName, bool isHidden);
+	void SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToSpawn, FName socketName, bool shouldAutoEquip);
 	
 	UFUNCTION(BlueprintCallable, Category="Equipped Weapons")
-	void EquipWeapon(TSubclassOf<ACommonWeapon> weaponToEquip, FName socketName);
-	
-
-	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	// UCameraComponent* Wushu_GameplayCaptureCamera;
+	void EquipWeapon(ACommonWeapon* weaponToEquip);
 
 protected:
 	virtual void BeginPlay() override;
@@ -84,9 +111,8 @@ protected:
 	UPROPERTY()	TObjectPtr<UVal_CharacterMovementComponent> movementComponent = nullptr;
 	UPROPERTY()	TObjectPtr<UVal_AnimInstance> playerAnimInstance = nullptr;
 	
-	UPROPERTY() TObjectPtr<ACommonWeapon> equippedWeaponType = nullptr;
-	UPROPERTY() TMap<EWeaponType, TObjectPtr<ACommonWeapon>> playerInventory;
-	
+	UPROPERTY() FPlayerInventory playerInventory;
+
 	
 	float RunSpeed = 750.0f;
 	float WalkSpeed = 400.0f;
@@ -101,3 +127,10 @@ protected:
 	float WhileJumpingWalkSpeed = 150.0f;
 
 };
+
+
+
+
+
+
+
