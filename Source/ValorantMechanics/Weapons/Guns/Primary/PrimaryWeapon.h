@@ -7,7 +7,6 @@
 #include "PrimaryWeapon.generated.h"
 
 
-class UBoxComponent;
 class UWeaponAnimDataAsset;
 
 
@@ -21,15 +20,7 @@ public:
     virtual void Tick(float DeltaTime) override;
 
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Body")
-    TObjectPtr<UBoxComponent> CollisionBox;
-    
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Body")
-    TObjectPtr<UStaticMeshComponent> _MagazineSkeletalMesh;
-    
-    
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
-    TObjectPtr<UWeaponAnimDataAsset> AnimationData;
+
 
     
 protected:

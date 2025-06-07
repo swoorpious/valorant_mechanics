@@ -11,6 +11,9 @@
 ATacticalKnife::ATacticalKnife()
 {
     PrimaryActorTick.bCanEverTick = true;
+
+    weaponType = EWeaponType::Melee;
+    weaponPickupType = EWeaponPickupType::NonPickupable;
 }
 
 

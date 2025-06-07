@@ -3,31 +3,36 @@
 
 #include "CommonWeapon.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Components/BoxComponent.h"
+
 
 
 
 // Sets default values
 ACommonWeapon::ACommonWeapon()
 {
-    // Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
     PrimaryActorTick.bCanEverTick = true;
 
-    _WeaponSkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon Skeletal Mesh"));
-    _WeaponSkeletalMesh->CastShadow = false;
-    _WeaponSkeletalMesh->bCastDynamicShadow = false;
+    weaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon Mesh"));
+    weaponMesh->CastShadow = false;
+    weaponMesh->bCastDynamicShadow = false;
+    
+    magazineMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Magazine Mesh"));
+    magazineMesh->SetupAttachment(weaponMesh, magazineMainSocketName);
+    magazineMesh->CastShadow = false;
+    magazineMesh->bCastDynamicShadow = false;
+
+    scopeMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Scope Mesh"));
+    scopeMesh->SetupAttachment(weaponMesh, scopeMainSocketName);
+    scopeMesh->CastShadow = false;
+    scopeMesh->bCastDynamicShadow = false;
+
+    collisionBox = CreateDefaultSubobject<UBoxComponent>(FName("Collision Box"));
+    collisionBox->SetupAttachment(weaponMesh);
+
 }
 
-void ACommonWeapon::Fire()
-{
-}
-
-void ACommonWeapon::Reload()
-{
-}
-
-void ACommonWeapon::Equip(EEquipType EquipType)
-{
-}
 
 // Called when the game starts or when spawned
 void ACommonWeapon::BeginPlay()

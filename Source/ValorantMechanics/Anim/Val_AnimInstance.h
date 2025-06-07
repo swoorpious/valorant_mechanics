@@ -22,6 +22,7 @@ class VALORANTMECHANICS_API UVal_AnimInstance : public UAnimInstance
 public:
 
     
+    
     UFUNCTION(BlueprintCallable, Category = "Animations|Animation Data Assets")
     void UpdateAnimDataAsset(EWeaponType WeaponType, UDataAsset* AnimDataAsset);
     
@@ -30,6 +31,7 @@ public:
     
     
 protected:
+    
     // using TObjectPtr<UDataAsset> because melee and secondary and primary weapons types use subclasses of UDataAsset
     UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Animations|Animation Data Assets", meta=(DisplayName = "Melee Animation Data Asset"))
     TObjectPtr<UDataAsset> meleeAnimDataAsset;

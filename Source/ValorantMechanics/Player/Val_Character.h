@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "ValorantMechanics/Weapons/SharedWeapon.h"
 #include "Val_Character.generated.h"
 
 class UVal_AnimInstance;
@@ -14,6 +15,13 @@ class UCameraComponent;
 class ACommonWeapon;
 class UAnimMontage;
 class UVal_CharacterMovementComponent;
+
+
+
+#define MASTER_SOCKET TEXT("R_WeaponMasterSocket")
+
+
+
 
 UCLASS()
 class VALORANTMECHANICS_API AVal_Character : public ACharacter
@@ -37,7 +45,7 @@ public:
 	TObjectPtr<UVal_InputComponent> valInputComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wushu")
-	TObjectPtr<USceneComponent> SceneComponent;
+	TObjectPtr<USceneComponent> sceneComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Mesh", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USkeletalMeshComponent> characterMesh;
@@ -46,18 +54,21 @@ public:
 	TObjectPtr<UCameraComponent> characterMeshCamera;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equipped Weapons")
-	TSubclassOf<ACommonWeapon> meleeWeaponToEquip = nullptr;
+	TSubclassOf<ACommonWeapon> meleeWeaponToSpawn = nullptr;
 
 	// can be used to spawn with weapons
 	UPROPERTY(EditDefaultsOnly, Category = "Equipped Weapons")
-	TSubclassOf<ACommonWeapon> secondaryWeaponToEquip = nullptr;
+	TSubclassOf<ACommonWeapon> secondaryWeaponToSpawn = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equipped Weapons")
-	TSubclassOf<ACommonWeapon> primaryWeaponToEquip = nullptr;
+	TSubclassOf<ACommonWeapon> primaryWeaponToSpawn = nullptr;
 
 
 	UFUNCTION(BlueprintCallable, Category="Equipped Weapons")
-	ACommonWeapon* SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToEquip, FName socketName, bool isHidden);
+	void SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToSpawn, FName socketName, bool isHidden);
+	
+	UFUNCTION(BlueprintCallable, Category="Equipped Weapons")
+	void EquipWeapon(TSubclassOf<ACommonWeapon> weaponToEquip, FName socketName);
 	
 
 	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -65,21 +76,16 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-
 	
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
-
-private:
 	UPROPERTY()	TObjectPtr<AVal_PlayerController> playerController = nullptr;
 	UPROPERTY()	TObjectPtr<UVal_CharacterMovementComponent> movementComponent = nullptr;
+	UPROPERTY()	TObjectPtr<UVal_AnimInstance> playerAnimInstance = nullptr;
 	
-	UPROPERTY() TObjectPtr<ACommonWeapon> currentEquippedWeapon = nullptr;
-	UPROPERTY() TObjectPtr<ACommonWeapon> meleeWeapon = nullptr;
-	UPROPERTY() TObjectPtr<ACommonWeapon> secondaryWeapon = nullptr;
-	UPROPERTY() TObjectPtr<ACommonWeapon> primaryWeapon = nullptr;
-	
+	UPROPERTY() TObjectPtr<ACommonWeapon> equippedWeaponType = nullptr;
+	UPROPERTY() TMap<EWeaponType, TObjectPtr<ACommonWeapon>> playerInventory;
 	
 	
 	float RunSpeed = 750.0f;

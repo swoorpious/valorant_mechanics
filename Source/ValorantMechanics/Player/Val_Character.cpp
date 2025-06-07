@@ -10,6 +10,7 @@
 #include "Engine/LocalPlayer.h"
 #include "Val_PlayerController.h"
 #include "ValorantMechanics/Input/Val_InputComponent.h"
+#include "ValorantMechanics/Anim/Val_AnimInstance.h"
 
 
 #include "ValorantMechanics/Weapons/CommonWeapon.h"
@@ -24,17 +25,20 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UVal_CharacterMovementComponent
 	
 	RootComponent = GetCapsuleComponent();
 
-	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Scene"));
-	SceneComponent->SetupAttachment(GetCapsuleComponent());
+	sceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Scene"));
+	sceneComponent->SetupAttachment(GetCapsuleComponent());
 	
 	characterMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Character Mesh"));
-	characterMesh->SetupAttachment(SceneComponent);
+	characterMesh->SetupAttachment(sceneComponent);
 	characterMesh->CastShadow = false;
 	characterMesh->bCastDynamicShadow = true;
 	
 	characterMeshCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Character Mesh Camera"));
 	characterMeshCamera->SetupAttachment(characterMesh, TEXT("Camera"));
 	characterMeshCamera->bUsePawnControlRotation = false;
+
+	valInputComponent = CreateDefaultSubobject<UVal_InputComponent>(TEXT("Valorant Input Component"));
+	valInputComponent->SetIsReplicated(true);
 
 	// Wushu_GameplayCaptureCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Wushu_GameplayCaptureCamera"));
 	// Wushu_GameplayCaptureCamera->SetupAttachment(Wushu_Mesh, TEXT("Camera"));
@@ -43,31 +47,39 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UVal_CharacterMovementComponent
 
 	movementComponent = Cast<UVal_CharacterMovementComponent>(GetCharacterMovement());
 	playerController = Cast<AVal_PlayerController>(GetController());
-	valInputComponent = CreateDefaultSubobject<UVal_InputComponent>(TEXT("Valorant Input Component"));
-	valInputComponent->SetIsReplicated(true);
+	playerAnimInstance = Cast<UVal_AnimInstance>(characterMesh->GetAnimInstance());
 	
 
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
+	
 }
 
 
-ACommonWeapon* AVal_Character::SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToEquip, FName socketName, bool isHidden)
+void AVal_Character::SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToSpawn, FName socketName, bool isHidden)
 {
-	if (!weaponToEquip) return nullptr;
+	if (!weaponToSpawn) return;
 
 	UE_LOG(LogTemp, Display, TEXT("SpawnWeapon is spawning weapon"));
-	ACommonWeapon* spawnedWeapon = GetWorld()->SpawnActor<ACommonWeapon>(weaponToEquip);
-	
-	if (spawnedWeapon)
+
+	if (ACommonWeapon* spawnedWeapon = GetWorld()->SpawnActor<ACommonWeapon>(weaponToSpawn))
 	{
 		spawnedWeapon->SetOwner(this);
 		spawnedWeapon->AttachToComponent(characterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, socketName);
 		if (isHidden) spawnedWeapon->SetActorHiddenInGame(true);
-	}
 
-	return spawnedWeapon;
+		EWeaponType type = spawnedWeapon->GetWeaponType();
+		playerInventory.Contains(type) ? playerInventory[type] = spawnedWeapon : playerInventory.Add(type, spawnedWeapon);
+	}
+	
+}
+
+void AVal_Character::EquipWeapon(TSubclassOf<ACommonWeapon> weaponToEquip, FName socketName)
+{
+	if (!playerAnimInstance || !weaponToEquip) return;
+	
+	
 }
 
 
@@ -77,10 +89,11 @@ void AVal_Character::BeginPlay()
 	movementComponent->MaxAcceleration = RegularAcceleration;
 	movementComponent->MaxWalkSpeed = RunSpeed;
 
+
+	if (meleeWeaponToSpawn) SpawnWeapon(meleeWeaponToSpawn, MASTER_SOCKET, secondaryWeaponToSpawn || primaryWeaponToSpawn);
+	if (secondaryWeaponToSpawn) SpawnWeapon(secondaryWeaponToSpawn, MASTER_SOCKET, !secondaryWeaponToSpawn || primaryWeaponToSpawn);
+	if (primaryWeaponToSpawn) SpawnWeapon(primaryWeaponToSpawn, MASTER_SOCKET, !primaryWeaponToSpawn);
 	
-	meleeWeaponToEquip ? meleeWeapon = SpawnWeapon(meleeWeaponToEquip, TEXT("R_WeaponMasterSocket"), false) : meleeWeapon = nullptr;
-	secondaryWeaponToEquip ? secondaryWeapon = SpawnWeapon(secondaryWeaponToEquip, TEXT("R_WeaponMasterSocket"), true) : secondaryWeapon = nullptr;
-	primaryWeaponToEquip ? primaryWeapon = SpawnWeapon(primaryWeaponToEquip, TEXT("R_WeaponMasterSocket"), true) : primaryWeapon = nullptr;
 }
 
 

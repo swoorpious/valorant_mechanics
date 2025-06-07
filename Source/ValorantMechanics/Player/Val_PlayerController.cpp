@@ -56,7 +56,7 @@ void AVal_PlayerController::Tick(float DeltaSeconds)
 
 void AVal_PlayerController::AddLookInput(FVector2D Look) const
 {
-	if (!playerCharacter || !playerCharacter->SceneComponent) return;
+	if (!playerCharacter || !playerCharacter->sceneComponent) return;
 
 	// TODO: implement FOV scaling for ads weapons -> scaleFOV = currentFOV / baseFOV
 	// would use scaleFOV instead later
@@ -69,9 +69,9 @@ void AVal_PlayerController::AddLookInput(FVector2D Look) const
 
 
 	// SceneComponent handles pitch
-	FRotator pitch = playerCharacter->SceneComponent->GetRelativeRotation() + FRotator(Look.Y * (cameraFOV / viewportSize.X), 0, 0);
+	FRotator pitch = playerCharacter->sceneComponent->GetRelativeRotation() + FRotator(Look.Y * (cameraFOV / viewportSize.X), 0, 0);
 	pitch.Pitch = FMath::Clamp(pitch.Pitch, -89.9f, 89.9f);
-	playerCharacter->SceneComponent->SetRelativeRotation(pitch); // update pitch (up/down)
+	playerCharacter->sceneComponent->SetRelativeRotation(pitch); // update pitch (up/down)
 
 }
 

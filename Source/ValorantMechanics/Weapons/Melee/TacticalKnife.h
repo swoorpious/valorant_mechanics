@@ -21,14 +21,9 @@ public:
     ATacticalKnife();
     virtual void Tick(float DeltaTime) override;
 
-    
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
-    TObjectPtr<UMeleeAnimDataAsset> AnimationData;
-
 
 protected:
     virtual void BeginPlay() override;
-
     
     
 };
