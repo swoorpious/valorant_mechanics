@@ -13,13 +13,13 @@ void UVal_AnimInstance::UpdateAnimDataAsset(EWeaponType WeaponType, UDataAsset* 
         switch (WeaponType)
         {
             case EWeaponType::Melee:
-                meleeAnimDataAsset = AnimDataAsset;
+                animAssets.meleeAnimAsset = AnimDataAsset;
                 break;
             case EWeaponType::Primary:
-                secondaryAnimDataAsset = AnimDataAsset;
+                animAssets.secondaryAnimAsset = AnimDataAsset;
                 break;
             case EWeaponType::Secondary:
-                primaryAnimDataAsset = AnimDataAsset;
+                animAssets.primaryAnimAsset = AnimDataAsset;
                 break;
             default: break;
         }
@@ -33,15 +33,15 @@ void UVal_AnimInstance::UpdateCurrentWeapon(EWeaponType WeaponType)
     {
         case EWeaponType::Melee:
             currentWeaponType = EWeaponType::Melee;
-            currentAnimDataAsset = meleeAnimDataAsset;
+            animAssets.currentAnimDataAsset = animAssets.meleeAnimAsset;
             break;
         case EWeaponType::Primary:
             currentWeaponType = EWeaponType::Primary;
-            currentAnimDataAsset = primaryAnimDataAsset;
+            animAssets.currentAnimDataAsset = animAssets.primaryAnimAsset;
             break;
         case EWeaponType::Secondary:
             currentWeaponType = EWeaponType::Secondary;
-            currentAnimDataAsset = secondaryAnimDataAsset;
+            animAssets.currentAnimDataAsset = animAssets.secondaryAnimAsset;
             break;
         default: break;
     }

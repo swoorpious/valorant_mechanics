@@ -14,7 +14,7 @@
 
 
 #include "ValorantMechanics/Weapons/CommonWeapon.h"
-#include "GameFramework/CharacterMovementComponent.h"
+// #include "GameFramework/CharacterMovementComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
 
@@ -70,10 +70,8 @@ void AVal_Character::SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToSpawn, FName
 		spawnedWeapon->AttachToComponent(characterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, socketName);
 		spawnedWeapon->SetActorHiddenInGame(true); // hidden by default, EquipWeapon(...) will unhide 
 
-		EWeaponType type = spawnedWeapon->GetWeaponType();
-		if (playerInventory.HasWeapon(type)) playerInventory.UpdateInventoryWeapon(spawnedWeapon);
+		playerInventory.UpdateInventoryWeapon(spawnedWeapon);
 		if (shouldAutoEquip) this->EquipWeapon(spawnedWeapon);
-
 		
 	}
 	
@@ -81,9 +79,13 @@ void AVal_Character::SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToSpawn, FName
 
 void AVal_Character::EquipWeapon(ACommonWeapon* weaponToEquip)
 {
-	if (!playerAnimInstance || !weaponToEquip) return;
-	
-	
+	EWeaponType weaponType = weaponToEquip->GetWeaponType();
+	if (!playerAnimInstance || !playerInventory.HasWeapon(weaponType)) return;
+
+	// could be done better with delegates lmao
+	// TODO: implement delegates instead of functions
+	playerAnimInstance->UpdateAnimDataAsset(weaponType, weaponToEquip->GetAnimAsset());
+	playerAnimInstance->UpdateCurrentWeapon(weaponType);
 }
 
 
@@ -124,11 +126,13 @@ void AVal_Character::Landed(const FHitResult& Hit)
 	// UE_LOG(LogTemp, Warning, TEXT("Landed")); 
 }
 
+
 void AVal_Character::Walk()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Walking"));
 	movementComponent->MaxWalkSpeed = WalkSpeed;
 }
+
 
 void AVal_Character::Unwalk() 
 {
@@ -174,6 +178,8 @@ void AVal_Character::Tick(float DeltaTime)
 #pragma endregion
 	
 }
+
+
 
 void AVal_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {

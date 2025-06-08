@@ -10,6 +10,27 @@
 #include "Val_AnimInstance.generated.h"
 
 
+USTRUCT(BlueprintType)
+struct FAnimAssets
+{
+    GENERATED_BODY()
+    
+    // using TObjectPtr<UDataAsset> because melee and secondary and primary weapons types use subclasses of UDataAsset
+    UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Animations|Animation Data Assets", meta=(DisplayName = "Melee Animation Data Asset"))
+    TObjectPtr<UDataAsset> meleeAnimAsset;
+
+    UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Animations|Animation Data Assets", meta=(DisplayName = "Secondary Animation Data Asset"))
+    TObjectPtr<UDataAsset> secondaryAnimAsset;
+
+    UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Animations|Animation Data Assets", meta=(DisplayName = "Primary Animation Data Asset"))
+    TObjectPtr<UDataAsset> primaryAnimAsset;
+
+
+    
+    UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Animations", meta=(DisplayName = "Current Animation Data Asset"))
+    TObjectPtr<UDataAsset> currentAnimDataAsset;
+};
+
 
 /**
  * 
@@ -32,22 +53,12 @@ public:
     
 protected:
     
-    // using TObjectPtr<UDataAsset> because melee and secondary and primary weapons types use subclasses of UDataAsset
-    UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Animations|Animation Data Assets", meta=(DisplayName = "Melee Animation Data Asset"))
-    TObjectPtr<UDataAsset> meleeAnimDataAsset;
-
-    UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Animations|Animation Data Assets", meta=(DisplayName = "Secondary Animation Data Asset"))
-    TObjectPtr<UDataAsset> secondaryAnimDataAsset;
-
-    UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Animations|Animation Data Assets", meta=(DisplayName = "Primary Animation Data Asset"))
-    TObjectPtr<UDataAsset> primaryAnimDataAsset;
 
     UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Weapon")
     EWeaponType currentWeaponType;
 
-    UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Animations", meta=(DisplayName = "Current Animation Data Asset"))
-    TObjectPtr<UDataAsset> currentAnimDataAsset;
-
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animations" )
+    FAnimAssets animAssets;
     
 
     
