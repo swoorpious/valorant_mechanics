@@ -118,7 +118,7 @@ public:
     UVal_InputComponent();
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-#pragma region DEINFE INPUT ACTIONS
+#pragma region INPUT ACTIONS
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Input")
     FPlayerInputActions playerActions;
@@ -133,7 +133,7 @@ public:
     FMappingContexts mappingContexts;
 
     
-#pragma endregion
+#pragma endregion INPUT ACTIONS
 
 
     void SetMappingContexts(AVal_PlayerController* classObject, TObjectPtr<UInputComponent> inputComponent);

@@ -61,6 +61,8 @@ class VALORANTMECHANICS_API AVal_Character : public ACharacter
 
 public:
 	explicit AVal_Character(const FObjectInitializer& ObjectInitializer);
+	UVal_InputComponent* GetValInputComponent() { return valInputComponent; }
+	
 
 	bool isJumping = false;
 	bool isLanded = false;
@@ -99,7 +101,7 @@ public:
 	void SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToSpawn, FName socketName, bool shouldAutoEquip);
 	
 	UFUNCTION(BlueprintCallable, Category="Equipped Weapons")
-	void EquipWeapon(ACommonWeapon* weaponToEquip);
+	void EquipWeapon(ACommonWeapon* weapon);
 
 protected:
 	virtual void BeginPlay() override;

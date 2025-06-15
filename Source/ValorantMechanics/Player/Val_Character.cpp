@@ -77,15 +77,18 @@ void AVal_Character::SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToSpawn, FName
 	
 }
 
-void AVal_Character::EquipWeapon(ACommonWeapon* weaponToEquip)
+void AVal_Character::EquipWeapon(ACommonWeapon* weapon)
 {
-	EWeaponType weaponType = weaponToEquip->GetWeaponType();
+	EWeaponType weaponType = weapon->GetWeaponType();
 	if (!playerAnimInstance || !playerInventory.HasWeapon(weaponType)) return;
 
 	// could be done better with delegates lmao
 	// TODO: implement delegates instead of functions
-	playerAnimInstance->UpdateAnimDataAsset(weaponType, weaponToEquip->GetAnimAsset());
+	playerAnimInstance->UpdateAnimDataAsset(weaponType, weapon->GetAnimAsset());
 	playerAnimInstance->UpdateCurrentWeapon(weaponType);
+
+	// TODO: hide other actors
+	weapon->SetActorHiddenInGame(false);
 }
 
 

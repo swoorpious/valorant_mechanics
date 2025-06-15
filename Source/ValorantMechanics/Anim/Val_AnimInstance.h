@@ -43,7 +43,9 @@ class VALORANTMECHANICS_API UVal_AnimInstance : public UAnimInstance
 public:
 
     
-    
+
+    // no idea why these functions are UFUNCTION
+    // i don't know if i plan to use them in bp
     UFUNCTION(BlueprintCallable, Category = "Animations|Animation Data Assets")
     void UpdateAnimDataAsset(EWeaponType WeaponType, UDataAsset* AnimDataAsset);
     
