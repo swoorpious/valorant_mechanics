@@ -44,8 +44,9 @@ public:
 	// use UpdateInventoryWeapon to add/update inventory slots
 	void UpdateCurrentWeapon(EWeaponType weaponType);
 	
-	TObjectPtr<ACommonWeapon> GetInventoryWeapon(EWeaponType weaponType) const;
-	TObjectPtr<ACommonWeapon> GetCurrentWeapon() const;
+	TObjectPtr<ACommonWeapon> GetWeaponByType(EWeaponType weaponType) const;
+	
+	TObjectPtr<ACommonWeapon> GetCurrentWeapon() const { return this->GetWeaponByType(equippedWeaponType); }
 	TMap<EWeaponType, TObjectPtr<ACommonWeapon>> GetInventory() const { return inventoryMap; }
 	
 	bool HasWeapon(EWeaponType weaponType) const { return inventoryMap.FindRef(weaponType) != nullptr; } 

@@ -86,9 +86,16 @@ void AVal_Character::EquipWeapon(ACommonWeapon* weapon)
 	// TODO: implement delegates instead of functions
 	playerAnimInstance->UpdateAnimDataAsset(weaponType, weapon->GetAnimAsset());
 	playerAnimInstance->UpdateCurrentWeapon(weaponType);
+	
+	playerInventory.UpdateCurrentWeapon(weaponType);
 
-	// TODO: hide other actors
-	weapon->SetActorHiddenInGame(false);
+	for (const auto& pair : playerInventory.GetInventory())
+	{
+		if (ACommonWeapon* e = pair.Value)
+		{
+			e->SetActorHiddenInGame(pair.Key != weaponType);
+		}
+	}
 }
 
 
@@ -194,6 +201,7 @@ void AVal_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 #pragma region Inventory Implementation
 void FPlayerInventory::UpdateInventoryWeapon(TObjectPtr<ACommonWeapon> weapon)
 {
+	// this definition is defined in .cpp due to ACommonWeapon being incomplete
 	EWeaponType weaponType = weapon->GetWeaponType();
 	if (!weapon || weaponType == EWeaponType::Empty) return;
 	this->HasWeapon(weaponType) ?
@@ -208,16 +216,11 @@ void FPlayerInventory::UpdateCurrentWeapon(EWeaponType weaponType)
 }
 
 
-TObjectPtr<ACommonWeapon> FPlayerInventory::GetInventoryWeapon(EWeaponType weaponType) const
-{
-	if (!this->HasWeapon(weaponType)) return nullptr;
-	return inventoryMap[weaponType];
-}
 
-TObjectPtr<ACommonWeapon> FPlayerInventory::GetCurrentWeapon() const
+TObjectPtr<ACommonWeapon> FPlayerInventory::GetWeaponByType(EWeaponType weaponType) const
 {
-	if (equippedWeaponType == EWeaponType::Empty) return nullptr;
-	return inventoryMap[equippedWeaponType];
+	if (weaponType == EWeaponType::Empty || !this->HasWeapon(weaponType)) return nullptr;
+	return inventoryMap[weaponType];
 }
 #pragma endregion Inventory Implementation
 
