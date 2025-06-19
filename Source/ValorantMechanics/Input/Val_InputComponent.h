@@ -109,6 +109,15 @@ struct FMappingContexts
 };
 
 
+struct InputMap
+{
+    bool W = false; 
+    bool A = false; 
+    bool S = false; 
+    bool D = false; 
+};
+
+
 UCLASS(ClassGroup=(Input), meta=(BlueprintSpawnableComponent))
 class VALORANTMECHANICS_API UVal_InputComponent : public UActorComponent
 {
@@ -136,15 +145,35 @@ public:
 #pragma endregion INPUT ACTIONS
 
 
+    // returns look vector (mouse movement) in previous tick
+	FVector2d GetLastLookVector() const { return lastLookVector; }
+
+    // returns true if there is any movement that is not cancelled by the opposite direction
+	FORCEINLINE bool HasMovementInput() const { return inputMap.W ^ inputMap.S || inputMap.A ^ inputMap.D; }
+    
+    // adds input in both axes separately
+    // ActionA and ActionD cancel out each other, similarly ActionW and ActionS
+    FORCEINLINE virtual FVector2d GetAdditiveMovementInput() const
+    {
+        const double x = inputMap.A * -1 + inputMap.D * 1;
+        const double y = inputMap.W * 1 + inputMap.S * -1;
+        return FVector2d(x, y);
+    }
+    
     void SetMappingContexts(AVal_PlayerController* classObject, TObjectPtr<UInputComponent> inputComponent);
     void SetInputActions(AVal_PlayerController* classObject);
-    
+
+    virtual void HandleLookInput(const FInputActionInstance& InputActionInstance);
+    virtual void HandleMoveInput(const FInputActionInstance& InputActionInstance);
     
     
 protected:
     virtual void BeginPlay() override;
 	UPROPERTY() TObjectPtr<UEnhancedInputComponent> enhancedInputComponent = nullptr;
-	
+	UPROPERTY() TObjectPtr<AVal_PlayerController> playerController = nullptr;
+
+    FVector2D lastLookVector;
+    InputMap inputMap;
     
 };
 

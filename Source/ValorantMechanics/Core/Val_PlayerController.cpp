@@ -14,41 +14,6 @@ void AVal_PlayerController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	
-	if (HasMovementInput()) {
-		FVector2d moveVector = GetAdditiveMovementInput();
-		constexpr float minThreshold = 0.05f;
-		constexpr float maxScale = 10.0f;
-
-		
-		// strafe reduction	
-		if (FMath::Abs(lastLookVector.X) > minThreshold)
-		{
-			float scaleFactor = FMath::Clamp(
-				1.0f / FMath::Pow(FMath::Abs(lastLookVector.X), 0.5f), 
-				1.0f / maxScale,
-				maxScale
-			);
-    
-			moveVector.X *= scaleFactor;
-		}
-
-		if (FMath::Abs(lastLookVector.Y) > minThreshold)
-		{
-			float scaleFactor = FMath::Clamp(
-				1.0f / FMath::Pow(FMath::Abs(lastLookVector.Y), 0.5f), 
-				1.0f / maxScale,
-				maxScale
-			);
-    
-			moveVector.Y *= scaleFactor;
-		}
-		
-		const FVector WorldVector = playerCharacter->GetActorRightVector() * moveVector.X + playerCharacter->GetActorForwardVector() * moveVector.Y;
-		playerCharacter->AddMovementInput(WorldVector.GetSafeNormal(), 1.0f);
-	}
-	
-
 }
 
 
@@ -76,43 +41,44 @@ void AVal_PlayerController::AddLookInput(FVector2D Look) const
 }
 
 
-void AVal_PlayerController::PlayerLook(const FInputActionInstance& InputActionInstance)
+
+void AVal_PlayerController::PlayerMove() const
 {
-	const FInputActionValue& InputActionValue = InputActionInstance.GetValue();
-	const FVector2D LookAxisVector = InputActionValue.Get<FVector2D>();
-	lastLookVector = LookAxisVector;
+	if (!valInputComponent->HasMovementInput()) return;
 	
-	AddLookInput(LookAxisVector * Sensitivity); 
 
-	/*
-	 * x -> yaw
-	 * y -> pitch
-	 */
-}
+	FVector2d moveVector = valInputComponent->GetAdditiveMovementInput();
+	constexpr float minThreshold = 0.05f;
+	constexpr float maxScale = 10.0f;
 
-
-void AVal_PlayerController::PlayerMove(const FInputActionInstance& InputActionInstance)
-{
-	const UInputAction* actionSource = InputActionInstance.GetSourceAction();
-	const ETriggerEvent actionTrigger = InputActionInstance.GetTriggerEvent();
-
-	const FString actionName = actionSource->GetName();
-
-	
-	if (actionTrigger == ETriggerEvent::Triggered)
+		
+	// strafe reduction	
+	if (FMath::Abs(valInputComponent->GetLastLookVector().X) > minThreshold)
 	{
-		     if (actionName == "VIA_Move_W") isAction_Move_W = true;
-		else if (actionName == "VIA_Move_A") isAction_Move_A = true;
-		else if (actionName == "VIA_Move_D") isAction_Move_D = true;
-		else if (actionName == "VIA_Move_S") isAction_Move_S = true;
+		float scaleFactor = FMath::Clamp(
+			1.0f / FMath::Pow(FMath::Abs(valInputComponent->GetLastLookVector().X), 0.5f), 
+			1.0f / maxScale,
+			maxScale
+		);
+    
+		moveVector.X *= scaleFactor;
 	}
-	else if (actionTrigger == ETriggerEvent::Canceled || actionTrigger == ETriggerEvent::Completed)
+
+	if (FMath::Abs(valInputComponent->GetLastLookVector().Y) > minThreshold)
 	{
-		     if (actionName == "VIA_Move_W") isAction_Move_W = false;
-		else if (actionName == "VIA_Move_A") isAction_Move_A = false;
-		else if (actionName == "VIA_Move_D") isAction_Move_D = false;
-		else if (actionName == "VIA_Move_S") isAction_Move_S = false;
+		float scaleFactor = FMath::Clamp(
+			1.0f / FMath::Pow(FMath::Abs(valInputComponent->GetLastLookVector().Y), 0.5f), 
+			1.0f / maxScale,
+			maxScale
+		);
+    
+		moveVector.Y *= scaleFactor;
 	}
+		
+	const FVector WorldVector = playerCharacter->GetActorRightVector() * moveVector.X +
+		playerCharacter->GetActorForwardVector() * moveVector.Y;
+		
+	playerCharacter->AddMovementInput(WorldVector.GetSafeNormal(), 1.0f);
 	
 }
 

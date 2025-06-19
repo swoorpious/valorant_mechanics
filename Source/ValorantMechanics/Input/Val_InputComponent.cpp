@@ -2,7 +2,10 @@
 
 
 #include "Val_InputComponent.h"
-#include "ValorantMechanics/Player/Val_PlayerController.h"
+
+#include "ValorantMechanics/Core/Val_Character.h"
+#include "ValorantMechanics/Core/Val_PlayerController.h"
+
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 
@@ -15,6 +18,11 @@ UVal_InputComponent::UVal_InputComponent()
 
 void UVal_InputComponent::SetMappingContexts(AVal_PlayerController* classObject, TObjectPtr<UInputComponent> inputComponent)
 {
+
+	if (AVal_Character* const e = Cast<AVal_Character>(GetOwner()))
+	{
+		playerController = e->GetValPlayerController();
+	}
 	
     enhancedInputComponent = Cast<UEnhancedInputComponent>(inputComponent);
     checkf(enhancedInputComponent, TEXT("Unable to get a reference to EnhancedInputComponent."));
@@ -48,17 +56,17 @@ void UVal_InputComponent::SetInputActions(AVal_PlayerController* classObject)
 		ETriggerEvent::Completed,
 	};
 
-	for (ETriggerEvent e : events1)
+	for (ETriggerEvent const e : events1)
 	{
-		enhancedInputComponent->BindAction(playerActions.Action_Move_W, e, classObject, &AVal_PlayerController::PlayerMove); 
-		enhancedInputComponent->BindAction(playerActions.Action_Move_A, e, classObject, &AVal_PlayerController::PlayerMove); 
-		enhancedInputComponent->BindAction(playerActions.Action_Move_D, e, classObject, &AVal_PlayerController::PlayerMove); 
-		enhancedInputComponent->BindAction(playerActions.Action_Move_S, e, classObject, &AVal_PlayerController::PlayerMove);
+		enhancedInputComponent->BindAction(playerActions.Action_Move_W, e, this, &UVal_InputComponent::HandleMoveInput); 
+		enhancedInputComponent->BindAction(playerActions.Action_Move_A, e, this, &UVal_InputComponent::HandleMoveInput); 
+		enhancedInputComponent->BindAction(playerActions.Action_Move_D, e, this, &UVal_InputComponent::HandleMoveInput); 
+		enhancedInputComponent->BindAction(playerActions.Action_Move_S, e, this, &UVal_InputComponent::HandleMoveInput);
 		
-		enhancedInputComponent->BindAction(playerActions.Action_Look, e, classObject, &AVal_PlayerController::PlayerLook); 
+		enhancedInputComponent->BindAction(playerActions.Action_Look, e, this, &UVal_InputComponent::HandleLookInput); 
 	}
 
-	for (ETriggerEvent e : events2)
+	for (ETriggerEvent const e : events2)
 	{
 		enhancedInputComponent->BindAction(playerActions.Action_Jump, e, classObject, &AVal_PlayerController::PlayerJump); 
 		enhancedInputComponent->BindAction(playerActions.Action_Crouch, e, classObject, &AVal_PlayerController::PlayerCrouch); 
@@ -68,6 +76,43 @@ void UVal_InputComponent::SetInputActions(AVal_PlayerController* classObject)
 
 	enhancedInputComponent->BindAction(playerActions.Action_Use, ETriggerEvent::Started, classObject, &AVal_PlayerController::PlayerUse);
     
+}
+
+
+void UVal_InputComponent::HandleLookInput(const FInputActionInstance& InputActionInstance)
+{
+	const FInputActionValue& InputActionValue = InputActionInstance.GetValue();
+	const FVector2D LookAxisVector = InputActionValue.Get<FVector2D>();
+	lastLookVector = LookAxisVector;
+
+	playerController->PlayerLook(LookAxisVector);
+}
+
+
+void UVal_InputComponent::HandleMoveInput(const FInputActionInstance& InputActionInstance)
+{
+	const UInputAction* actionSource = InputActionInstance.GetSourceAction();
+	const ETriggerEvent actionTrigger = InputActionInstance.GetTriggerEvent();
+
+	const FString actionName = actionSource->GetName();
+
+	
+	if (actionTrigger == ETriggerEvent::Triggered)
+	{
+			 if (actionName == "VIA_Move_W") inputMap.W = true;
+		else if (actionName == "VIA_Move_A") inputMap.A = true;
+		else if (actionName == "VIA_Move_D") inputMap.D = true;
+		else if (actionName == "VIA_Move_S") inputMap.S = true;
+
+		playerController->PlayerMove();
+	}
+	else if (actionTrigger == ETriggerEvent::Canceled || actionTrigger == ETriggerEvent::Completed)
+	{
+			 if (actionName == "VIA_Move_W") inputMap.W = false;
+		else if (actionName == "VIA_Move_A") inputMap.A = false;
+		else if (actionName == "VIA_Move_D") inputMap.D = false;
+		else if (actionName == "VIA_Move_S") inputMap.S = false;
+	}
 }
 
 

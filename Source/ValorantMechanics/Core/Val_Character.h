@@ -3,13 +3,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
+// #include "Val_CharacterMovementComponent.h"
 #include "GameFramework/Character.h"
 #include "ValorantMechanics/Weapons/SharedWeapon.h"
+#include "Val_PlayerInterface.h"
 #include "Val_Character.generated.h"
 
+
+// forward declarations
 class UVal_AnimInstance;
 class UVal_InputComponent;
-class AVal_PlayerController;
 class USkeletalMeshComponent;
 class UCameraComponent;
 class ACommonWeapon;
@@ -46,8 +49,8 @@ public:
 	
 	TObjectPtr<ACommonWeapon> GetWeaponByType(EWeaponType weaponType) const;
 	
-	TObjectPtr<ACommonWeapon> GetCurrentWeapon() const { return this->GetWeaponByType(equippedWeaponType); }
-	TMap<EWeaponType, TObjectPtr<ACommonWeapon>> GetInventory() const { return inventoryMap; }
+	FORCEINLINE TObjectPtr<ACommonWeapon> GetCurrentWeapon() const { return this->GetWeaponByType(equippedWeaponType); }
+	FORCEINLINE TMap<EWeaponType, TObjectPtr<ACommonWeapon>> GetInventory() const { return inventoryMap; }
 	
 	bool HasWeapon(EWeaponType weaponType) const { return inventoryMap.FindRef(weaponType) != nullptr; } 
 };
@@ -56,14 +59,20 @@ public:
 
 
 UCLASS()
-class VALORANTMECHANICS_API AVal_Character : public ACharacter
+class VALORANTMECHANICS_API AVal_Character : public ACharacter, public IVal_PlayerInterface
 {
 	GENERATED_BODY()
 
 public:
 	explicit AVal_Character(const FObjectInitializer& ObjectInitializer);
-	UVal_InputComponent* GetValInputComponent() { return valInputComponent; }
-	
+
+	// getter functions defined from IVal_PlayerInterface
+	virtual AVal_PlayerController* GetValPlayerController() override;
+	virtual AVal_Character* GetValCharacter() override;
+	virtual UVal_CharacterMovementComponent* GetValMovementComponent() override;
+	virtual UVal_AnimInstance* GetValAnimInstance() override;
+	virtual UVal_InputComponent* GetValInputComponent() override;
+
 
 	bool isJumping = false;
 	bool isLanded = false;
@@ -75,33 +84,36 @@ public:
 	void Unwalk();
 
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Input")
 	TObjectPtr<UVal_InputComponent> valInputComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wushu")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valorant Character|Character Setup|Scene")
 	TObjectPtr<USceneComponent> sceneComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Mesh", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Valorant Character|Character Setup|Scene|Mesh", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USkeletalMeshComponent> characterMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Valorant Character|Character Setup|Scene|Mesh|Camera", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> characterMeshCamera;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Equipped Weapons")
+	
+	
+	// can be used to spawn with weapons
+	UPROPERTY(EditDefaultsOnly, Category = "Spawn Properties|Equipped Weapons")
 	TSubclassOf<ACommonWeapon> meleeWeaponToSpawn = nullptr;
 
-	// can be used to spawn with weapons
-	UPROPERTY(EditDefaultsOnly, Category = "Equipped Weapons")
+	UPROPERTY(EditDefaultsOnly, Category = "Spawn Properties|Equipped Weapons")
 	TSubclassOf<ACommonWeapon> secondaryWeaponToSpawn = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Equipped Weapons")
+	UPROPERTY(EditDefaultsOnly, Category = "Spawn Properties|Equipped Weapons")
 	TSubclassOf<ACommonWeapon> primaryWeaponToSpawn = nullptr;
 
+	
 
-	UFUNCTION(BlueprintCallable, Category="Equipped Weapons")
+	UFUNCTION(BlueprintCallable, Category="Core")
 	void SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToSpawn, FName socketName, bool shouldAutoEquip);
 	
-	UFUNCTION(BlueprintCallable, Category="Equipped Weapons")
+	UFUNCTION(BlueprintCallable, Category="Core")
 	void EquipWeapon(ACommonWeapon* weapon);
 
 protected:
@@ -110,25 +122,16 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
-	UPROPERTY()	TObjectPtr<AVal_PlayerController> playerController = nullptr;
+	// caching for some reason
 	UPROPERTY()	TObjectPtr<UVal_CharacterMovementComponent> movementComponent = nullptr;
 	UPROPERTY()	TObjectPtr<UVal_AnimInstance> playerAnimInstance = nullptr;
 	
 	UPROPERTY() FPlayerInventory playerInventory;
 
 	
-	float RunSpeed = 750.0f;
-	float WalkSpeed = 400.0f;
-	float RegularAcceleration = 3072.0f;
 
-	// jump
 	float TimeSinceLanded = 0.0f;
-	float BunnyHopTimeThreshold = 0.08f;
-	float AfterJumpWalkSpeed = 300.0f; // could be 150.0f
-	float JumpStunDuration = 0.2f;
-	float WhileJumpingMovementAcceleration = 1024.0f;
-	float WhileJumpingWalkSpeed = 150.0f;
-
+	
 };
 
 

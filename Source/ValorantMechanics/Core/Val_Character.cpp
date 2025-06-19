@@ -2,13 +2,12 @@
 
 
 #include "Val_Character.h"
-
+#include "Val_PlayerController.h"
 #include "Val_CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/LocalPlayer.h"
-#include "Val_PlayerController.h"
 #include "ValorantMechanics/Input/Val_InputComponent.h"
 #include "ValorantMechanics/Anim/Val_AnimInstance.h"
 
@@ -44,17 +43,16 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UVal_CharacterMovementComponent
 	// Wushu_GameplayCaptureCamera->SetupAttachment(Wushu_Mesh, TEXT("Camera"));
 	// // Wushu_GameplayCaptureCamera->AttachToComponent(Wushu_Mesh, FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("Camera"));
 	// Wushu_GameplayCaptureCamera->bUsePawnControlRotation = true;
-
-	movementComponent = Cast<UVal_CharacterMovementComponent>(GetCharacterMovement());
-	playerController = Cast<AVal_PlayerController>(GetController());
-	playerAnimInstance = Cast<UVal_AnimInstance>(characterMesh->GetAnimInstance());
 	
 
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
+
+	bReplicates = true;
 	
 }
+
 
 
 // TODO: make common list for socket names, and remove @param socketName
@@ -102,13 +100,14 @@ void AVal_Character::EquipWeapon(ACommonWeapon* weapon)
 void AVal_Character::BeginPlay()
 {
 	Super::BeginPlay();
-	movementComponent->MaxAcceleration = RegularAcceleration;
-	movementComponent->MaxWalkSpeed = RunSpeed;
 
+	movementComponent = GetValMovementComponent();
+	playerAnimInstance = GetValAnimInstance();
+	
 
-	if (meleeWeaponToSpawn) SpawnWeapon(meleeWeaponToSpawn, MASTER_SOCKET, secondaryWeaponToSpawn || primaryWeaponToSpawn);
-	if (secondaryWeaponToSpawn) SpawnWeapon(secondaryWeaponToSpawn, MASTER_SOCKET, !secondaryWeaponToSpawn || primaryWeaponToSpawn);
-	if (primaryWeaponToSpawn) SpawnWeapon(primaryWeaponToSpawn, MASTER_SOCKET, !primaryWeaponToSpawn);
+	if (meleeWeaponToSpawn) SpawnWeapon(meleeWeaponToSpawn, MASTER_SOCKET, !secondaryWeaponToSpawn && !primaryWeaponToSpawn);
+	if (secondaryWeaponToSpawn) SpawnWeapon(secondaryWeaponToSpawn, MASTER_SOCKET, !primaryWeaponToSpawn);
+	if (primaryWeaponToSpawn) SpawnWeapon(primaryWeaponToSpawn, MASTER_SOCKET, true);
 	
 }
 
@@ -120,7 +119,6 @@ void AVal_Character::Jump()
 	isLanded = false;
 	isJumping = true;
 	
-	if (TimeSinceLanded < BunnyHopTimeThreshold) TimeSinceLanded = 0.0f;
 
 	// movementComponent->MaxAcceleration = WhileJumpingMovementAcceleration;
 	// movementComponent->MaxWalkSpeed = WhileJumpingWalkSpeed;
@@ -140,14 +138,12 @@ void AVal_Character::Landed(const FHitResult& Hit)
 void AVal_Character::Walk()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Walking"));
-	movementComponent->MaxWalkSpeed = WalkSpeed;
 }
 
 
 void AVal_Character::Unwalk() 
 {
 	UE_LOG(LogTemp, Warning, TEXT("Unwalking"));
-	movementComponent->MaxWalkSpeed = RunSpeed;
 }
 
 
@@ -199,6 +195,7 @@ void AVal_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 
 #pragma region Inventory Implementation
+
 void FPlayerInventory::UpdateInventoryWeapon(TObjectPtr<ACommonWeapon> weapon)
 {
 	// this definition is defined in .cpp due to ACommonWeapon being incomplete
@@ -222,5 +219,21 @@ TObjectPtr<ACommonWeapon> FPlayerInventory::GetWeaponByType(EWeaponType weaponTy
 	if (weaponType == EWeaponType::Empty || !this->HasWeapon(weaponType)) return nullptr;
 	return inventoryMap[weaponType];
 }
+
 #pragma endregion Inventory Implementation
 
+
+
+#pragma region Local Player Interface Definitions
+
+AVal_PlayerController* AVal_Character::GetValPlayerController() { return CastChecked<AVal_PlayerController>(GetController()); }
+
+AVal_Character* AVal_Character::GetValCharacter() { return this; }
+
+UVal_CharacterMovementComponent* AVal_Character::GetValMovementComponent() { return CastChecked<UVal_CharacterMovementComponent>(GetCharacterMovement()); }
+
+UVal_AnimInstance* AVal_Character::GetValAnimInstance() { return CastChecked<UVal_AnimInstance>(characterMesh->GetAnimInstance()); }
+
+UVal_InputComponent* AVal_Character::GetValInputComponent() { return valInputComponent ? valInputComponent : nullptr; }
+
+#pragma endregion Local Player Interface Definitions
