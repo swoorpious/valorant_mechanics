@@ -124,8 +124,11 @@ public:
 	// virtual void OnLanded(/* add hit target @params in future */); 
 
 
-	UPROPERTY()	FPlayerMovementProperties movementProperties;
-	UPROPERTY()	FPlayerAirMovementProperties airMovementProperties;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties")
+	FPlayerMovementProperties movementProperties;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties")
+	FPlayerAirMovementProperties airMovementProperties;
 	
 
 	FORCEINLINE void SetMoveVector(FVector2d const inMoveVector) { this->moveVector = inMoveVector; }
