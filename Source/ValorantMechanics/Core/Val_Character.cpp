@@ -66,7 +66,9 @@ void AVal_Character::SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToSpawn, FName
 	{
 		spawnedWeapon->SetOwner(this);
 		spawnedWeapon->AttachToComponent(characterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, socketName);
-		spawnedWeapon->SetActorHiddenInGame(true); // hidden by default, EquipWeapon(...) will unhide 
+		spawnedWeapon->SetActorHiddenInGame(true); // hidden by default, EquipWeapon(...) will unhide
+		playerAnimInstance->UpdateAnimDataAsset(spawnedWeapon->GetWeaponType(), spawnedWeapon->GetAnimAsset());
+		
 
 		playerInventory.UpdateInventoryWeapon(spawnedWeapon);
 		if (shouldAutoEquip) this->EquipWeapon(spawnedWeapon);
@@ -77,12 +79,9 @@ void AVal_Character::SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToSpawn, FName
 
 void AVal_Character::EquipWeapon(ACommonWeapon* weapon)
 {
-	EWeaponType weaponType = weapon->GetWeaponType();
+	const EWeaponType weaponType = weapon->GetWeaponType();
 	if (!playerAnimInstance || !playerInventory.HasWeapon(weaponType)) return;
 
-	// could be done better with delegates lmao
-	// TODO: implement delegates instead of functions
-	playerAnimInstance->UpdateAnimDataAsset(weaponType, weapon->GetAnimAsset());
 	playerAnimInstance->UpdateCurrentWeapon(weaponType);
 	
 	playerInventory.UpdateCurrentWeapon(weaponType);
@@ -100,6 +99,7 @@ void AVal_Character::EquipWeapon(ACommonWeapon* weapon)
 void AVal_Character::BeginPlay()
 {
 	Super::BeginPlay();
+
 
 	movementComponent = GetValMovementComponent();
 	playerAnimInstance = GetValAnimInstance();

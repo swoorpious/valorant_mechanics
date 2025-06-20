@@ -3,21 +3,22 @@
 #pragma once
 
 #include "CoreMinimal.h"
-// #include "Val_CharacterMovementComponent.h"
+
+#include "Shared/Val_PlayerInterface.h"
+#include "Shared/Val_PlayerDelegates.h"
+
 #include "GameFramework/Character.h"
-#include "ValorantMechanics/Weapons/SharedWeapon.h"
-#include "Val_PlayerInterface.h"
 #include "Val_Character.generated.h"
 
 
 // forward declarations
 class UVal_AnimInstance;
 class UVal_InputComponent;
+class UVal_CharacterMovementComponent;
+
 class USkeletalMeshComponent;
 class UCameraComponent;
 class ACommonWeapon;
-class UAnimMontage;
-class UVal_CharacterMovementComponent;
 
 
 
@@ -76,12 +77,25 @@ public:
 
 	bool isJumping = false;
 	bool isLanded = false;
+
 	
-	
-	virtual void Jump() override;
-	virtual void Landed(const FHitResult& Hit) override;
-	void Walk();
-	void Unwalk();
+	UPROPERTY(BlueprintAssignable)
+	OnWeaponDrop onWeaponDrop;
+
+	UPROPERTY(BlueprintAssignable)
+	OnWeaponEquip onWeaponEquip;
+
+	UPROPERTY(BlueprintAssignable)
+	OnWeaponSpawn onWeaponSpawn;
+
+	UPROPERTY(BlueprintAssignable)
+	TryWeaponEquip tryWeaponEquip;
+
+	UPROPERTY(BlueprintAssignable)
+	TryWeaponDrop tryWeaponDrop;
+
+	UPROPERTY(BlueprintAssignable)
+	TryWeaponSpawn tryWeaponSpawn;
 
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Input")
@@ -110,12 +124,18 @@ public:
 
 	
 
-	UFUNCTION(BlueprintCallable, Category="Core")
-	void SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToSpawn, FName socketName, bool shouldAutoEquip);
+	virtual void Jump() override;
+	virtual void Landed(const FHitResult& Hit) override;
 	
-	UFUNCTION(BlueprintCallable, Category="Core")
+	void Walk();
+	void Unwalk();
+	void SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToSpawn, FName socketName, bool shouldAutoEquip);
 	void EquipWeapon(ACommonWeapon* weapon);
+	
 
+
+
+	
 protected:
 	virtual void BeginPlay() override;
 	

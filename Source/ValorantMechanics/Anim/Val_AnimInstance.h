@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
-#include "ValorantMechanics/Weapons/SharedWeapon.h"
+#include "ValorantMechanics/Core/Shared/WeaponProperties.h"
 
 
 #include "Val_AnimInstance.generated.h"
@@ -41,27 +41,24 @@ class VALORANTMECHANICS_API UVal_AnimInstance : public UAnimInstance
     GENERATED_BODY()
 
 public:
-
-    
-
-    // no idea why these functions are UFUNCTION
-    // i don't know if i plan to use them in bp
-    UFUNCTION(BlueprintCallable, Category = "Animations|Animation Data Assets")
-    void UpdateAnimDataAsset(EWeaponType WeaponType, UDataAsset* AnimDataAsset);
     
     UFUNCTION(BlueprintCallable, Category = "Animations|Animation Data Assets")
-    void UpdateCurrentWeapon(EWeaponType WeaponType);
+    void UpdateAnimDataAsset(Weapon::EWeaponType WeaponType, UDataAsset* AnimDataAsset);
+    
+    UFUNCTION(BlueprintCallable, Category = "Animations|Animation Data Assets")
+    void UpdateCurrentWeapon(Weapon::EWeaponType WeaponType);
     
     
 protected:
     
 
     UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Weapon")
-    EWeaponType currentWeaponType;
+    Weapon::EWeaponType currentWeaponType;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animations" )
     FAnimAssets animAssets;
-    
+
+    Weapon::EWeaponState weaponState; // also player state
 
     
 };
