@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 
-#include "Shared/Val_PlayerInterface.h"
 #include "Shared/Val_PlayerDelegates.h"
 
 #include "GameFramework/Character.h"
@@ -15,6 +14,7 @@
 class UVal_AnimInstance;
 class UVal_InputComponent;
 class UVal_CharacterMovementComponent;
+class AVal_PlayerController;
 
 class USkeletalMeshComponent;
 class UCameraComponent;
@@ -42,25 +42,27 @@ public:
 	// does not update equippedWeaponType
 	// updates if weapon of EWeaponType exists
 	// otherwise adds weapon of EWeaponType
-	void UpdateInventoryWeapon(TObjectPtr<ACommonWeapon> weapon);
+	void UpdateInventoryWeapon(const TObjectPtr<ACommonWeapon>& weapon);
 
 	// only updates equippedWeaponType if weapon type exists in inventoryMap
 	// use UpdateInventoryWeapon to add/update inventory slots
 	void UpdateCurrentWeapon(EWeaponType weaponType);
 	
 	TObjectPtr<ACommonWeapon> GetWeaponByType(EWeaponType weaponType) const;
+
+	void DropWeaponByType(EWeaponType weaponType);
+	bool HasWeapon(EWeaponType weaponType) const { return inventoryMap.FindRef(weaponType) != nullptr; }
 	
 	FORCEINLINE TObjectPtr<ACommonWeapon> GetCurrentWeapon() const { return this->GetWeaponByType(equippedWeaponType); }
 	FORCEINLINE TMap<EWeaponType, TObjectPtr<ACommonWeapon>> GetInventory() const { return inventoryMap; }
-	
-	bool HasWeapon(EWeaponType weaponType) const { return inventoryMap.FindRef(weaponType) != nullptr; } 
+
 };
 
 
 
 
 UCLASS()
-class VALORANTMECHANICS_API AVal_Character : public ACharacter, public IVal_PlayerInterface
+class VALORANTMECHANICS_API AVal_Character : public ACharacter
 {
 	GENERATED_BODY()
 
@@ -68,36 +70,25 @@ public:
 	explicit AVal_Character(const FObjectInitializer& ObjectInitializer);
 
 	// getter functions defined from IVal_PlayerInterface
-	virtual AVal_PlayerController* GetValPlayerController() override;
-	virtual AVal_Character* GetValCharacter() override;
-	virtual UVal_CharacterMovementComponent* GetValMovementComponent() override;
-	virtual UVal_AnimInstance* GetValAnimInstance() override;
-	virtual UVal_InputComponent* GetValInputComponent() override;
+	AVal_PlayerController* GetValPlayerController() const;
+	AVal_Character* GetValCharacter();
+	UVal_CharacterMovementComponent* GetValMovementComponent() const;
+	UVal_AnimInstance* GetValAnimInstance() const;
+	FORCEINLINE UVal_InputComponent* GetValInputInstance() const { return valInputComponent ? valInputComponent : nullptr; }
 
 
 	bool isJumping = false;
 	bool isLanded = false;
 
 	
-	UPROPERTY(BlueprintAssignable)
 	OnWeaponDrop onWeaponDrop;
-
-	UPROPERTY(BlueprintAssignable)
 	OnWeaponEquip onWeaponEquip;
-
-	UPROPERTY(BlueprintAssignable)
 	OnWeaponSpawn onWeaponSpawn;
-
-	UPROPERTY(BlueprintAssignable)
 	TryWeaponEquip tryWeaponEquip;
-
-	UPROPERTY(BlueprintAssignable)
 	TryWeaponDrop tryWeaponDrop;
-
-	UPROPERTY(BlueprintAssignable)
 	TryWeaponSpawn tryWeaponSpawn;
 
-
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Input")
 	TObjectPtr<UVal_InputComponent> valInputComponent;
 
@@ -129,11 +120,11 @@ public:
 	
 	void Walk();
 	void Unwalk();
-	void SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToSpawn, FName socketName, bool shouldAutoEquip);
-	void EquipWeapon(ACommonWeapon* weapon);
 	
-
-
+	void SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn, FName socketName, bool shouldAutoEquip);
+	void EquipWeapon(const EWeaponType weaponType);
+	void DropWeapon(EWeaponType weaponType);
+	
 
 	
 protected:
@@ -157,6 +148,10 @@ protected:
 
 
 
-
+class Val_PlayerHelper
+{
+public:
+	
+};
 
 

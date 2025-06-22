@@ -26,7 +26,7 @@ void UVal_CharacterMovementComponent::BeginPlay()
 	Super::BeginPlay();
 
 	playerCharacter = Cast<AVal_Character>(GetOwner());
-	valInputComponent = playerCharacter->GetValInputComponent();
+	valInputComponent = playerCharacter->GetValInputInstance();
 
 }
 
@@ -87,7 +87,7 @@ void UVal_CharacterMovementComponent::HandleAirMovement(float DeltaTime)
 		// gain momentum when strafing with the view direction
 		case EAirMovementInputDirection::Matching: 
 
-			LOG(VALORANT_PlayerMovement, Warning, "Matching Direction");
+			LOG(Val_Player, Warning, "Matching Direction");
 		
 			airStrafeTime += DeltaTime;
 			currentAirStrafeMultiplier = FMath::Min(
@@ -100,7 +100,7 @@ void UVal_CharacterMovementComponent::HandleAirMovement(float DeltaTime)
 		// reduce speed when strafing against view direction
 		case EAirMovementInputDirection::Opposing: 
 
-			LOG(VALORANT_PlayerMovement, Warning, "Opposing Direction");
+			LOG(Val_Player, Warning, "Opposing Direction");
 					
 			airStrafeTime = FMath::Max(0.0f, airStrafeTime - DeltaTime * 2.0f);
 			currentAirStrafeMultiplier = FMath::Max(
@@ -113,7 +113,7 @@ void UVal_CharacterMovementComponent::HandleAirMovement(float DeltaTime)
 		// to maintain momentum when not strafing
 		case EAirMovementInputDirection::Neutral: 
 		
-			LOG(VALORANT_PlayerMovement, Warning, "Neutral Direction");
+			LOG(Val_Player, Warning, "Neutral Direction");
 			
 			airStrafeTime = FMath::Max(0.0f, airStrafeTime - DeltaTime * 0.5f);
 			currentAirStrafeMultiplier = FMath::Lerp(

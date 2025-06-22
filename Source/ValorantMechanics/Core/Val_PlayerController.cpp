@@ -5,6 +5,7 @@
 #include "Val_Character.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/InputSettings.h"
+#include "ValorantMechanics/ValorantMechanics.h"
 #include "ValorantMechanics/Input/Val_InputComponent.h"
 
 
@@ -51,7 +52,6 @@ void AVal_PlayerController::PlayerMove() const
 {
 	if (!valInputComponent->HasMovementInput()) return;
 	
-
 	FVector2d moveVector = valInputComponent->GetAdditiveMovementInput();
 	constexpr float minThreshold = 0.05f;
 	constexpr float maxScale = 10.0f;
@@ -90,10 +90,10 @@ void AVal_PlayerController::PlayerMove() const
 		moveVector.Y *= scaleFactor;
 	}
 		
-	const FVector WorldVector = playerCharacter->GetActorRightVector() * moveVector.X +
+	const FVector worldVector = playerCharacter->GetActorRightVector() * moveVector.X +
 		playerCharacter->GetActorForwardVector() * moveVector.Y;
 		
-	playerCharacter->AddMovementInput(WorldVector.GetSafeNormal(), 1.0f);
+	playerCharacter->AddMovementInput(worldVector.GetSafeNormal(), 1.0f);
 	
 }
 
@@ -151,9 +151,9 @@ void AVal_PlayerController::OnPossess(APawn* aPawn)
 	Super::OnPossess(aPawn);
 	
 	playerCharacter = Cast<AVal_Character>(aPawn);
-	checkf(playerCharacter, TEXT("playerCharacter must be AVal_Character."));
+	if (!playerCharacter) LOG(Val_Player, Error, "This controller and its descendants should only possess AMySpecificCharacterClassderived pawns!");
 
-	valInputComponent = playerCharacter->GetValInputComponent();
+	valInputComponent = playerCharacter->GetValInputInstance();
 
 	valInputComponent->SetMappingContexts(this, InputComponent);
 	valInputComponent->SetInputActions(this);

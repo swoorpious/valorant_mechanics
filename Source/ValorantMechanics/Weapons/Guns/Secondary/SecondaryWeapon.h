@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ValorantMechanics/Weapons/CommonWeapon.h"
+
 #include "SecondaryWeapon.generated.h"
 
 
@@ -17,14 +18,6 @@ class VALORANTMECHANICS_API ASecondaryWeapon : public ACommonWeapon
 public:
     ASecondaryWeapon();
     virtual void Tick(float DeltaTime) override;
-
-
-    
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Body")
-    TObjectPtr<USkeletalMeshComponent> _MagazineSkeletalMesh;
-
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
-    TObjectPtr<UWeaponAnimDataAsset> AnimationData;
     
 protected:
     virtual void BeginPlay() override;

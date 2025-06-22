@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ValorantMechanics/Weapons/CommonWeapon.h"
-#include "ValorantMechanics/Weapons/WeaponDataAssets/MeleeAnimDataAsset.h"
+// #include "ValorantMechanics/Weapons/WeaponDataAssets/MeleeAnimDataAsset.h"
 
 
 

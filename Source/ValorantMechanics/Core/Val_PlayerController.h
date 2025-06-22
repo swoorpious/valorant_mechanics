@@ -36,6 +36,8 @@ public:
 	void PlayerWalk(const FInputActionInstance& InputActionInstance);
 	void PlayerUse(const FInputActionInstance& InputActionInstance);
 
+	void PlayerEquipMelee();
+
 	// functions called from Val_InputComponent.h
 	void PlayerMove() const;
 	FORCEINLINE void PlayerLook(const FVector2D lookVector) const { AddLookInput(lookVector * Sensitivity); }

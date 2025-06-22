@@ -81,8 +81,7 @@ void UVal_InputComponent::SetInputActions(AVal_PlayerController* classObject)
 
 void UVal_InputComponent::HandleLookInput(const FInputActionInstance& InputActionInstance)
 {
-	const FInputActionValue& InputActionValue = InputActionInstance.GetValue();
-	const FVector2D LookAxisVector = InputActionValue.Get<FVector2D>();
+	const FVector2D LookAxisVector = InputActionInstance.GetValue().Get<FVector2D>();
 	lastLookVector = LookAxisVector;
 
 	playerController->PlayerLook(LookAxisVector);
@@ -91,13 +90,9 @@ void UVal_InputComponent::HandleLookInput(const FInputActionInstance& InputActio
 
 void UVal_InputComponent::HandleMoveInput(const FInputActionInstance& InputActionInstance)
 {
-	const UInputAction* actionSource = InputActionInstance.GetSourceAction();
-	const ETriggerEvent actionTrigger = InputActionInstance.GetTriggerEvent();
-
-	const FString actionName = actionSource->GetName();
-
+	const FString actionName = InputActionInstance.GetSourceAction()->GetName();
 	
-	if (actionTrigger == ETriggerEvent::Triggered)
+	if (const ETriggerEvent actionTrigger = InputActionInstance.GetTriggerEvent(); actionTrigger == ETriggerEvent::Triggered)
 	{
 			 if (actionName == "VIA_Move_W") inputMap.W = true;
 		else if (actionName == "VIA_Move_A") inputMap.A = true;

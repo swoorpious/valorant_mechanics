@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
 #include "GameFramework/Actor.h"
 #include "ValorantMechanics/Core/Shared/WeaponProperties.h"
 
@@ -14,7 +15,6 @@ class UStaticMeshComponent;
 class UBoxComponent;
 
 
-using namespace Weapon;
 
 UCLASS()
 class VALORANTMECHANICS_API ACommonWeapon : public AActor
@@ -45,6 +45,7 @@ public:
     TObjectPtr<UBoxComponent> collisionBox;
 
 
+    // TODO: REMOVE
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Socket Names") FName magazineMainSocketName;
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Socket Names") FName scopeMainSocketName;
     

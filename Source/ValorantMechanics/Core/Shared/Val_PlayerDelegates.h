@@ -6,8 +6,7 @@
 #include "WeaponProperties.h"
 
 class ACommonWeapon;
-
-using namespace Weapon;
+class UDataAsset;
 
 
 
@@ -15,10 +14,12 @@ using namespace Weapon;
  * delegates called when the player presses corresponding key, or attempts to do certain action
  * only used to notify to try and "equip"
  */
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(TryWeaponSpawn, TSubclassOf<ACommonWeapon>, EquippedWeapon)
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(TryWeaponEquip, EWeaponType, WeaponType)
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(TryWeaponDrop, EWeaponType, WeaponType)
 
+// called when player tries to pick up said weapon
+DECLARE_MULTICAST_DELEGATE_OneParam(TryWeaponSpawn, TSubclassOf<ACommonWeapon>)
+
+DECLARE_MULTICAST_DELEGATE_OneParam(TryWeaponEquip, EWeaponType)
+DECLARE_MULTICAST_DELEGATE_OneParam(TryWeaponDrop, EWeaponType)
 
 
 /*
@@ -28,7 +29,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(TryWeaponDrop, EWeaponType, WeaponTy
  *  - current weapon type in FPlayerInventory and UVal_AnimInstance
  *  - update EWeaponState in the corresponding weapon class to EWeaponState::Equipping 
  */
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(OnWeaponEquip, EWeaponType, WeaponType)
+DECLARE_MULTICAST_DELEGATE_OneParam(OnWeaponEquip, EWeaponType)
 
 
 /*
@@ -37,7 +38,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(OnWeaponEquip, EWeaponType, WeaponTy
  *  - anim data asset for the player in UVal_PlayerAnimInstance (TODO: rename UVal_AnimInstance to UVal_PlayerAnimInstance)
  *  - anim data asset for the weapon in UVal_WeaponAnimInstance (TODO: create UVal_WeaponAnimInstance)
  */
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(OnWeaponSpawn, TSubclassOf<ACommonWeapon>, EquippedWeapon)
+DECLARE_MULTICAST_DELEGATE_OneParam(OnWeaponSpawn, ACommonWeapon*)
 
 
 /*
@@ -46,4 +47,4 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(OnWeaponSpawn, TSubclassOf<ACommonWe
  *  - empties the anim data asset for the player in UVal_PlayerAnimInstance
  *  - empties the anim data asset for the weapon in UVal_WeaponAnimInstance
  */
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(OnWeaponDrop, EWeaponType, WeaponType)
+DECLARE_MULTICAST_DELEGATE_OneParam(OnWeaponDrop, EWeaponType)

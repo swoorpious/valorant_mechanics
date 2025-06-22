@@ -4,16 +4,25 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+
 #include "ValorantMechanics/Core/Shared/WeaponProperties.h"
 
 
 #include "Val_AnimInstance.generated.h"
 
 
+class ACommonWeapon;
+
+
 USTRUCT(BlueprintType)
 struct FAnimAssets
 {
     GENERATED_BODY()
+
+// private:
+
+
+    TMap<EWeaponType, TObjectPtr<UDataAsset>> animDataAssets;
     
     // using TObjectPtr<UDataAsset> because melee and secondary and primary weapons types use subclasses of UDataAsset
     UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Animations|Animation Data Assets", meta=(DisplayName = "Melee Animation Data Asset"))
@@ -25,10 +34,12 @@ struct FAnimAssets
     UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Animations|Animation Data Assets", meta=(DisplayName = "Primary Animation Data Asset"))
     TObjectPtr<UDataAsset> primaryAnimAsset;
 
-
     
     UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Animations", meta=(DisplayName = "Current Animation Data Asset"))
     TObjectPtr<UDataAsset> currentAnimDataAsset;
+
+	bool HasAnimDataForType(EWeaponType weaponType) const { return animDataAssets.FindRef(weaponType) != nullptr; }
+    
 };
 
 
@@ -41,24 +52,29 @@ class VALORANTMECHANICS_API UVal_AnimInstance : public UAnimInstance
     GENERATED_BODY()
 
 public:
+    virtual void NativeBeginPlay() override;
+
+    // UFUNCTION(BlueprintCallable, Category = "Animations|Animation Data Assets")
+    void UpdateAnimDataAsset(ACommonWeapon* equippedWeapon);
     
-    UFUNCTION(BlueprintCallable, Category = "Animations|Animation Data Assets")
-    void UpdateAnimDataAsset(Weapon::EWeaponType WeaponType, UDataAsset* AnimDataAsset);
+    // UFUNCTION(BlueprintCallable, Category = "Animations|Animation Data Assets")
+    void UpdateCurrentWeapon(EWeaponType weaponType);
     
-    UFUNCTION(BlueprintCallable, Category = "Animations|Animation Data Assets")
-    void UpdateCurrentWeapon(Weapon::EWeaponType WeaponType);
-    
-    
+    // UFUNCTION(BlueprintCallable, Category = "Animations|Animation Data Assets")
+    TObjectPtr<UDataAsset> GetAnimDataAsset(EWeaponType weaponType);
+    //
+    // UFUNCTION(BlueprintCallable, Category = "Animations|Animation Data Assets")
+    // void RemoveAnimDataAsset(EWeaponType weaponType);
 protected:
     
 
     UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Weapon")
-    Weapon::EWeaponType currentWeaponType;
+    EWeaponType currentWeaponType;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animations" )
     FAnimAssets animAssets;
 
-    Weapon::EWeaponState weaponState; // also player state
+    EWeaponState weaponState; // also player state
 
     
 };

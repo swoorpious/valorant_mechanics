@@ -44,7 +44,6 @@ enum class EPlayerState : uint8
 };
 
 
-
 USTRUCT(BlueprintType)
 struct FPlayerMovementProperties
 {

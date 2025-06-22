@@ -15,6 +15,9 @@
 #include "ValorantMechanics/Weapons/CommonWeapon.h"
 // #include "GameFramework/CharacterMovementComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "ValorantMechanics/ValorantMechanics.h"
+
+
 
 
 AVal_Character::AVal_Character(const FObjectInitializer& ObjectInitializer) :
@@ -54,62 +57,102 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UVal_CharacterMovementComponent
 }
 
 
-
-// TODO: make common list for socket names, and remove @param socketName
-void AVal_Character::SpawnWeapon(TSubclassOf<ACommonWeapon> weaponToSpawn, FName socketName, bool shouldAutoEquip)
-{
-	if (!weaponToSpawn) return;
-
-	UE_LOG(LogTemp, Display, TEXT("SpawnWeapon is spawning weapon"));
-
-	if (ACommonWeapon* spawnedWeapon = GetWorld()->SpawnActor<ACommonWeapon>(weaponToSpawn))
-	{
-		spawnedWeapon->SetOwner(this);
-		spawnedWeapon->AttachToComponent(characterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, socketName);
-		spawnedWeapon->SetActorHiddenInGame(true); // hidden by default, EquipWeapon(...) will unhide
-		playerAnimInstance->UpdateAnimDataAsset(spawnedWeapon->GetWeaponType(), spawnedWeapon->GetAnimAsset());
-		
-
-		playerInventory.UpdateInventoryWeapon(spawnedWeapon);
-		if (shouldAutoEquip) this->EquipWeapon(spawnedWeapon);
-		
-	}
-	
-}
-
-void AVal_Character::EquipWeapon(ACommonWeapon* weapon)
-{
-	const EWeaponType weaponType = weapon->GetWeaponType();
-	if (!playerAnimInstance || !playerInventory.HasWeapon(weaponType)) return;
-
-	playerAnimInstance->UpdateCurrentWeapon(weaponType);
-	
-	playerInventory.UpdateCurrentWeapon(weaponType);
-
-	for (const auto& pair : playerInventory.GetInventory())
-	{
-		if (ACommonWeapon* e = pair.Value)
-		{
-			e->SetActorHiddenInGame(pair.Key != weaponType);
-		}
-	}
-}
-
-
 void AVal_Character::BeginPlay()
 {
 	Super::BeginPlay();
-
-
+	
 	movementComponent = GetValMovementComponent();
-	playerAnimInstance = GetValAnimInstance();
+	playerAnimInstance = Cast<UVal_AnimInstance>(characterMesh->GetAnimInstance());
+	if (!movementComponent) LOG(Val_Player, Error, "movementComponent is likely a nullptr.");
+	if (!playerAnimInstance) LOG(Val_Player, Error, "playerAnimInstance is likely a nullptr.");
 	
 
 	if (meleeWeaponToSpawn) SpawnWeapon(meleeWeaponToSpawn, MASTER_SOCKET, !secondaryWeaponToSpawn && !primaryWeaponToSpawn);
 	if (secondaryWeaponToSpawn) SpawnWeapon(secondaryWeaponToSpawn, MASTER_SOCKET, !primaryWeaponToSpawn);
 	if (primaryWeaponToSpawn) SpawnWeapon(primaryWeaponToSpawn, MASTER_SOCKET, true);
+
+	tryWeaponEquip.AddUObject(this, &AVal_Character::EquipWeapon);
+	// tryWeaponSpawn.AddUObject(this, &AVal_Character::SpawnWeapon);
+	tryWeaponDrop.AddUObject(this, &AVal_Character::DropWeapon);
 	
 }
+
+
+
+
+// TODO: make common list for socket names, and remove @param socketName
+void AVal_Character::SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn, FName socketName, bool shouldAutoEquip)
+{
+	if (!weaponToSpawn) return;
+
+	LOG(Val_Player, Verbose, "");
+	
+	if (ACommonWeapon* spawnedWeapon = GetWorld()->SpawnActor<ACommonWeapon>(weaponToSpawn))
+	{
+		spawnedWeapon->SetOwner(this);
+		spawnedWeapon->AttachToComponent(characterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, socketName);
+		spawnedWeapon->SetActorHiddenInGame(true); // hidden by default, EquipWeapon(...) will unhide
+		playerInventory.UpdateInventoryWeapon(spawnedWeapon);
+
+		onWeaponSpawn.Broadcast(spawnedWeapon);
+
+		if (shouldAutoEquip) this->EquipWeapon(spawnedWeapon->GetWeaponType());
+		
+	}
+	
+}
+
+
+
+void AVal_Character::EquipWeapon(const EWeaponType weaponType)
+{
+
+	/*
+	 * check if the animation data asset for the give type in playerAnimInstance is the same as the weapon in playerInventory.
+	 * if not, we don't really care, we just return. 
+	 */
+	const bool hasCorrectAnim = playerAnimInstance &&
+		playerAnimInstance->GetAnimDataAsset(weaponType) == playerInventory.GetWeaponByType(weaponType)->GetAnimAsset();
+	if (!hasCorrectAnim || !playerInventory.HasWeapon(weaponType)) return;
+	
+
+	playerInventory.UpdateCurrentWeapon(weaponType);
+	for (const auto& pair : playerInventory.GetInventory())
+	{
+		if (ACommonWeapon* e = pair.Value) e->SetActorHiddenInGame(pair.Key != weaponType);
+	}
+	
+	onWeaponEquip.Broadcast(weaponType);
+}
+
+
+
+void AVal_Character::DropWeapon(EWeaponType weaponType)
+{
+	if (playerInventory.GetCurrentWeapon()->GetWeaponType() == weaponType)
+	{
+		switch (weaponType)
+		{
+			case EWeaponType::Melee:
+			case EWeaponType::Empty:
+			default:
+				// cannot drop an empty, or...the melee lol
+				return;
+			case EWeaponType::Secondary:
+				// when secondary is dropped, equip primary if it exists, or equip melee
+				this->EquipWeapon(playerInventory.HasWeapon(EWeaponType::Primary) ? EWeaponType::Primary : EWeaponType::Melee);
+				break;
+			case EWeaponType::Primary:
+				// when primary is dropped, equip secondary if it exists, or equip melee
+				this->EquipWeapon(playerInventory.HasWeapon(EWeaponType::Secondary) ? EWeaponType::Secondary : EWeaponType::Melee);
+				break;
+		}
+	}
+		
+	playerInventory.DropWeaponByType(weaponType);
+	onWeaponDrop.Broadcast(weaponType);
+}
+
 
 
 void AVal_Character::Jump()
@@ -182,7 +225,6 @@ void AVal_Character::Tick(float DeltaTime)
 		}
 	}*/
 #pragma endregion
-	
 }
 
 
@@ -196,7 +238,7 @@ void AVal_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 #pragma region Inventory Implementation
 
-void FPlayerInventory::UpdateInventoryWeapon(TObjectPtr<ACommonWeapon> weapon)
+void FPlayerInventory::UpdateInventoryWeapon(const TObjectPtr<ACommonWeapon>& weapon)
 {
 	// this definition is defined in .cpp due to ACommonWeapon being incomplete
 	EWeaponType weaponType = weapon->GetWeaponType();
@@ -213,27 +255,26 @@ void FPlayerInventory::UpdateCurrentWeapon(EWeaponType weaponType)
 }
 
 
-
 TObjectPtr<ACommonWeapon> FPlayerInventory::GetWeaponByType(EWeaponType weaponType) const
 {
 	if (weaponType == EWeaponType::Empty || !this->HasWeapon(weaponType)) return nullptr;
 	return inventoryMap[weaponType];
 }
 
+
+void FPlayerInventory::DropWeaponByType(EWeaponType weaponType)
+{
+	if (weaponType == EWeaponType::Empty || !this->HasWeapon(weaponType)) return;
+	inventoryMap[weaponType] = nullptr;
+}
+
 #pragma endregion Inventory Implementation
 
 
 
-#pragma region Local Player Interface Definitions
 
-AVal_PlayerController* AVal_Character::GetValPlayerController() { return CastChecked<AVal_PlayerController>(GetController()); }
-
+AVal_PlayerController* AVal_Character::GetValPlayerController() const { return Cast<AVal_PlayerController>(GetController()); }
 AVal_Character* AVal_Character::GetValCharacter() { return this; }
+UVal_CharacterMovementComponent* AVal_Character::GetValMovementComponent() const { return Cast<UVal_CharacterMovementComponent>(GetCharacterMovement()); }
+UVal_AnimInstance* AVal_Character::GetValAnimInstance() const { return Cast<UVal_AnimInstance>(characterMesh->GetAnimInstance()); }
 
-UVal_CharacterMovementComponent* AVal_Character::GetValMovementComponent() { return CastChecked<UVal_CharacterMovementComponent>(GetCharacterMovement()); }
-
-UVal_AnimInstance* AVal_Character::GetValAnimInstance() { return CastChecked<UVal_AnimInstance>(characterMesh->GetAnimInstance()); }
-
-UVal_InputComponent* AVal_Character::GetValInputComponent() { return valInputComponent ? valInputComponent : nullptr; }
-
-#pragma endregion Local Player Interface Definitions

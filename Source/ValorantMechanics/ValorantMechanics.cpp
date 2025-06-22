@@ -6,4 +6,4 @@
 IMPLEMENT_PRIMARY_GAME_MODULE( FDefaultGameModuleImpl, ValorantMechanics, "ValorantMechanics" );
 
 
-DEFINE_LOG_CATEGORY(VALORANT_PlayerMovement);
+DEFINE_LOG_CATEGORY(Val_Player);

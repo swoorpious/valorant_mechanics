@@ -2,34 +2,40 @@
 
 
 #include "Val_AnimInstance.h"
+#include "ValorantMechanics/ValorantMechanics.h"
+#include "ValorantMechanics/Weapons/CommonWeapon.h"
+
+#include "ValorantMechanics/Core/Val_Character.h"
 // #include "ValorantMechanics/Weapons/WeaponDataAssets/MeleeAnimDataAsset.h"
 // #include "ValorantMechanics/Weapons/WeaponDataAssets/WeaponAnimDataAsset.h"
 
 
-void UVal_AnimInstance::UpdateAnimDataAsset(EWeaponType WeaponType, UDataAsset* AnimDataAsset)
+void UVal_AnimInstance::NativeBeginPlay()
 {
-    if (AnimDataAsset)
+    Super::NativeBeginPlay();
+
+    if (AVal_Character* e = Cast<AVal_Character>(TryGetPawnOwner()))
     {
-        switch (WeaponType)
-        {
-            case EWeaponType::Melee:
-                animAssets.meleeAnimAsset = AnimDataAsset;
-                break;
-            case EWeaponType::Primary:
-                animAssets.secondaryAnimAsset = AnimDataAsset;
-                break;
-            case EWeaponType::Secondary:
-                animAssets.primaryAnimAsset = AnimDataAsset;
-                break;
-            default: break;
-        }
+        e->onWeaponSpawn.AddUObject(this, &UVal_AnimInstance::UpdateAnimDataAsset);
+        e->onWeaponEquip.AddUObject(this, &UVal_AnimInstance::UpdateCurrentWeapon);
     }
+}
+
+
+void UVal_AnimInstance::UpdateAnimDataAsset(ACommonWeapon* equippedWeapon)
+{
+    const TObjectPtr<UDataAsset> animDataAsset = equippedWeapon->GetAnimAsset();
+    EWeaponType weaponType = equippedWeapon->GetWeaponType();
+    animAssets.HasAnimDataForType(weaponType) ?
+        animAssets.animDataAssets[weaponType] = animDataAsset :
+        animAssets.animDataAssets.Add(weaponType, animDataAsset);
 
 }
 
-void UVal_AnimInstance::UpdateCurrentWeapon(EWeaponType WeaponType)
+void UVal_AnimInstance::UpdateCurrentWeapon(EWeaponType weaponType)
 {
-    switch (WeaponType)
+
+    switch (weaponType)
     {
         case EWeaponType::Melee:
             currentWeaponType = EWeaponType::Melee;
@@ -45,4 +51,10 @@ void UVal_AnimInstance::UpdateCurrentWeapon(EWeaponType WeaponType)
             break;
         default: break;
     }
+}
+
+TObjectPtr<UDataAsset> UVal_AnimInstance::GetAnimDataAsset(EWeaponType weaponType)
+{
+	if (weaponType == EWeaponType::Empty || !animAssets.HasAnimDataForType(weaponType)) return nullptr;
+    return animAssets.animDataAssets[weaponType];
 }
