@@ -1,6 +1,7 @@
 ﻿// © 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
 
 
+#include "Val_InputSystem.h"
 #include "../Val_Character.h"
 #include "Val_PlayerController.h"
 
