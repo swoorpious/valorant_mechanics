@@ -5,14 +5,13 @@
 #include "CoreMinimal.h"
 
 #include "GameFramework/PlayerController.h"
-#include "InputAction.h"
+#include "../Val_Character.h"
+#include "Val_InputSystem.h"
+
 #include "Val_PlayerController.generated.h"
 
-class UVal_InputComponent;
-class UEnhancedInputComponent;
-class UInputMappingContext;
 class AVal_Character;
-class UPawnMovementComponent;
+
 
 
 /**
@@ -24,33 +23,41 @@ class VALORANTMECHANICS_API AVal_PlayerController : public APlayerController
 	GENERATED_BODY()
 
 public:
-	virtual void Tick(float DeltaSeconds) override;
+	AVal_PlayerController();
+	virtual TObjectPtr<UVal_InputSystem> GetInputSystem() { return valInputSystem; } 	
 		
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="General")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Input")
 	float Sensitivity = 1.0f;
 
-
+#pragma region PLAYER ACTIONS
 	void PlayerJump(const FInputActionInstance& InputActionInstance);
 	void PlayerCrouch(const FInputActionInstance& InputActionInstance);
 	void PlayerWalk(const FInputActionInstance& InputActionInstance);
 	void PlayerUse(const FInputActionInstance& InputActionInstance);
-
-	void PlayerEquipMelee();
-
+	
 	// functions called from Val_InputComponent.h
 	void PlayerMove() const;
 	FORCEINLINE void PlayerLook(const FVector2D lookVector) const { AddLookInput(lookVector * Sensitivity); }
+#pragma endregion PLAYER ACTIONS
 
+
+#pragma region WEAPON ACTIONS
+	FORCEINLINE void TryWeaponEquip(const EWeaponType weaponType) const { playerCharacter->EquipWeapon(weaponType); }
+	// FORCEINLINE void TryWeaponDrop(const EWeaponType weaponType) const { playerCharacter->DropWeapon(weaponType); }
+
+
+#pragma endregion WEAPON ACTIONS
 	
 protected:
 	void AddLookInput(FVector2D Look) const;
+	virtual void SetupInputComponent() override;
 
-	
 	UPROPERTY() TObjectPtr<AVal_Character> playerCharacter = nullptr;
-	UPROPERTY() TObjectPtr<UVal_InputComponent> valInputComponent = nullptr;
-	
-	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Instanced, Category="Input")
+	TObjectPtr<UVal_InputSystem> valInputSystem = nullptr;
+
+
 	virtual void OnPossess(APawn* aPawn) override;
 	virtual void OnUnPossess() override;
 

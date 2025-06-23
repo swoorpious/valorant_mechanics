@@ -2,20 +2,17 @@
 
 
 #include "Val_Character.h"
-#include "Val_PlayerController.h"
 #include "Val_CharacterMovementComponent.h"
+#include "Controller/Val_PlayerController.h"
+#include "ValorantMechanics/Anim/Val_AnimInstance.h"
+#include "ValorantMechanics/Weapons/CommonWeapon.h"
+#include "ValorantMechanics/ValorantMechanics.h"
+
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/LocalPlayer.h"
-#include "ValorantMechanics/Input/Val_InputComponent.h"
-#include "ValorantMechanics/Anim/Val_AnimInstance.h"
-
-
-#include "ValorantMechanics/Weapons/CommonWeapon.h"
-// #include "GameFramework/CharacterMovementComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
-#include "ValorantMechanics/ValorantMechanics.h"
 
 
 
@@ -38,9 +35,7 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UVal_CharacterMovementComponent
 	characterMeshCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Character Mesh Camera"));
 	characterMeshCamera->SetupAttachment(characterMesh, TEXT("Camera"));
 	characterMeshCamera->bUsePawnControlRotation = false;
-
-	valInputComponent = CreateDefaultSubobject<UVal_InputComponent>(TEXT("Valorant Input Component"));
-	valInputComponent->SetIsReplicated(true);
+	
 
 	// Wushu_GameplayCaptureCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Wushu_GameplayCaptureCamera"));
 	// Wushu_GameplayCaptureCamera->SetupAttachment(Wushu_Mesh, TEXT("Camera"));
@@ -111,12 +106,12 @@ void AVal_Character::EquipWeapon(const EWeaponType weaponType)
 	 * check if the animation data asset for the give type in playerAnimInstance is the same as the weapon in playerInventory.
 	 * if not, we don't really care, we just return. 
 	 */
-	const bool hasCorrectAnim = playerAnimInstance &&
-		playerAnimInstance->GetAnimDataAsset(weaponType) == playerInventory.GetWeaponByType(weaponType)->GetAnimAsset();
-	if (!hasCorrectAnim || !playerInventory.HasWeapon(weaponType)) return;
+	auto const animDataFromInstance = playerAnimInstance->GetAnimDataAsset(weaponType);
+	auto const animInstanceFromWeapon = playerInventory.GetWeaponByType(weaponType)->GetAnimAsset();
+	if (!(playerAnimInstance && animInstanceFromWeapon == animDataFromInstance) || !playerInventory.HasWeapon(weaponType)) return;
 	
 
-	playerInventory.UpdateCurrentWeapon(weaponType);
+	playerInventory.UpdateEquippedWeapon(weaponType);
 	for (const auto& pair : playerInventory.GetInventory())
 	{
 		if (ACommonWeapon* e = pair.Value) e->SetActorHiddenInGame(pair.Key != weaponType);
@@ -129,7 +124,7 @@ void AVal_Character::EquipWeapon(const EWeaponType weaponType)
 
 void AVal_Character::DropWeapon(EWeaponType weaponType)
 {
-	if (playerInventory.GetCurrentWeapon()->GetWeaponType() == weaponType)
+	if (playerInventory.GetEquippedWeapon()->GetWeaponType() == weaponType)
 	{
 		switch (weaponType)
 		{
@@ -148,7 +143,9 @@ void AVal_Character::DropWeapon(EWeaponType weaponType)
 				break;
 		}
 	}
-		
+
+	// TODO: change this when implementing weapon drop and physics for weapon 
+	playerInventory.GetWeaponByType(weaponType)->Destroy();
 	playerInventory.DropWeaponByType(weaponType);
 	onWeaponDrop.Broadcast(weaponType);
 }
@@ -248,7 +245,7 @@ void FPlayerInventory::UpdateInventoryWeapon(const TObjectPtr<ACommonWeapon>& we
 		inventoryMap.Add(weaponType, weapon);
 }
 
-void FPlayerInventory::UpdateCurrentWeapon(EWeaponType weaponType)
+void FPlayerInventory::UpdateEquippedWeapon(EWeaponType weaponType)
 {
 	if (!this->HasWeapon(weaponType)) return;
 	equippedWeaponType = weaponType;

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 
-#include "Shared/Val_PlayerDelegates.h"
+#include "Shared/PlayerDelegateDefinition.h"
 
 #include "GameFramework/Character.h"
 #include "Val_Character.generated.h"
@@ -46,18 +46,17 @@ public:
 
 	// only updates equippedWeaponType if weapon type exists in inventoryMap
 	// use UpdateInventoryWeapon to add/update inventory slots
-	void UpdateCurrentWeapon(EWeaponType weaponType);
+	void UpdateEquippedWeapon(EWeaponType weaponType);
 	
 	TObjectPtr<ACommonWeapon> GetWeaponByType(EWeaponType weaponType) const;
 
 	void DropWeaponByType(EWeaponType weaponType);
 	bool HasWeapon(EWeaponType weaponType) const { return inventoryMap.FindRef(weaponType) != nullptr; }
 	
-	FORCEINLINE TObjectPtr<ACommonWeapon> GetCurrentWeapon() const { return this->GetWeaponByType(equippedWeaponType); }
+	FORCEINLINE TObjectPtr<ACommonWeapon> GetEquippedWeapon() const { return this->GetWeaponByType(equippedWeaponType); }
 	FORCEINLINE TMap<EWeaponType, TObjectPtr<ACommonWeapon>> GetInventory() const { return inventoryMap; }
 
 };
-
 
 
 
@@ -74,23 +73,22 @@ public:
 	AVal_Character* GetValCharacter();
 	UVal_CharacterMovementComponent* GetValMovementComponent() const;
 	UVal_AnimInstance* GetValAnimInstance() const;
-	FORCEINLINE UVal_InputComponent* GetValInputInstance() const { return valInputComponent ? valInputComponent : nullptr; }
 
 
 	bool isJumping = false;
 	bool isLanded = false;
 
 	
-	OnWeaponDrop onWeaponDrop;
-	OnWeaponEquip onWeaponEquip;
-	OnWeaponSpawn onWeaponSpawn;
-	TryWeaponEquip tryWeaponEquip;
-	TryWeaponDrop tryWeaponDrop;
-	TryWeaponSpawn tryWeaponSpawn;
+	DRequestWeaponSpawn tryWeaponSpawn;
+	DSuccessWeaponSpawn onWeaponSpawn;
+	
+	DRequestWeaponEquip tryWeaponEquip;
+	DSuccessWeaponEquip onWeaponDrop;
+
+	DRequestWeaponDrop tryWeaponDrop;
+	DSuccessWeaponDrop onWeaponEquip;
 
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Input")
-	TObjectPtr<UVal_InputComponent> valInputComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valorant Character|Character Setup|Scene")
 	TObjectPtr<USceneComponent> sceneComponent;
@@ -146,12 +144,5 @@ protected:
 };
 
 
-
-
-class Val_PlayerHelper
-{
-public:
-	
-};
 
 

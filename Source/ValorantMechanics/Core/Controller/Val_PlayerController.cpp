@@ -2,20 +2,20 @@
 
 
 #include "Val_PlayerController.h"
-#include "Val_Character.h"
+#include "../Val_Character.h"
+#include "Val_InputSystem.h"
+#include "ValorantMechanics/ValorantMechanics.h"
+
 #include "Camera/CameraComponent.h"
 #include "GameFramework/InputSettings.h"
-#include "ValorantMechanics/ValorantMechanics.h"
-#include "ValorantMechanics/Input/Val_InputComponent.h"
 
 
-
-
-void AVal_PlayerController::Tick(float DeltaSeconds)
+AVal_PlayerController::AVal_PlayerController()
 {
-	Super::Tick(DeltaSeconds);
-
+	valInputSystem = CreateDefaultSubobject<UVal_InputSystem>(TEXT("Val Input System"));
+	
 }
+
 
 
 
@@ -46,13 +46,18 @@ void AVal_PlayerController::AddLookInput(FVector2D Look) const
 
 }
 
+void AVal_PlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+	
+}
 
 
 void AVal_PlayerController::PlayerMove() const
 {
-	if (!valInputComponent->HasMovementInput()) return;
+	if (!valInputSystem->HasMovementInput()) return;
 	
-	FVector2d moveVector = valInputComponent->GetAdditiveMovementInput();
+	FVector2d moveVector = valInputSystem->GetAdditiveMovementInput();
 	constexpr float minThreshold = 0.05f;
 	constexpr float maxScale = 10.0f;
 
@@ -63,10 +68,10 @@ void AVal_PlayerController::PlayerMove() const
 	 * this softens the player movement making it feel natural and not overly responsive, and
 	 * reduces the feeling of "player sliding"
 	 */
-	if (FMath::Abs(valInputComponent->GetLastLookVector().X) > minThreshold)
+	if (FMath::Abs(valInputSystem->GetLastLookVector().X) > minThreshold)
 	{
 		float scaleFactor = FMath::Clamp(
-			1.0f / FMath::Pow(FMath::Abs(valInputComponent->GetLastLookVector().X), 0.5f), 
+			1.0f / FMath::Pow(FMath::Abs(valInputSystem->GetLastLookVector().X), 0.5f), 
 			1.0f / maxScale,
 			maxScale
 		);
@@ -79,10 +84,10 @@ void AVal_PlayerController::PlayerMove() const
 	 * perhaps unnecessary chunk of code
 	 * does the same thing as strafe movement reduction but for W/S
 	 */
-	if (FMath::Abs(valInputComponent->GetLastLookVector().Y) > minThreshold)
+	if (FMath::Abs(valInputSystem->GetLastLookVector().Y) > minThreshold)
 	{
 		float scaleFactor = FMath::Clamp(
-			1.0f / FMath::Pow(FMath::Abs(valInputComponent->GetLastLookVector().Y), 0.5f), 
+			1.0f / FMath::Pow(FMath::Abs(valInputSystem->GetLastLookVector().Y), 0.5f), 
 			1.0f / maxScale,
 			maxScale
 		);
@@ -145,19 +150,16 @@ void AVal_PlayerController::PlayerUse(const FInputActionInstance& InputActionIns
 }
 
 
-
 void AVal_PlayerController::OnPossess(APawn* aPawn)
 {
 	Super::OnPossess(aPawn);
 	
 	playerCharacter = Cast<AVal_Character>(aPawn);
 	if (!playerCharacter) LOG(Val_Player, Error, "This controller and its descendants should only possess AMySpecificCharacterClassderived pawns!");
-
-	valInputComponent = playerCharacter->GetValInputInstance();
-
-	valInputComponent->SetMappingContexts(this, InputComponent);
-	valInputComponent->SetInputActions(this);
-
+	
+	valInputSystem->Init(this, InputComponent);
+	
+	
 	InputComponent->bBlockInput = false;
 
 	UInputSettings* inputSettings = UInputSettings::GetInputSettings();

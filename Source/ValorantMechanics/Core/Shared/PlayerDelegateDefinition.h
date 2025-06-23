@@ -16,10 +16,18 @@ class UDataAsset;
  */
 
 // called when player tries to pick up said weapon
-DECLARE_MULTICAST_DELEGATE_OneParam(TryWeaponSpawn, TSubclassOf<ACommonWeapon>)
+DECLARE_MULTICAST_DELEGATE_OneParam(DRequestWeaponSpawn, TSubclassOf<ACommonWeapon>)
 
-DECLARE_MULTICAST_DELEGATE_OneParam(TryWeaponEquip, EWeaponType)
-DECLARE_MULTICAST_DELEGATE_OneParam(TryWeaponDrop, EWeaponType)
+DECLARE_MULTICAST_DELEGATE_OneParam(DRequestWeaponEquip, EWeaponType)
+DECLARE_MULTICAST_DELEGATE_OneParam(DRequestWeaponDrop, EWeaponType)
+
+/*
+ * spawning a TSubclassOf<ACommonWeapon> updates the following:
+ *  - adds/updates entry for corresponding EWeaponType in FPlayerInventory
+ *  - anim data asset for the player in UVal_PlayerAnimInstance (TODO: rename UVal_AnimInstance to UVal_PlayerAnimInstance)
+ *  - anim data asset for the weapon in UVal_WeaponAnimInstance (TODO: create UVal_WeaponAnimInstance)
+ */
+DECLARE_MULTICAST_DELEGATE_OneParam(DSuccessWeaponSpawn, ACommonWeapon*)
 
 
 /*
@@ -29,16 +37,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(TryWeaponDrop, EWeaponType)
  *  - current weapon type in FPlayerInventory and UVal_AnimInstance
  *  - update EWeaponState in the corresponding weapon class to EWeaponState::Equipping 
  */
-DECLARE_MULTICAST_DELEGATE_OneParam(OnWeaponEquip, EWeaponType)
-
-
-/*
- * spawning a TSubclassOf<ACommonWeapon> updates the following:
- *  - adds/updates entry for corresponding EWeaponType in FPlayerInventory
- *  - anim data asset for the player in UVal_PlayerAnimInstance (TODO: rename UVal_AnimInstance to UVal_PlayerAnimInstance)
- *  - anim data asset for the weapon in UVal_WeaponAnimInstance (TODO: create UVal_WeaponAnimInstance)
- */
-DECLARE_MULTICAST_DELEGATE_OneParam(OnWeaponSpawn, ACommonWeapon*)
+DECLARE_MULTICAST_DELEGATE_OneParam(DSuccessWeaponEquip, EWeaponType)
 
 
 /*
@@ -47,4 +46,4 @@ DECLARE_MULTICAST_DELEGATE_OneParam(OnWeaponSpawn, ACommonWeapon*)
  *  - empties the anim data asset for the player in UVal_PlayerAnimInstance
  *  - empties the anim data asset for the weapon in UVal_WeaponAnimInstance
  */
-DECLARE_MULTICAST_DELEGATE_OneParam(OnWeaponDrop, EWeaponType)
+DECLARE_MULTICAST_DELEGATE_OneParam(DSuccessWeaponDrop, EWeaponType)

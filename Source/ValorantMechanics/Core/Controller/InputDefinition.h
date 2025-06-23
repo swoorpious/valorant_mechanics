@@ -3,17 +3,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
 #include "InputAction.h"
-#include "Val_InputComponent.generated.h"
+#include "InputDefinition.generated.h"
 
 
 
-class AVal_PlayerController;
-class UEnhancedInputComponent;
 class UInputMappingContext;
 
 
+/*
+ * every action related to basic player movement
+ */
 USTRUCT(BlueprintType)
 struct FPlayerInputActions
 {
@@ -47,6 +47,10 @@ struct FPlayerInputActions
     TObjectPtr<UInputAction> Action_Use = nullptr;
 };
 
+
+/*
+ * every action related to weapon actions
+ */
 USTRUCT(BlueprintType)
 struct FWeaponInputActions
 {
@@ -74,6 +78,10 @@ struct FWeaponInputActions
     TObjectPtr<UInputAction> Action_Reload = nullptr;
 };
 
+
+/*
+ * every action related to abilities for the player
+ */
 USTRUCT(BlueprintType)
 struct FAbilityInputActions
 {
@@ -92,6 +100,14 @@ struct FAbilityInputActions
     TObjectPtr<UInputAction> Action_Ability4 = nullptr;
 };
 
+
+
+/*
+ * input mapping contexts
+ * player inputs -> Default_Mapping
+ * weapon inputs -> Weapon_Mapping
+ * player ability inputs -> Ability_Mapping
+ */
 USTRUCT(BlueprintType)
 struct FMappingContexts
 {
@@ -109,6 +125,9 @@ struct FMappingContexts
 };
 
 
+/*
+ * 
+ */
 struct InputMap
 {
     bool W = false; 
@@ -116,67 +135,3 @@ struct InputMap
     bool S = false; 
     bool D = false; 
 };
-
-
-UCLASS(ClassGroup=(Input), meta=(BlueprintSpawnableComponent))
-class VALORANTMECHANICS_API UVal_InputComponent : public UActorComponent
-{
-    GENERATED_BODY()
-
-public:
-    UVal_InputComponent();
-    virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
-#pragma region INPUT ACTIONS
-
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Input")
-    FPlayerInputActions playerActions;
-
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Input")
-    FWeaponInputActions weaponActions;
-
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Input")
-    FAbilityInputActions abilityActions;
-
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Input")
-    FMappingContexts mappingContexts;
-
-    
-#pragma endregion INPUT ACTIONS
-
-
-    // returns look vector (mouse movement) in previous tick
-	FVector2d GetLastLookVector() const { return lastLookVector; }
-
-    // returns true if there is any movement that is not cancelled by the opposite direction
-	FORCEINLINE bool HasMovementInput() const { return inputMap.W ^ inputMap.S || inputMap.A ^ inputMap.D; }
-    
-    // adds input in both axes separately
-    // ActionA and ActionD cancel out each other, similarly ActionW and ActionS
-    FORCEINLINE virtual FVector2d GetAdditiveMovementInput() const
-    {
-        const double x = inputMap.A * -1 + inputMap.D * 1;
-        const double y = inputMap.W * 1 + inputMap.S * -1;
-        return FVector2d(x, y);
-    }
-    
-    void SetMappingContexts(AVal_PlayerController* classObject, TObjectPtr<UInputComponent> inputComponent);
-    void SetInputActions(AVal_PlayerController* classObject);
-
-    virtual void HandleLookInput(const FInputActionInstance& InputActionInstance);
-    virtual void HandleMoveInput(const FInputActionInstance& InputActionInstance);
-    
-    
-protected:
-    virtual void BeginPlay() override;
-	UPROPERTY() TObjectPtr<UEnhancedInputComponent> enhancedInputComponent = nullptr;
-	UPROPERTY() TObjectPtr<AVal_PlayerController> playerController = nullptr;
-
-    FVector2D lastLookVector;
-    InputMap inputMap;
-    
-};
-
-
-// #undef DECLARE_INPUT_ACTION;
-// #undef DECLARE_MAPPING_CONTEXT;

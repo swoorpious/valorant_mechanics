@@ -3,7 +3,8 @@
 
 #include "Val_CharacterMovementComponent.h"
 #include "Val_Character.h"
-#include "ValorantMechanics/Input/Val_InputComponent.h"
+#include "Controller/Val_PlayerController.h"
+#include "Controller/Val_InputSystem.h"
 
 #include "ValorantMechanics/ValorantMechanics.h"
 
@@ -26,7 +27,7 @@ void UVal_CharacterMovementComponent::BeginPlay()
 	Super::BeginPlay();
 
 	playerCharacter = Cast<AVal_Character>(GetOwner());
-	valInputComponent = playerCharacter->GetValInputInstance();
+	valInputSystem = playerCharacter->GetValPlayerController()->GetInputSystem();
 
 }
 
@@ -56,9 +57,9 @@ void UVal_CharacterMovementComponent::HandleAirMovement(float DeltaTime)
 
 	FVector const viewVectorX = playerCharacter->GetActorForwardVector();
 	FVector const viewVectorY = playerCharacter->GetActorRightVector();
-	FVector2d const inputVector = valInputComponent->GetAdditiveMovementInput();
+	FVector2d const inputVector = valInputSystem->GetAdditiveMovementInput();
 
-	float const viewDeltaX = valInputComponent->GetLastLookVector().X;
+	float const viewDeltaX = valInputSystem->GetLastLookVector().X;
 
 	FVector const currentDirection = Velocity.GetSafeNormal();
 	
@@ -129,7 +130,7 @@ void UVal_CharacterMovementComponent::HandleAirMovement(float DeltaTime)
 			break;
 	}
 
-	bool const hasMovementInput = valInputComponent->HasMovementInput();
+	bool const hasMovementInput = valInputSystem->HasMovementInput();
 
 	AirControl = hasMovementInput ? airControlFactor : 0.0f;
 

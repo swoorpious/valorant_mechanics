@@ -54,7 +54,7 @@ enum class EWeaponState : uint8
 USTRUCT(BlueprintType)
 struct VALORANTMECHANICS_API FAltWeaponProperties
 {
-    GENERATED_BODY();
+    GENERATED_BODY()
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire Properties|Alternate Fire")
     bool canAltFire = false;
@@ -82,7 +82,7 @@ struct VALORANTMECHANICS_API FAltWeaponProperties
 USTRUCT(BlueprintType)
 struct VALORANTMECHANICS_API FDefaultWeaponProperties
 {
-    GENERATED_BODY();
+    GENERATED_BODY()
 
     // default FOV for the weapon, unused property
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Range")

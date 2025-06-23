@@ -19,7 +19,7 @@
 
 
 class AVal_Character;
-class UVal_InputComponent;
+class UVal_InputSystem;
 
 
 UENUM(BlueprintType)
@@ -142,7 +142,7 @@ protected:
 private:
 	
 	UPROPERTY()	TObjectPtr<AVal_Character> playerCharacter = nullptr;
-	UPROPERTY()	TObjectPtr<UVal_InputComponent> valInputComponent = nullptr;
+	UPROPERTY()	TObjectPtr<UVal_InputSystem> valInputSystem = nullptr;
 	
 	
 	float airStrafeTime = 0.0f;
