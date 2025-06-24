@@ -80,14 +80,14 @@ public:
 	DRequestWeaponSpawn tryWeaponSpawn;
 	DSuccessWeaponSpawn onWeaponSpawn;
 	
-	DRequestWeaponEquip tryWeaponEquip;
-	DSuccessWeaponEquip onWeaponDrop;
-
 	DRequestWeaponDrop tryWeaponDrop;
+	DSuccessWeaponEquip onWeaponDrop;
+	
+	DRequestWeaponEquip tryWeaponEquip;
 	DSuccessWeaponDrop onWeaponEquip;
 
-	
 
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valorant Character|Character Setup|Scene")
 	TObjectPtr<USceneComponent> sceneComponent;
 

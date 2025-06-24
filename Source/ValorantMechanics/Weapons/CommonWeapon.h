@@ -7,6 +7,7 @@
 #include "GameFramework/Actor.h"
 #include "ValorantMechanics/Core/Shared/WeaponData/WeaponProperties.h"
 #include "ValorantMechanics/Core/Shared/SocketData.h"
+#include "ValorantMechanics/Core/Shared/WeaponData/WeaponAnimDataAsset.h"
 
 #include "CommonWeapon.generated.h"
 
@@ -31,7 +32,7 @@ public:
     FORCEINLINE virtual EWeaponType GetWeaponType() { return weaponType; }
     FORCEINLINE virtual EWeaponState GetWeaponState() { return weaponState; }
     FORCEINLINE virtual EWeaponPickupType GetWeaponPickupType() { return weaponPickupType; }
-    virtual TObjectPtr<UDataAsset> GetAnimAsset() { return animAsset; }
+    virtual TObjectPtr<UWeaponAnimDataAsset> GetAnimAsset() { return animAsset; }
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Body")
     TObjectPtr<USkeletalMeshComponent> weaponMesh;
@@ -61,8 +62,8 @@ protected:
     EWeaponPickupType weaponPickupType;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Animations", meta = (DisplayName = "Animation Data Asset"))
-    TObjectPtr<UDataAsset> animAsset;
+    TObjectPtr<UWeaponAnimDataAsset> animAsset;
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Mesh|Sockets")
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "WAnimDataAsseteapon|Mesh|Sockets")
     TObjectPtr<UWeaponSocketData> socketData;
 };

@@ -18,9 +18,7 @@ USTRUCT(BlueprintType)
 struct FAnimAssets
 {
     GENERATED_BODY()
-
-// private:
-
+    
 
     TMap<EWeaponType, TObjectPtr<UDataAsset>> animDataAssets;
     
@@ -59,12 +57,15 @@ public:
     
     // UFUNCTION(BlueprintCallable, Category = "Animations|Animation Data Assets")
     void UpdateCurrentWeapon(EWeaponType weaponType);
-    
-    // UFUNCTION(BlueprintCallable, Category = "Animations|Animation Data Assets")
+
+    UFUNCTION(BlueprintType, BlueprintPure, Category = "Animations|Animation Data assets")
+    FORCEINLINE UDataAsset* GetCurrentAnimDataAsset() { return animAssets.currentAnimDataAsset; }
+
+    // UFUNCTION(BlueprintType, BlueprintPure, Category = "Animations|Animation Data assets")
     TObjectPtr<UDataAsset> GetAnimDataAsset(EWeaponType weaponType);
-    //
-    // UFUNCTION(BlueprintCallable, Category = "Animations|Animation Data Assets")
-    // void RemoveAnimDataAsset(EWeaponType weaponType);
+    
+    void RemoveAnimDataAsset(EWeaponType weaponType);
+    
 protected:
     
 
