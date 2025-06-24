@@ -3,7 +3,7 @@
 
 #include "PrimaryWeapon.h"
 
-#include "ValorantMechanics/Weapons/WeaponDataAssets/WeaponAnimDataAsset.h"
+#include "ValorantMechanics/Core/Shared/WeaponData/WeaponProperties.h"
 
 
 APrimaryWeapon::APrimaryWeapon()

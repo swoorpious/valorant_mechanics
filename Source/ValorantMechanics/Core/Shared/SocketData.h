@@ -13,26 +13,26 @@
  * bones/socket names on the weapon's skeletal mesh
  */
 UCLASS()
-class VALORANTMECHANICS_API USocketData : public UDataAsset
+class VALORANTMECHANICS_API UWeaponSocketData : public UObject
 {
     GENERATED_BODY()
 
 public: 
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
-    FName leftHandTargetSocket;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Mesh|Sockets")
+    FName leftHandTargetSocket = "Left_Hand_Target";
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
-    FName magazineMainSocket;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Mesh|Sockets")
+    FName magazineMainSocket = "Magazine_Main";
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
-    FName magazineExtraSocket;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Mesh|Sockets")
+    FName magazineExtraSocket = "Magazine_Extra";
     
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
-    FName muzzleSocket;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Mesh|Sockets")
+    FName muzzleSocket = "Muzzle";
     
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets", meta=(DisplayName="ADS/Scope Socket"))
-    FName reflexSocket; // this socket is for ADS/scope mesh
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Mesh|Sockets", meta=(DisplayName="ADS/Scope Socket"))
+    FName reflexSocket = "Reflex"; // this socket is for ADS/scope mesh
     
 };
 
@@ -41,35 +41,38 @@ public:
  * bones/socket names on the player's skeletal mesh
  */
 UCLASS()
-class VALORANTMECHANICS_API UPlayerSocketNames : public UDataAsset
+class VALORANTMECHANICS_API UPlayerSocketNames : public UObject
 {
     GENERATED_BODY()
 
 public: 
     
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
-    FName leftHandTargetSocket;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Mesh|Sockets")
+    FName leftHandTargetSocket = "L_Weapon_HandTargetSocket";
     
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
-    FName leftHandOffsetSocket;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Mesh|Sockets")
+    FName leftHandOffsetSocket = "L_Weapon_HandOffsetSocket";
     
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
-    FName leftWeaponMasterSocket;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Mesh|Sockets")
+    FName leftWeaponMasterSocket = "L_WeaponMasterSocket";
 
     
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
-    FName rightHandTargetSocket;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Mesh|Sockets")
+    FName rightHandTargetSocket = "R_Weapon_HandTargetSocket";
     
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
-    FName rightWeaponMasterSocket;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Mesh|Sockets")
+    FName rightWeaponMasterSocket = "R_WeaponMasterSocket";
 
     
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
-    FName weaponSwitcherSocket;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Mesh|Sockets")
+    FName weaponSwitcherSocket = "R_WeaponSwitcherSocket";
     
     
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
-    FName cameraSocket;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Mesh|Sockets")
+    FName cameraSocket = "Camera";
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Mesh|Sockets")
+    FName cameraVFXSocket = "VFX_Camera";
 
     
 };

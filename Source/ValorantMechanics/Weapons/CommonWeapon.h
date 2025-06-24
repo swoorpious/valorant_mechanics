@@ -5,7 +5,8 @@
 #include "CoreMinimal.h"
 
 #include "GameFramework/Actor.h"
-#include "ValorantMechanics/Core/Shared/WeaponProperties.h"
+#include "ValorantMechanics/Core/Shared/WeaponData/WeaponProperties.h"
+#include "ValorantMechanics/Core/Shared/SocketData.h"
 
 #include "CommonWeapon.generated.h"
 
@@ -44,10 +45,6 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Body")
     TObjectPtr<UBoxComponent> collisionBox;
 
-
-    // TODO: REMOVE
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Socket Names") FName magazineMainSocketName;
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Socket Names") FName scopeMainSocketName;
     
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon") FDefaultWeaponProperties defaultProperties;
@@ -65,4 +62,7 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Animations", meta = (DisplayName = "Animation Data Asset"))
     TObjectPtr<UDataAsset> animAsset;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Mesh|Sockets")
+    TObjectPtr<UWeaponSocketData> socketData;
 };

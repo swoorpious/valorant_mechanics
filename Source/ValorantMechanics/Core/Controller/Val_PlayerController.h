@@ -51,9 +51,9 @@ public:
 	
 protected:
 	void AddLookInput(FVector2D Look) const;
-	virtual void SetupInputComponent() override;
 
 	UPROPERTY() TObjectPtr<AVal_Character> playerCharacter = nullptr;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Instanced, Category="Input")
 	TObjectPtr<UVal_InputSystem> valInputSystem = nullptr;
 

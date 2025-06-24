@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "WeaponProperties.h"
+#include "WeaponData/WeaponProperties.h"
 
 class ACommonWeapon;
 class UDataAsset;

@@ -26,11 +26,11 @@ void AVal_PlayerController::AddLookInput(FVector2D Look) const
 
 	// TODO: implement FOV scaling for ads weapons -> scaleFOV = currentFOV / baseFOV
 	// would use scaleFOV instead later
-	FVector2D viewportSize = GetWorld()->GetGameViewport()->Viewport->GetSizeXY();
-	float cameraFOV = playerCharacter->characterMeshCamera->FieldOfView;
+	FVector2D const viewportSize = GetWorld()->GetGameViewport()->Viewport->GetSizeXY();
+	float const cameraFOV = playerCharacter->characterMeshCamera->FieldOfView;
 	
 	// playerCharacter handles yaw
-	FRotator yaw = playerCharacter->GetActorRotation() + FRotator(
+	FRotator const yaw = playerCharacter->GetActorRotation() + FRotator(
 		0,
 		Look.X * (cameraFOV / viewportSize.X),
 		0);
@@ -44,12 +44,6 @@ void AVal_PlayerController::AddLookInput(FVector2D Look) const
 	pitch.Pitch = FMath::Clamp(pitch.Pitch, -89.9f, 89.9f);
 	playerCharacter->sceneComponent->SetRelativeRotation(pitch); // update pitch (up/down)
 
-}
-
-void AVal_PlayerController::SetupInputComponent()
-{
-	Super::SetupInputComponent();
-	
 }
 
 
@@ -94,9 +88,13 @@ void AVal_PlayerController::PlayerMove() const
     
 		moveVector.Y *= scaleFactor;
 	}
+
+	const FVector playerRight = playerCharacter->GetActorRightVector();
+	const FVector playerForward = playerCharacter->GetActorForwardVector();
 		
-	const FVector worldVector = playerCharacter->GetActorRightVector() * moveVector.X +
-		playerCharacter->GetActorForwardVector() * moveVector.Y;
+	const FVector worldVector = playerRight * moveVector.X +
+		playerForward * moveVector.Y;
+	
 		
 	playerCharacter->AddMovementInput(worldVector.GetSafeNormal(), 1.0f);
 	

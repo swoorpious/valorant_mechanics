@@ -109,6 +109,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Spawn Properties|Equipped Weapons")
 	TSubclassOf<ACommonWeapon> primaryWeaponToSpawn = nullptr;
 
+		
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Character|Mesh|Sockets")
+	TObjectPtr<UPlayerSocketNames> socketData;
+
 	
 
 	virtual void Jump() override;
@@ -132,8 +136,7 @@ protected:
 	// caching for some reason
 	UPROPERTY()	TObjectPtr<UVal_CharacterMovementComponent> movementComponent = nullptr;
 	UPROPERTY()	TObjectPtr<UVal_AnimInstance> playerAnimInstance = nullptr;
-	UPROPERTY() UPlayerSocketNames socketData;
-	
+
 	
 	UPROPERTY() FPlayerInventory playerInventory;
 

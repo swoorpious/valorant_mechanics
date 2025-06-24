@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
 
-#include "ValorantMechanics/Core/Shared/WeaponProperties.h"
+#include "ValorantMechanics/Core/Shared/WeaponData/WeaponProperties.h"
 
 
 #include "Val_AnimInstance.generated.h"

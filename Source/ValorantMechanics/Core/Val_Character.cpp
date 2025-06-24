@@ -21,9 +21,11 @@ AVal_Character::AVal_Character(const FObjectInitializer& ObjectInitializer) :
 Super(ObjectInitializer.SetDefaultSubobjectClass<UVal_CharacterMovementComponent>(CharacterMovementComponentName))
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	socketData = CreateDefaultSubobject<UPlayerSocketNames>(TEXT("Player Socket Names"));	
+	
 	
 	RootComponent = GetCapsuleComponent();
-
 	sceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Scene"));
 	sceneComponent->SetupAttachment(RootComponent);
 	
@@ -31,9 +33,10 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UVal_CharacterMovementComponent
 	characterMesh->SetupAttachment(sceneComponent);
 	characterMesh->CastShadow = false;
 	characterMesh->bCastDynamicShadow = true;
+	characterMesh->SetSimulatePhysics(false);
 	
 	characterMeshCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Character Mesh Camera"));
-	characterMeshCamera->SetupAttachment(characterMesh, socketData.cameraSocket);
+	characterMeshCamera->SetupAttachment(characterMesh, socketData->cameraSocket);
 	characterMeshCamera->bUsePawnControlRotation = false;
 	
 
@@ -85,7 +88,7 @@ void AVal_Character::SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn
 	if (ACommonWeapon* spawnedWeapon = GetWorld()->SpawnActor<ACommonWeapon>(weaponToSpawn))
 	{
 		spawnedWeapon->SetOwner(this);
-		spawnedWeapon->AttachToComponent(characterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, socketData.rightWeaponMasterSocket);
+		spawnedWeapon->AttachToComponent(characterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, socketData->rightWeaponMasterSocket);
 		spawnedWeapon->SetActorHiddenInGame(true); // hidden by default, EquipWeapon(...) will unhide
 		playerInventory.UpdateInventoryWeapon(spawnedWeapon);
 

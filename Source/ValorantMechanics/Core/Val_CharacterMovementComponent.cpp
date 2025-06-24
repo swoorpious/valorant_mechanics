@@ -14,6 +14,7 @@
 UVal_CharacterMovementComponent::UVal_CharacterMovementComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
+	bOrientRotationToMovement = false;
 }
 
 bool UVal_CharacterMovementComponent::DoJump(bool bReplayingMoves, float DeltaTime)
