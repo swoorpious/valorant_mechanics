@@ -4,75 +4,72 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "WeaponSocketNames.generated.h"
+#include "SocketData.generated.h"
 
-
-USTRUCT(BlueprintType)
-struct FWeaponSkeletonSockets
-{
-    GENERATED_BODY()
-
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
-    FString leftHandTargetSocket;
-
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
-    FString magazineMainSocket;
-
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
-    FString magazineExtraSocket;
-    
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
-    FString muzzleSocket;
-    
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
-    FString reflexSocket; // this socket is for ADS/scope mesh
-
-
-};
-
-USTRUCT(BlueprintType)
-struct FPlayerSkeletonSockets
-{
-    GENERATED_BODY()
-    
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
-    FString leftHandTargetSocket;
-    
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
-    FString leftHandOffsetSocket;
-    
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
-    FString leftWeaponMasterSocket;
-
-    
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
-    FString rightHandTargetSocket;
-    
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
-    FString rightWeaponMasterSocket;
-
-    
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
-    FString weaponSwitcherSocket;
-    
-};
 
 
 
 /**
- * 
+ * bones/socket names on the weapon's skeletal mesh
  */
 UCLASS()
-class VALORANTMECHANICS_API UWeaponSocketNames : public UObject
+class VALORANTMECHANICS_API USocketData : public UDataAsset
+{
+    GENERATED_BODY()
+
+public: 
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
+    FName leftHandTargetSocket;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
+    FName magazineMainSocket;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
+    FName magazineExtraSocket;
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
+    FName muzzleSocket;
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets", meta=(DisplayName="ADS/Scope Socket"))
+    FName reflexSocket; // this socket is for ADS/scope mesh
+    
+};
+
+
+/**
+ * bones/socket names on the player's skeletal mesh
+ */
+UCLASS()
+class VALORANTMECHANICS_API UPlayerSocketNames : public UDataAsset
 {
     GENERATED_BODY()
 
 public: 
     
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
-    FPlayerSkeletonSockets playerSkelSockets;
-
+    FName leftHandTargetSocket;
+    
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
-    FWeaponSkeletonSockets weaponSkelSockets;
+    FName leftHandOffsetSocket;
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
+    FName leftWeaponMasterSocket;
+
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
+    FName rightHandTargetSocket;
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
+    FName rightWeaponMasterSocket;
+
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
+    FName weaponSwitcherSocket;
+    
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Mesh|Sockets")
+    FName cameraSocket;
+
     
 };

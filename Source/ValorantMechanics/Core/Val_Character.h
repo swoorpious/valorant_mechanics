@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 
 #include "Shared/PlayerDelegateDefinition.h"
+#include "Shared/WeaponData/WeaponProperties.h"
+#include "Shared/SocketData.h"
 
 #include "GameFramework/Character.h"
 #include "Val_Character.generated.h"
@@ -19,10 +21,6 @@ class AVal_PlayerController;
 class USkeletalMeshComponent;
 class UCameraComponent;
 class ACommonWeapon;
-
-
-
-#define MASTER_SOCKET TEXT("R_WeaponMasterSocket")
 
 
 
@@ -119,7 +117,7 @@ public:
 	void Walk();
 	void Unwalk();
 	
-	void SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn, FName socketName, bool shouldAutoEquip);
+	void SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn, bool shouldAutoEquip);
 	void EquipWeapon(const EWeaponType weaponType);
 	void DropWeapon(EWeaponType weaponType);
 	
@@ -134,6 +132,8 @@ protected:
 	// caching for some reason
 	UPROPERTY()	TObjectPtr<UVal_CharacterMovementComponent> movementComponent = nullptr;
 	UPROPERTY()	TObjectPtr<UVal_AnimInstance> playerAnimInstance = nullptr;
+	UPROPERTY() UPlayerSocketNames socketData;
+	
 	
 	UPROPERTY() FPlayerInventory playerInventory;
 

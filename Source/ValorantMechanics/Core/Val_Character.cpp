@@ -25,7 +25,7 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UVal_CharacterMovementComponent
 	RootComponent = GetCapsuleComponent();
 
 	sceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Scene"));
-	sceneComponent->SetupAttachment(GetCapsuleComponent());
+	sceneComponent->SetupAttachment(RootComponent);
 	
 	characterMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Character Mesh"));
 	characterMesh->SetupAttachment(sceneComponent);
@@ -33,7 +33,7 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UVal_CharacterMovementComponent
 	characterMesh->bCastDynamicShadow = true;
 	
 	characterMeshCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Character Mesh Camera"));
-	characterMeshCamera->SetupAttachment(characterMesh, TEXT("Camera"));
+	characterMeshCamera->SetupAttachment(characterMesh, socketData.cameraSocket);
 	characterMeshCamera->bUsePawnControlRotation = false;
 	
 
@@ -62,9 +62,9 @@ void AVal_Character::BeginPlay()
 	if (!playerAnimInstance) LOG(Val_Player, Error, "playerAnimInstance is likely a nullptr.");
 	
 
-	if (meleeWeaponToSpawn) SpawnWeapon(meleeWeaponToSpawn, MASTER_SOCKET, !secondaryWeaponToSpawn && !primaryWeaponToSpawn);
-	if (secondaryWeaponToSpawn) SpawnWeapon(secondaryWeaponToSpawn, MASTER_SOCKET, !primaryWeaponToSpawn);
-	if (primaryWeaponToSpawn) SpawnWeapon(primaryWeaponToSpawn, MASTER_SOCKET, true);
+	if (meleeWeaponToSpawn) SpawnWeapon(meleeWeaponToSpawn, !secondaryWeaponToSpawn && !primaryWeaponToSpawn);
+	if (secondaryWeaponToSpawn) SpawnWeapon(secondaryWeaponToSpawn, !primaryWeaponToSpawn);
+	if (primaryWeaponToSpawn) SpawnWeapon(primaryWeaponToSpawn, true);
 
 	tryWeaponEquip.AddUObject(this, &AVal_Character::EquipWeapon);
 	// tryWeaponSpawn.AddUObject(this, &AVal_Character::SpawnWeapon);
@@ -76,7 +76,7 @@ void AVal_Character::BeginPlay()
 
 
 // TODO: make common list for socket names, and remove @param socketName
-void AVal_Character::SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn, FName socketName, bool shouldAutoEquip)
+void AVal_Character::SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn, bool shouldAutoEquip)
 {
 	if (!weaponToSpawn) return;
 
@@ -85,7 +85,7 @@ void AVal_Character::SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn
 	if (ACommonWeapon* spawnedWeapon = GetWorld()->SpawnActor<ACommonWeapon>(weaponToSpawn))
 	{
 		spawnedWeapon->SetOwner(this);
-		spawnedWeapon->AttachToComponent(characterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, socketName);
+		spawnedWeapon->AttachToComponent(characterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, socketData.rightWeaponMasterSocket);
 		spawnedWeapon->SetActorHiddenInGame(true); // hidden by default, EquipWeapon(...) will unhide
 		playerInventory.UpdateInventoryWeapon(spawnedWeapon);
 
@@ -106,9 +106,14 @@ void AVal_Character::EquipWeapon(const EWeaponType weaponType)
 	 * check if the animation data asset for the give type in playerAnimInstance is the same as the weapon in playerInventory.
 	 * if not, we don't really care, we just return. 
 	 */
-	auto const animDataFromInstance = playerAnimInstance->GetAnimDataAsset(weaponType);
-	auto const animInstanceFromWeapon = playerInventory.GetWeaponByType(weaponType)->GetAnimAsset();
-	if (!(playerAnimInstance && animInstanceFromWeapon == animDataFromInstance) || !playerInventory.HasWeapon(weaponType)) return;
+	TObjectPtr<ACommonWeapon> const invWeapon = playerInventory.GetWeaponByType(weaponType);
+	TObjectPtr<UDataAsset> const animDataInstance = playerAnimInstance->GetAnimDataAsset(weaponType);
+	TObjectPtr<UDataAsset> const animDataWeapon = invWeapon ? invWeapon->GetAnimAsset() : nullptr;
+
+	bool const validAnim = playerAnimInstance && animDataWeapon == animDataInstance;
+	
+	if (!validAnim || !playerInventory.HasWeapon(weaponType)) return;
+	
 	
 
 	playerInventory.UpdateEquippedWeapon(weaponType);
