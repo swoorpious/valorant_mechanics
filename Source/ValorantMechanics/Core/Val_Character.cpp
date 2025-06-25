@@ -92,6 +92,7 @@ void AVal_Character::SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn
 		spawnedWeapon->SetActorHiddenInGame(true); // hidden by default, EquipWeapon(...) will unhide
 		playerInventory.UpdateInventoryWeapon(spawnedWeapon);
 
+		playerAnimInstance->UpdateAnimDataAsset(spawnedWeapon);
 		onWeaponSpawn.Broadcast(spawnedWeapon);
 
 		if (shouldAutoEquip) this->EquipWeapon(spawnedWeapon->GetWeaponType());
@@ -118,7 +119,9 @@ void AVal_Character::EquipWeapon(const EWeaponType weaponType)
 	if (!validAnim || !playerInventory.HasWeapon(weaponType)) return;
 	
 	
-
+	playerAnimInstance->UpdateCurrentWeapon(weaponType);
+	playerAnimInstance->UpdateWeaponState(EWeaponState::Equipping);
+	
 	playerInventory.UpdateEquippedWeapon(weaponType);
 	for (const auto& pair : playerInventory.GetInventory())
 	{
