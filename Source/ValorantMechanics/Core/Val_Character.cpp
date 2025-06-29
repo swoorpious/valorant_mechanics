@@ -24,7 +24,7 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UVal_CharacterMovementComponent
 
 	socketData = CreateDefaultSubobject<UPlayerSocketNames>(TEXT("Player Socket Names"));	
 	
-	
+
 	RootComponent = GetCapsuleComponent();
 	sceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Scene"));
 	sceneComponent->SetupAttachment(RootComponent);
@@ -51,6 +51,13 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UVal_CharacterMovementComponent
 	bUseControllerRotationRoll = false;
 
 	bReplicates = true;
+
+	// disable physics
+	GetMesh()->SetSimulatePhysics(false);
+	characterMesh->SetSimulatePhysics(false);
+	characterMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	characterMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+
 	
 }
 
