@@ -72,26 +72,10 @@ void AVal_PlayerController::PlayerMove() const
     
 		moveVector.X *= scaleFactor;
 	}
-
-	/*
-	 * forward movement reduction
-	 * perhaps unnecessary chunk of code
-	 * does the same thing as strafe movement reduction but for W/S
-	 */
-	if (FMath::Abs(valInputSystem->GetLastLookVector().Y) > minThreshold)
-	{
-		float scaleFactor = FMath::Clamp(
-			1.0f / FMath::Pow(FMath::Abs(valInputSystem->GetLastLookVector().Y), 0.5f), 
-			1.0f / maxScale,
-			maxScale
-		);
-    
-		moveVector.Y *= scaleFactor;
-	}
-
+	
+	
 	const FVector playerRight = playerCharacter->GetActorRightVector();
 	const FVector playerForward = playerCharacter->GetActorForwardVector();
-		
 	const FVector worldVector = playerRight * moveVector.X +
 		playerForward * moveVector.Y;
 	
