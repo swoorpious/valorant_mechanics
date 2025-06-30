@@ -14,6 +14,7 @@ void UVal_AnimInstance::NativeBeginPlay()
     Super::NativeBeginPlay();
 
     notifier = CreateDefaultSubobject<UAnimNotifier>(TEXT("Animation Notifier"));
+    notifier->onStateChange.AddUObject(this, &UVal_AnimInstance::UpdateWeaponState);
 
     // if (AVal_Character* e = Cast<AVal_Character>(TryGetPawnOwner()))
     // {
@@ -37,29 +38,8 @@ void UVal_AnimInstance::UpdateAnimDataAsset(ACommonWeapon* equippedWeapon)
 
 void UVal_AnimInstance::UpdateCurrentWeapon(EWeaponType weaponType)
 {
-    bool shouldBroadcast = false;
-    
-    switch (weaponType)
-    {
-        case EWeaponType::Melee:
-            animAssets.currentWeaponType = EWeaponType::Melee;
-            animAssets.currentAnimDataAsset = animAssets.meleeAnimAsset;
-            shouldBroadcast = true;
-            break;
-        case EWeaponType::Primary:
-            animAssets.currentWeaponType = EWeaponType::Primary;
-            animAssets.currentAnimDataAsset = animAssets.primaryAnimAsset;
-            shouldBroadcast = true;
-            break;
-        case EWeaponType::Secondary:
-            animAssets.currentWeaponType = EWeaponType::Secondary;
-            animAssets.currentAnimDataAsset = animAssets.secondaryAnimAsset;
-            shouldBroadcast = true;
-            break;
-        default: break;
-    }
-
-    if (shouldBroadcast) notifier->onCurrentAnimDataChange.ExecuteIfBound(animAssets.currentAnimDataAsset);
+    if (!HasAnimDataForType(weaponType)) return;
+    animAssets.currentWeaponType = weaponType;
 }
 
 
@@ -76,8 +56,9 @@ void UVal_AnimInstance::RemoveAnimDataAsset(EWeaponType weaponType)
     animAssets.animDataMap.Remove(weaponType);
 }
 
-void UVal_AnimInstance::UpdateWeaponState(EWeaponState newState)
+UWeaponAnimDataAsset* UVal_AnimInstance::GetCurrentAnimDataAsset()
 {
-    weaponState = newState;
-    notifier->onWeaponStateChange.ExecuteIfBound(newState);
+    if (!HasAnimDataForType(animAssets.currentWeaponType)) return nullptr;
+    
+    return animAssets.animDataMap[animAssets.currentWeaponType];
 }

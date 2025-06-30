@@ -31,7 +31,7 @@ enum class EWeaponPickupType : uint8
 UENUM(BlueprintType, DisplayName = "Weapon Type")
 enum class EWeaponType : uint8
 {
-    Empty           UMETA(DisplayName = "Empty Weapon - Placeholder for any weapon type"),
+    Empty           UMETA(DisplayName = "Empty Weapon - Placeholder for any weapon type. Can be used as a \"test animation data asset\" in ABP."),
     Melee           UMETA(DisplayName = "Melee Weapon"), // tactical knife
     Secondary       UMETA(DisplayName = "Secondary Weapon"), // handguns 
     Primary         UMETA(DisplayName = "Primary Weapon"), // rifles

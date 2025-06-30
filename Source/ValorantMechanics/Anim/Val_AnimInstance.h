@@ -20,31 +20,17 @@ struct FAnimAssets
 {
     GENERATED_BODY()
     
-
     TMap<EWeaponType, TObjectPtr<UWeaponAnimDataAsset>> animDataMap;
-    
-    // using TObjectPtr<UWeaponAnimDataAsset> because melee and secondary and primary weapons types use subclasses of UWeaponAnimDataAsset
-    UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Animations|Animation Data Assets", meta=(DisplayName = "Melee Animation Data Asset"))
-    TObjectPtr<UWeaponAnimDataAsset> meleeAnimAsset;
 
-    UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Animations|Animation Data Assets", meta=(DisplayName = "Secondary Animation Data Asset"))
-    TObjectPtr<UWeaponAnimDataAsset> secondaryAnimAsset;
-
-    UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Animations|Animation Data Assets", meta=(DisplayName = "Primary Animation Data Asset"))
-    TObjectPtr<UWeaponAnimDataAsset> primaryAnimAsset;
-
-
+    /*
+     * fallbackAnimDataAsset is used in case any key in animDataMap does not hold a valid animation data asset
+     * this asset is also used when the current key value is EWeaponType::Empty
+     */
     UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Animations|Animation Data Assets", meta=(DisplayName = "TEST Animation Data Asset"))
-    TObjectPtr<UWeaponAnimDataAsset> testAnimDataAsset;
+    TObjectPtr<UWeaponAnimDataAsset> fallbackAnimDataAsset;
     
-    
-    UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Animations|Animation Data Assets", meta=(DisplayName = "Current Animation Data Asset"))
-    TObjectPtr<UWeaponAnimDataAsset> currentAnimDataAsset;
-
     UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Weapon")
     EWeaponType currentWeaponType;
-
-    
     
 };
 
@@ -62,7 +48,7 @@ public:
     
     void UpdateAnimDataAsset(ACommonWeapon* equippedWeapon);
     void UpdateCurrentWeapon(EWeaponType weaponType);
-    void UpdateWeaponState(EWeaponState weaponState);
+    FORCEINLINE void UpdateWeaponState(EWeaponState newState) { weaponState = newState; }
     
     TObjectPtr<UWeaponAnimDataAsset> GetAnimDataAsset(EWeaponType weaponType);
 
@@ -75,16 +61,10 @@ public:
     FORCEINLINE EWeaponState GetWeaponState() const { return weaponState; }
     
     UFUNCTION(BlueprintType, BlueprintPure, Category = "Animations|Animation Data assets")
-    FORCEINLINE UWeaponAnimDataAsset* GetCurrentAnimDataAsset() { return animAssets.currentAnimDataAsset; }
+    UWeaponAnimDataAsset* GetCurrentAnimDataAsset();
 
-#if WITH_EDITOR
     
-    UFUNCTION(BlueprintType, CallInEditor, Category = "Animations|Animation Data assets")
-    FORCEINLINE void SetTestAnimDataAsset() { animAssets.currentAnimDataAsset = animAssets.testAnimDataAsset; }
-
-#endif
-    
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animations|Notifier")
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Instanced, Category = "Animations|Notifier")
     TObjectPtr<UAnimNotifier> notifier;
     
 protected:

@@ -5,10 +5,12 @@
 #include "CoreMinimal.h"
 
 #include "Shared/PlayerDelegateDefinition.h"
-#include "Shared/WeaponData/WeaponProperties.h"
+// #include "Shared/WeaponData/WeaponProperties.h"
 #include "Shared/SocketData.h"
+#include "PlayerInventory.h"
 
 #include "GameFramework/Character.h"
+
 #include "Val_Character.generated.h"
 
 
@@ -17,44 +19,13 @@ class UVal_AnimInstance;
 class UVal_InputComponent;
 class UVal_CharacterMovementComponent;
 class AVal_PlayerController;
+// class UPlayerInventory;
 
 class USkeletalMeshComponent;
 class UCameraComponent;
 class ACommonWeapon;
 
 
-
-
-// basic code for inventory
-USTRUCT()
-struct FPlayerInventory
-{
-	GENERATED_BODY();
-
-private:
-	UPROPERTY() EWeaponType equippedWeaponType = EWeaponType::Empty; // set to EWeaponType::Empty by default, updated to whichever the player spawns with
-	UPROPERTY() TMap<EWeaponType, TObjectPtr<ACommonWeapon>> inventoryMap; // cannot have EWeaponType::Empty
-
-public:
-
-	// does not update equippedWeaponType
-	// updates if weapon of EWeaponType exists
-	// otherwise adds weapon of EWeaponType
-	void UpdateInventoryWeapon(const TObjectPtr<ACommonWeapon>& weapon);
-
-	// only updates equippedWeaponType if weapon type exists in inventoryMap
-	// use UpdateInventoryWeapon to add/update inventory slots
-	void UpdateEquippedWeapon(EWeaponType weaponType);
-	
-	TObjectPtr<ACommonWeapon> GetWeaponByType(EWeaponType weaponType) const;
-
-	void DropWeaponByType(EWeaponType weaponType);
-	bool HasWeapon(EWeaponType weaponType) const { return inventoryMap.FindRef(weaponType) != nullptr; }
-	
-	FORCEINLINE TObjectPtr<ACommonWeapon> GetEquippedWeapon() const { return this->GetWeaponByType(equippedWeaponType); }
-	FORCEINLINE TMap<EWeaponType, TObjectPtr<ACommonWeapon>> GetInventory() const { return inventoryMap; }
-
-};
 
 
 
@@ -100,17 +71,9 @@ public:
 	
 	
 	// can be used to spawn with weapons
-	UPROPERTY(EditDefaultsOnly, Category = "Spawn Properties|Equipped Weapons")
-	TSubclassOf<ACommonWeapon> meleeWeaponToSpawn = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Spawn Properties|Equipped Weapons")
-	TSubclassOf<ACommonWeapon> secondaryWeaponToSpawn = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Spawn Properties|Equipped Weapons")
-	TSubclassOf<ACommonWeapon> primaryWeaponToSpawn = nullptr;
 
 		
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Character|Mesh|Sockets")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Valorant Character|Mesh|Sockets")
 	TObjectPtr<UPlayerSocketNames> socketData;
 
 	
@@ -126,6 +89,8 @@ public:
 	void DropWeapon(EWeaponType weaponType);
 	
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Instanced, Category = "Valorant Weapons")
+	TObjectPtr<UPlayerInventory> playerInventory;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -136,10 +101,7 @@ protected:
 	// caching for some reason
 	UPROPERTY()	TObjectPtr<UVal_CharacterMovementComponent> movementComponent = nullptr;
 	UPROPERTY()	TObjectPtr<UVal_AnimInstance> playerAnimInstance = nullptr;
-
 	
-	UPROPERTY() FPlayerInventory playerInventory;
-
 	
 
 	float TimeSinceLanded = 0.0f;

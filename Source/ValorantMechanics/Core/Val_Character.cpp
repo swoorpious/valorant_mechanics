@@ -22,7 +22,8 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UVal_CharacterMovementComponent
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	socketData = CreateDefaultSubobject<UPlayerSocketNames>(TEXT("Player Socket Names"));	
+	socketData = CreateDefaultSubobject<UPlayerSocketNames>(TEXT("Player Socket Names"));
+	playerInventory = CreateDefaultSubobject<UPlayerInventory>(TEXT("Player Inventory"));
 	
 
 	RootComponent = GetCapsuleComponent();
@@ -72,9 +73,9 @@ void AVal_Character::BeginPlay()
 	if (!playerAnimInstance) LOG(Val_Player, Error, "playerAnimInstance is likely a nullptr.");
 	
 
-	if (meleeWeaponToSpawn) SpawnWeapon(meleeWeaponToSpawn, !secondaryWeaponToSpawn && !primaryWeaponToSpawn);
-	if (secondaryWeaponToSpawn) SpawnWeapon(secondaryWeaponToSpawn, !primaryWeaponToSpawn);
-	if (primaryWeaponToSpawn) SpawnWeapon(primaryWeaponToSpawn, true);
+	if (playerInventory->meleeToSpawn) SpawnWeapon(playerInventory->meleeToSpawn, !playerInventory->secondaryToSpawn && !playerInventory->primaryToSpawn);
+	if (playerInventory->secondaryToSpawn) SpawnWeapon(playerInventory->secondaryToSpawn, !playerInventory->primaryToSpawn);
+	if (playerInventory->primaryToSpawn) SpawnWeapon(playerInventory->primaryToSpawn, true);
 
 	tryWeaponEquip.AddUObject(this, &AVal_Character::EquipWeapon);
 	// tryWeaponSpawn.AddUObject(this, &AVal_Character::SpawnWeapon);
@@ -97,7 +98,7 @@ void AVal_Character::SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn
 		spawnedWeapon->SetOwner(this);
 		spawnedWeapon->AttachToComponent(characterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, socketData->rightWeaponMasterSocket);
 		spawnedWeapon->SetActorHiddenInGame(true); // hidden by default, EquipWeapon(...) will unhide
-		playerInventory.UpdateInventoryWeapon(spawnedWeapon);
+		playerInventory->UpdateInventoryWeapon(spawnedWeapon);
 
 		playerAnimInstance->UpdateAnimDataAsset(spawnedWeapon);
 		onWeaponSpawn.Broadcast(spawnedWeapon);
@@ -117,20 +118,20 @@ void AVal_Character::EquipWeapon(const EWeaponType weaponType)
 	 * check if the animation data asset for the give type in playerAnimInstance is the same as the weapon in playerInventory.
 	 * if not, we don't really care, we just return. 
 	 */
-	TObjectPtr<ACommonWeapon> const invWeapon = playerInventory.GetWeaponByType(weaponType);
+	TObjectPtr<ACommonWeapon> const invWeapon = playerInventory->GetWeaponByType(weaponType);
 	TObjectPtr<UDataAsset> const animDataInstance = playerAnimInstance->GetAnimDataAsset(weaponType);
 	TObjectPtr<UDataAsset> const animDataWeapon = invWeapon ? invWeapon->GetAnimAsset() : nullptr;
 
 	bool const validAnim = playerAnimInstance && animDataWeapon == animDataInstance;
 	
-	if (!validAnim || !playerInventory.HasWeapon(weaponType)) return;
+	if (!validAnim || !playerInventory->HasWeapon(weaponType)) return;
 	
 	
 	playerAnimInstance->UpdateCurrentWeapon(weaponType);
 	playerAnimInstance->UpdateWeaponState(EWeaponState::Equipping);
 	
-	playerInventory.UpdateEquippedWeapon(weaponType);
-	for (const auto& pair : playerInventory.GetInventory())
+	playerInventory->UpdateEquippedWeapon(weaponType);
+	for (const auto& pair : playerInventory->GetInventory())
 	{
 		if (ACommonWeapon* e = pair.Value) e->SetActorHiddenInGame(pair.Key != weaponType);
 	}
@@ -142,7 +143,7 @@ void AVal_Character::EquipWeapon(const EWeaponType weaponType)
 
 void AVal_Character::DropWeapon(EWeaponType weaponType)
 {
-	if (playerInventory.GetEquippedWeapon()->GetWeaponType() == weaponType)
+	if (playerInventory->GetEquippedWeapon()->GetWeaponType() == weaponType)
 	{
 		switch (weaponType)
 		{
@@ -153,18 +154,18 @@ void AVal_Character::DropWeapon(EWeaponType weaponType)
 				return;
 			case EWeaponType::Secondary:
 				// when secondary is dropped, equip primary if it exists, or equip melee
-				this->EquipWeapon(playerInventory.HasWeapon(EWeaponType::Primary) ? EWeaponType::Primary : EWeaponType::Melee);
+				this->EquipWeapon(playerInventory->HasWeapon(EWeaponType::Primary) ? EWeaponType::Primary : EWeaponType::Melee);
 				break;
 			case EWeaponType::Primary:
 				// when primary is dropped, equip secondary if it exists, or equip melee
-				this->EquipWeapon(playerInventory.HasWeapon(EWeaponType::Secondary) ? EWeaponType::Secondary : EWeaponType::Melee);
+				this->EquipWeapon(playerInventory->HasWeapon(EWeaponType::Secondary) ? EWeaponType::Secondary : EWeaponType::Melee);
 				break;
 		}
 	}
 
 	// TODO: change this when implementing weapon drop and physics for weapon 
-	playerInventory.GetWeaponByType(weaponType)->Destroy();
-	playerInventory.DropWeaponByType(weaponType);
+	playerInventory->GetWeaponByType(weaponType)->Destroy();
+	playerInventory->DropWeaponByType(weaponType);
 	onWeaponDrop.Broadcast(weaponType);
 }
 
@@ -173,23 +174,11 @@ void AVal_Character::DropWeapon(EWeaponType weaponType)
 void AVal_Character::Jump()
 {
 	Super::Jump();
-
-	isLanded = false;
-	isJumping = true;
-	
-
-	// movementComponent->MaxAcceleration = WhileJumpingMovementAcceleration;
-	// movementComponent->MaxWalkSpeed = WhileJumpingWalkSpeed;
 }
 
 void AVal_Character::Landed(const FHitResult& Hit)
 {
 	Super::Landed(Hit);
-	// // PlayerController->OnLanded();
-	//
-	// isLanded = true;
-	// isJumping = false;
-	// UE_LOG(LogTemp, Warning, TEXT("Landed")); 
 }
 
 
@@ -208,38 +197,6 @@ void AVal_Character::Unwalk()
 void AVal_Character::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	
-#pragma region Jump Logic
-	/*if (isLanded && !isJumping)
-	{
-		if (TimeSinceLanded < BunnyHopTimeThreshold)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Landed, before BunnyHopTimeThreshold"));
-
-			TimeSinceLanded += DeltaTime;
-			movementComponent->MaxAcceleration = RegularAcceleration;
-			movementComponent->MaxWalkSpeed = RunSpeed;
-		}
-	    else if (TimeSinceLanded < JumpStunDuration)
-	    {
-	    	UE_LOG(LogTemp, Warning, TEXT("Landed, before JumpStunDuration"));
-		    TimeSinceLanded += DeltaTime;
-	    	movementComponent->MaxAcceleration = RegularAcceleration;
-	    	movementComponent->MaxWalkSpeed = AfterJumpWalkSpeed;
-	    }
-		else if (TimeSinceLanded >= JumpStunDuration)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Landed, just after JumpStunDuration"));
-	
-			TimeSinceLanded = 0.0f;
-			isLanded = false;
-			isJumping = false;
-			movementComponent->MaxAcceleration = RegularAcceleration;
-			movementComponent->MaxWalkSpeed = RunSpeed;
-		}
-	}*/
-#pragma endregion
 }
 
 
@@ -248,42 +205,6 @@ void AVal_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
-
-
-
-#pragma region Inventory Implementation
-
-void FPlayerInventory::UpdateInventoryWeapon(const TObjectPtr<ACommonWeapon>& weapon)
-{
-	// this definition is defined in .cpp due to ACommonWeapon being incomplete
-	EWeaponType weaponType = weapon->GetWeaponType();
-	if (!weapon || weaponType == EWeaponType::Empty) return;
-	this->HasWeapon(weaponType) ?
-		inventoryMap[weaponType] = weapon :
-		inventoryMap.Add(weaponType, weapon);
-}
-
-void FPlayerInventory::UpdateEquippedWeapon(EWeaponType weaponType)
-{
-	if (!this->HasWeapon(weaponType)) return;
-	equippedWeaponType = weaponType;
-}
-
-
-TObjectPtr<ACommonWeapon> FPlayerInventory::GetWeaponByType(EWeaponType weaponType) const
-{
-	if (weaponType == EWeaponType::Empty || !this->HasWeapon(weaponType)) return nullptr;
-	return inventoryMap[weaponType];
-}
-
-
-void FPlayerInventory::DropWeaponByType(EWeaponType weaponType)
-{
-	if (weaponType == EWeaponType::Empty || !this->HasWeapon(weaponType)) return;
-	inventoryMap[weaponType] = nullptr;
-}
-
-#pragma endregion Inventory Implementation
 
 
 

@@ -2,3 +2,8 @@
 
 
 #include "AnimNotifier.h"
+
+void UAnimNotifier::TryUpdateAnimState(const EWeaponState newState)
+{
+    onStateChange.Broadcast(newState);
+}
