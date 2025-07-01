@@ -26,11 +26,12 @@ class VALORANTMECHANICS_API AVal_PlayerController : public APlayerController
 public:
 	AVal_PlayerController();
 	virtual TObjectPtr<UVal_InputSystem> GetInputSystem() { return valInputSystem; } 	
-		
 
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Input")
 	float Sensitivity = 1.0f;
 
+	
 #pragma region PLAYER ACTIONS
 	void PlayerJump(const FInputActionInstance& InputActionInstance);
 	void PlayerCrouch(const FInputActionInstance& InputActionInstance);
@@ -44,16 +45,16 @@ public:
 
 
 #pragma region WEAPON ACTIONS
-	FORCEINLINE void TryWeaponEquip(const EWeaponType weaponType) const { playerCharacter->EquipWeapon(weaponType); }
-	// FORCEINLINE void TryWeaponDrop(const EWeaponType weaponType) const { playerCharacter->DropWeapon(weaponType); }
-
+	FORCEINLINE void TryWeaponEquip(const EWeaponType weaponType) const { pCharacter->EquipWeapon(weaponType); }
+	// FORCEINLINE void TryWeaponDrop(const EWeaponType weaponType) const { pCharacter->DropWeapon(weaponType); }
 
 #pragma endregion WEAPON ACTIONS
+	
 	
 protected:
 	void AddLookInput(FVector2D Look) const;
 
-	UPROPERTY() TObjectPtr<AVal_Character> playerCharacter = nullptr;
+	UPROPERTY() TObjectPtr<AVal_Character> pCharacter = nullptr;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Instanced, Category="Input")
 	TObjectPtr<UVal_InputSystem> valInputSystem = nullptr;

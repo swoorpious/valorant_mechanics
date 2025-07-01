@@ -7,7 +7,7 @@
 #include "Animation/AnimInstance.h"
 #include "Delegates/DelegateCombinations.h"
 #include "ValorantMechanics/Core/Shared/WeaponData/WeaponProperties.h"
-#include "Val_AnimInstance.generated.h"
+#include "UVal_PlayerAnimInstance.generated.h"
 
 
 class ACommonWeapon;
@@ -27,7 +27,7 @@ struct FAnimAssets
      * fallbackAnimDataAsset is used in case any key in animDataMap does not hold a valid animation data asset
      * this asset is also used when the current key value is EWeaponType::Empty
      */
-    UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Animations|Animation Data Assets", meta=(DisplayName = "TEST Animation Data Asset"))
+    UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Animations|Animation Data Assets", meta=(DisplayName = "Fallback Animation Data Asset"))
     TObjectPtr<UWeaponAnimDataAsset> fallbackAnimDataAsset;
     
     UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Weapon")
@@ -40,7 +40,7 @@ struct FAnimAssets
  * 
  */
 UCLASS()
-class VALORANTMECHANICS_API UVal_AnimInstance : public UAnimInstance
+class VALORANTMECHANICS_API UUVal_PlayerAnimInstance : public UAnimInstance
 {
     GENERATED_BODY()
 

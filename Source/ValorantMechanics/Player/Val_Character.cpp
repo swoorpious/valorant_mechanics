@@ -3,7 +3,7 @@
 
 #include "Val_Character.h"
 
-#include "ValorantMechanics/Anim/Val_AnimInstance.h"
+#include "ValorantMechanics/Anim/UVal_PlayerAnimInstance.h"
 #include "ValorantMechanics/Weapons/CommonWeapon.h"
 #include "ValorantMechanics/ValorantMechanics.h"
 
@@ -65,7 +65,7 @@ void AVal_Character::BeginPlay()
 	Super::BeginPlay();
 	
 	movementComponent = GetValMovementComponent();
-	pAnimInstance = Cast<UVal_AnimInstance>(characterMesh->GetAnimInstance());
+	pAnimInstance = Cast<UUVal_PlayerAnimInstance>(characterMesh->GetAnimInstance());
 	if (!movementComponent) LOG(Val_Player, Error, "movementComponent is likely a nullptr.");
 	if (!pAnimInstance) LOG(Val_Player, Error, "pAnimInstance is likely a nullptr.");
 	
@@ -88,7 +88,6 @@ void AVal_Character::SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn
 {
 	if (!weaponToSpawn) return;
 
-	LOG(Val_Player, Verbose, "");
 	
 	if (ACommonWeapon* spawnedWeapon = GetWorld()->SpawnActor<ACommonWeapon>(weaponToSpawn))
 	{
@@ -110,7 +109,6 @@ void AVal_Character::SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn
 
 void AVal_Character::EquipWeapon(const EWeaponType weaponType)
 {
-
 	/*
 	 * check if the animation data asset for the give type in pAnimInstance is the same as the weapon in pInventory.
 	 * if not, we don't really care, we just return. 
@@ -209,5 +207,5 @@ void AVal_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 AVal_PlayerController* AVal_Character::GetValPlayerController() const { return Cast<AVal_PlayerController>(GetController()); }
 AVal_Character* AVal_Character::GetValCharacter() { return this; }
 UVal_CharacterMovementComponent* AVal_Character::GetValMovementComponent() const { return Cast<UVal_CharacterMovementComponent>(GetCharacterMovement()); }
-UVal_AnimInstance* AVal_Character::GetValAnimInstance() const { return Cast<UVal_AnimInstance>(characterMesh->GetAnimInstance()); }
+UUVal_PlayerAnimInstance* AVal_Character::GetValAnimInstance() const { return Cast<UUVal_PlayerAnimInstance>(characterMesh->GetAnimInstance()); }
 

@@ -11,7 +11,7 @@
 
 void UVal_InputSystem::Init(AVal_PlayerController* classObject, const TObjectPtr<UInputComponent>& inputComponent)
 {
-	playerController = classObject;
+	pController = classObject;
 	this->SetMappingContexts(inputComponent);
 	this->SetInputActions();
 }
@@ -21,7 +21,7 @@ void UVal_InputSystem::SetMappingContexts(const TObjectPtr<UInputComponent>& inp
     enhancedInputComponent = Cast<UEnhancedInputComponent>(inputComponent);
     checkf(enhancedInputComponent, TEXT("Unable to get a reference to EnhancedInputComponent."));
 
-    UEnhancedInputLocalPlayerSubsystem* InputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(playerController->GetLocalPlayer());
+    UEnhancedInputLocalPlayerSubsystem* InputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(pController->GetLocalPlayer());
     checkf(InputSubsystem, TEXT("Unable to get a reference to UEnhancedInputLocalPlayerSubsystem."));
 
     checkf(mappingContexts.Default_Mapping, TEXT("Default_Mapping context was not specified."));
@@ -62,13 +62,13 @@ void UVal_InputSystem::SetInputActions()
 
 	for (ETriggerEvent const e : events2)
 	{
-		enhancedInputComponent->BindAction(playerActions.Action_Jump, e, playerController, &AVal_PlayerController::PlayerJump); 
-		enhancedInputComponent->BindAction(playerActions.Action_Crouch, e, playerController, &AVal_PlayerController::PlayerCrouch); 
-		enhancedInputComponent->BindAction(playerActions.Action_Walk, e, playerController, &AVal_PlayerController::PlayerWalk); 
+		enhancedInputComponent->BindAction(playerActions.Action_Jump, e, pController, &AVal_PlayerController::PlayerJump); 
+		enhancedInputComponent->BindAction(playerActions.Action_Crouch, e, pController, &AVal_PlayerController::PlayerCrouch); 
+		enhancedInputComponent->BindAction(playerActions.Action_Walk, e, pController, &AVal_PlayerController::PlayerWalk); 
 	}
 
 
-	enhancedInputComponent->BindAction(playerActions.Action_Use, ETriggerEvent::Started, playerController, &AVal_PlayerController::PlayerUse);
+	enhancedInputComponent->BindAction(playerActions.Action_Use, ETriggerEvent::Started, pController, &AVal_PlayerController::PlayerUse);
 
 	
 	// enhancedInputComponent->BindAction(weaponActions.Action_Drop, ETriggerEvent::Started, this, &UVal_InputSystem::HandleDropInput);
@@ -84,7 +84,7 @@ void UVal_InputSystem::HandleLookInput(const FInputActionInstance& InputActionIn
 	const FVector2D LookAxisVector = InputActionInstance.GetValue().Get<FVector2D>();
 	lastLookVector = LookAxisVector;
 
-	playerController->PlayerLook(LookAxisVector);
+	pController->PlayerLook(LookAxisVector);
 }
 
 
@@ -100,7 +100,7 @@ void UVal_InputSystem::HandleMoveInput(const FInputActionInstance& InputActionIn
 		else if (actionName == "VIA_Move_D") inputMap.D = true;
 		else if (actionName == "VIA_Move_S") inputMap.S = true;
 
-		playerController->PlayerMove();
+		pController->PlayerMove();
 	}
 	else if (actionTrigger == ETriggerEvent::Canceled || actionTrigger == ETriggerEvent::Completed)
 	{
@@ -117,9 +117,9 @@ void UVal_InputSystem::HandleEquipInput(const FInputActionInstance& InputActionI
 
 	if (const ETriggerEvent actionTrigger = InputActionInstance.GetTriggerEvent(); actionTrigger == ETriggerEvent::Started)
 	{
-			 if (actionName == "VIA_Weapon_Melee") playerController->TryWeaponEquip(EWeaponType::Melee);
-		else if (actionName == "VIA_Weapon_Secondary") playerController->TryWeaponEquip(EWeaponType::Secondary);
-		else if (actionName == "VIA_Weapon_Primary") playerController->TryWeaponEquip(EWeaponType::Primary);
+			 if (actionName == "VIA_Weapon_Melee") pController->TryWeaponEquip(EWeaponType::Melee);
+		else if (actionName == "VIA_Weapon_Secondary") pController->TryWeaponEquip(EWeaponType::Secondary);
+		else if (actionName == "VIA_Weapon_Primary") pController->TryWeaponEquip(EWeaponType::Primary);
 		
 	}
 

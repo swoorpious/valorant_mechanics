@@ -18,32 +18,29 @@ AVal_PlayerController::AVal_PlayerController()
 }
 
 
-
-
-
 void AVal_PlayerController::AddLookInput(FVector2D Look) const
 {
-	if (!playerCharacter || !playerCharacter->sceneComponent) return;
+	if (!pCharacter || !pCharacter->sceneComponent) return;
 
 	// TODO: implement FOV scaling for ads weapons -> scaleFOV = currentFOV / baseFOV
 	// would use scaleFOV instead later
 	FVector2D const viewportSize = GetWorld()->GetGameViewport()->Viewport->GetSizeXY();
-	float const cameraFOV = playerCharacter->characterMeshCamera->FieldOfView;
+	float const cameraFOV = pCharacter->characterMeshCamera->FieldOfView;
 	
-	// playerCharacter handles yaw
-	FRotator const yaw = playerCharacter->GetActorRotation() + FRotator(
+	// pCharacter handles yaw
+	FRotator const yaw = pCharacter->GetActorRotation() + FRotator(
 		0,
 		Look.X * (cameraFOV / viewportSize.X),
 		0);
-	playerCharacter->SetActorRotation(yaw); // update yaw (left/right)
+	pCharacter->SetActorRotation(yaw); // update yaw (left/right)
 
 
 	// SceneComponent handles pitch
-	FRotator pitch = playerCharacter->sceneComponent->GetRelativeRotation() + FRotator(
+	FRotator pitch = pCharacter->sceneComponent->GetRelativeRotation() + FRotator(
 		Look.Y * (cameraFOV / viewportSize.X),
 		0, 0);
 	pitch.Pitch = FMath::Clamp(pitch.Pitch, -89.9f, 89.9f);
-	playerCharacter->sceneComponent->SetRelativeRotation(pitch); // update pitch (up/down)
+	pCharacter->sceneComponent->SetRelativeRotation(pitch); // update pitch (up/down)
 
 }
 
@@ -75,13 +72,13 @@ void AVal_PlayerController::PlayerMove() const
 	}
 	
 	
-	const FVector playerRight = playerCharacter->GetActorRightVector();
-	const FVector playerForward = playerCharacter->GetActorForwardVector();
+	const FVector playerRight = pCharacter->GetActorRightVector();
+	const FVector playerForward = pCharacter->GetActorForwardVector();
 	const FVector worldVector = playerRight * moveVector.X +
 		playerForward * moveVector.Y;
 	
 		
-	playerCharacter->AddMovementInput(worldVector.GetSafeNormal(), 1.0f);
+	pCharacter->AddMovementInput(worldVector.GetSafeNormal(), 1.0f);
 	
 }
 
@@ -97,10 +94,10 @@ void AVal_PlayerController::PlayerJump(const FInputActionInstance& InputActionIn
 	// TODO: implement started, ongoing, cancelled/completed
 	/* switch (InputActionInstance.GetTriggerEvent()) {...} */
 	
-	if (playerCharacter)
+	if (pCharacter)
     {
-    	playerCharacter->UnCrouch();
-    	playerCharacter->Jump();
+    	pCharacter->UnCrouch();
+    	pCharacter->Jump();
     }
 }
 
@@ -110,18 +107,18 @@ void AVal_PlayerController::PlayerCrouch(const FInputActionInstance& InputAction
 
 void AVal_PlayerController::PlayerWalk(const FInputActionInstance& InputActionInstance)
 {
-	if (playerCharacter->bIsCrouched) return;
+	if (pCharacter->bIsCrouched) return;
 	
 	switch (InputActionInstance.GetTriggerEvent()) {
 		case ETriggerEvent::Started:
 		case ETriggerEvent::Triggered:
 		case ETriggerEvent::Ongoing:
-			playerCharacter->Walk();
+			pCharacter->Walk();
 			break;
 		
 		case ETriggerEvent::Canceled:
 		case ETriggerEvent::Completed:
-			playerCharacter->Unwalk();
+			pCharacter->Unwalk();
 			break;
 
 		default: break;
@@ -137,8 +134,8 @@ void AVal_PlayerController::OnPossess(APawn* aPawn)
 {
 	Super::OnPossess(aPawn);
 	
-	playerCharacter = Cast<AVal_Character>(aPawn);
-	if (!playerCharacter) LOG(Val_Player, Error, "This controller and its descendants should only possess AMySpecificCharacterClassderived pawns!");
+	pCharacter = Cast<AVal_Character>(aPawn);
+	if (!pCharacter) LOG(Val_Player, Error, "This controller and its descendants should only possess AMySpecificCharacterClassderived pawns!");
 	
 	valInputSystem->Init(this, InputComponent);
 	

@@ -1,19 +1,19 @@
 ﻿// Copyright 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
 
 
-#include "Val_AnimInstance.h"
+#include "UVal_PlayerAnimInstance.h"
 #include "AnimNotifier.h"
 #include "ValorantMechanics/Weapons/CommonWeapon.h"
 #include "ValorantMechanics/ValorantMechanics.h"
 #include "ValorantMechanics/Player/Val_Character.h"
 
 
-void UVal_AnimInstance::NativeBeginPlay()
+void UUVal_PlayerAnimInstance::NativeBeginPlay()
 {
     Super::NativeBeginPlay();
 
-    notifier = CreateDefaultSubobject<UAnimNotifier>(TEXT("Animation Notifier"));
-    notifier->onStateChange.AddUObject(this, &UVal_AnimInstance::UpdateWeaponState);
+    // notifier = CreateDefaultSubobject<UAnimNotifier>(TEXT("Animation Notifier"));
+    // notifier->onStateChange.AddUObject(this, &UUVal_PlayerAnimInstance::UpdateWeaponState);
 
     // if (AVal_Character* e = Cast<AVal_Character>(TryGetPawnOwner()))
     // {
@@ -24,7 +24,7 @@ void UVal_AnimInstance::NativeBeginPlay()
 }
 
 
-void UVal_AnimInstance::UpdateAnimDataAsset(ACommonWeapon* equippedWeapon)
+void UUVal_PlayerAnimInstance::UpdateAnimDataAsset(ACommonWeapon* equippedWeapon)
 {
     TObjectPtr<UWeaponAnimDataAsset> const animDataAsset = equippedWeapon->GetAnimAsset();
     EWeaponType const weaponType = equippedWeapon->GetWeaponType();
@@ -35,27 +35,27 @@ void UVal_AnimInstance::UpdateAnimDataAsset(ACommonWeapon* equippedWeapon)
 }
 
 
-void UVal_AnimInstance::UpdateCurrentWeapon(EWeaponType weaponType)
+void UUVal_PlayerAnimInstance::UpdateCurrentWeapon(EWeaponType weaponType)
 {
     if (!HasAnimDataForType(weaponType)) return;
     animAssets.currentWeaponType = weaponType;
 }
 
 
-TObjectPtr<UWeaponAnimDataAsset> UVal_AnimInstance::GetAnimDataAsset(EWeaponType weaponType)
+TObjectPtr<UWeaponAnimDataAsset> UUVal_PlayerAnimInstance::GetAnimDataAsset(EWeaponType weaponType)
 {
 	if (weaponType == EWeaponType::Empty || !HasAnimDataForType(weaponType)) return nullptr;
     return animAssets.animDataMap[weaponType];
 }
 
 
-void UVal_AnimInstance::RemoveAnimDataAsset(EWeaponType weaponType)
+void UUVal_PlayerAnimInstance::RemoveAnimDataAsset(EWeaponType weaponType)
 {
 	if (weaponType == EWeaponType::Empty || !HasAnimDataForType(weaponType)) return;
     animAssets.animDataMap.Remove(weaponType);
 }
 
-UWeaponAnimDataAsset* UVal_AnimInstance::GetCurrentAnimDataAsset()
+UWeaponAnimDataAsset* UUVal_PlayerAnimInstance::GetCurrentAnimDataAsset()
 {
     if (!HasAnimDataForType(animAssets.currentWeaponType)) return nullptr;
     

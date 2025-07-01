@@ -69,7 +69,7 @@ public:
     
 protected:
 	UPROPERTY() TObjectPtr<UEnhancedInputComponent> enhancedInputComponent = nullptr;
-	UPROPERTY() AVal_PlayerController* playerController = nullptr;
+	UPROPERTY() AVal_PlayerController* pController = nullptr;
 
     FVector2D lastLookVector;
     InputMap inputMap;

@@ -15,7 +15,7 @@
 
 
 // forward declarations
-class UVal_AnimInstance;
+class UUVal_PlayerAnimInstance;
 class UVal_InputComponent;
 class UVal_CharacterMovementComponent;
 class AVal_PlayerController;
@@ -41,7 +41,7 @@ public:
 	AVal_PlayerController* GetValPlayerController() const;
 	AVal_Character* GetValCharacter();
 	UVal_CharacterMovementComponent* GetValMovementComponent() const;
-	UVal_AnimInstance* GetValAnimInstance() const;
+	UUVal_PlayerAnimInstance* GetValAnimInstance() const;
 
 
 	bool isJumping = false;
@@ -99,7 +99,7 @@ protected:
 
 	// caching for some reason
 	UPROPERTY()	TObjectPtr<UVal_CharacterMovementComponent> movementComponent = nullptr;
-	UPROPERTY()	TObjectPtr<UVal_AnimInstance> pAnimInstance = nullptr;
+	UPROPERTY()	TObjectPtr<UUVal_PlayerAnimInstance> pAnimInstance = nullptr;
 	UPROPERTY()	TObjectPtr<UVal_PlayerInventory> pInventory;
 	
 	

@@ -142,7 +142,7 @@ protected:
 
 private:
 	
-	UPROPERTY()	TObjectPtr<AVal_Character> playerCharacter = nullptr;
+	UPROPERTY()	TObjectPtr<AVal_Character> pCharacter = nullptr;
 	UPROPERTY()	TObjectPtr<UVal_InputSystem> valInputSystem = nullptr;
 	
 	

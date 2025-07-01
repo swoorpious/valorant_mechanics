@@ -28,8 +28,8 @@ void UVal_CharacterMovementComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	playerCharacter = Cast<AVal_Character>(GetOwner());
-	valInputSystem = playerCharacter->GetValPlayerController()->GetInputSystem();
+	pCharacter = Cast<AVal_Character>(GetOwner());
+	valInputSystem = pCharacter->GetValPlayerController()->GetInputSystem();
 
 }
 
@@ -57,8 +57,8 @@ void UVal_CharacterMovementComponent::HandleAirMovement(float DeltaTime)
 	}
 	
 
-	FVector const viewVectorX = playerCharacter->GetActorForwardVector();
-	FVector const viewVectorY = playerCharacter->GetActorRightVector();
+	FVector const viewVectorX = pCharacter->GetActorForwardVector();
+	FVector const viewVectorY = pCharacter->GetActorRightVector();
 	FVector2d const inputVector = valInputSystem->GetAdditiveMovementInput();
 
 	float const viewDeltaX = valInputSystem->GetLastLookVector().X;
