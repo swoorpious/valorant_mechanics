@@ -1,12 +1,10 @@
-﻿// Copyright © 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
+﻿// Copyright 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
+
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "ValorantMechanics/Weapons/CommonWeapon.h"
-// #include "ValorantMechanics/Weapons/WeaponDataAssets/MeleeAnimDataAsset.h"
-
-
 
 #include "TacticalKnife.generated.h"
 

@@ -1,12 +1,11 @@
-﻿// Copyright © 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
+﻿// Copyright 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
 
 
 #include "Val_AnimInstance.h"
 #include "AnimNotifier.h"
 #include "ValorantMechanics/Weapons/CommonWeapon.h"
-#include "ValorantMechanics/Core/Shared/WeaponData/WeaponAnimDataAsset.h"
 #include "ValorantMechanics/ValorantMechanics.h"
-#include "ValorantMechanics/Core/Val_Character.h"
+#include "ValorantMechanics/Player/Val_Character.h"
 
 
 void UVal_AnimInstance::NativeBeginPlay()

@@ -1,10 +1,11 @@
-﻿// Copyright © 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
+﻿// Copyright 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
+
 
 
 #include "Val_CharacterMovementComponent.h"
-#include "Val_Character.h"
-#include "Controller/Val_PlayerController.h"
-#include "Controller/Val_InputSystem.h"
+#include "../Val_Character.h"
+#include "../Controller/Val_PlayerController.h"
+#include "../Controller/Val_InputSystem.h"
 
 #include "ValorantMechanics/ValorantMechanics.h"
 

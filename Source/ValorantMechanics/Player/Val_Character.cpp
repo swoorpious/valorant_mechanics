@@ -1,15 +1,18 @@
-﻿// Copyright © 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
+﻿// Copyright 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
 
 
 #include "Val_Character.h"
-#include "Val_CharacterMovementComponent.h"
-#include "Controller/Val_PlayerController.h"
+
 #include "ValorantMechanics/Anim/Val_AnimInstance.h"
 #include "ValorantMechanics/Weapons/CommonWeapon.h"
 #include "ValorantMechanics/ValorantMechanics.h"
 
-#include "Camera/CameraComponent.h"
+#include "PlayerComponents/Val_CharacterMovementComponent.h"
+#include "PlayerComponents/Val_PlayerInventory.h"
+#include "Controller/Val_PlayerController.h"
+
 #include "Components/CapsuleComponent.h"
+#include "Camera/CameraComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -23,7 +26,7 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UVal_CharacterMovementComponent
 	PrimaryActorTick.bCanEverTick = true;
 
 	socketData = CreateDefaultSubobject<UPlayerSocketNames>(TEXT("Player Socket Names"));
-	playerInventory = CreateDefaultSubobject<UPlayerInventory>(TEXT("Player Inventory"));
+	pInventory = CreateDefaultSubobject<UVal_PlayerInventory>(TEXT("Player Inventory"));
 	
 
 	RootComponent = GetCapsuleComponent();
@@ -39,12 +42,6 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UVal_CharacterMovementComponent
 	characterMeshCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Character Mesh Camera"));
 	characterMeshCamera->SetupAttachment(characterMesh, socketData->cameraSocket);
 	characterMeshCamera->bUsePawnControlRotation = false;
-	
-
-	// Wushu_GameplayCaptureCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Wushu_GameplayCaptureCamera"));
-	// Wushu_GameplayCaptureCamera->SetupAttachment(Wushu_Mesh, TEXT("Camera"));
-	// // Wushu_GameplayCaptureCamera->AttachToComponent(Wushu_Mesh, FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("Camera"));
-	// Wushu_GameplayCaptureCamera->bUsePawnControlRotation = true;
 	
 
 	bUseControllerRotationYaw = false;
@@ -68,14 +65,14 @@ void AVal_Character::BeginPlay()
 	Super::BeginPlay();
 	
 	movementComponent = GetValMovementComponent();
-	playerAnimInstance = Cast<UVal_AnimInstance>(characterMesh->GetAnimInstance());
+	pAnimInstance = Cast<UVal_AnimInstance>(characterMesh->GetAnimInstance());
 	if (!movementComponent) LOG(Val_Player, Error, "movementComponent is likely a nullptr.");
-	if (!playerAnimInstance) LOG(Val_Player, Error, "playerAnimInstance is likely a nullptr.");
+	if (!pAnimInstance) LOG(Val_Player, Error, "pAnimInstance is likely a nullptr.");
 	
 
-	if (playerInventory->meleeToSpawn) SpawnWeapon(playerInventory->meleeToSpawn, !playerInventory->secondaryToSpawn && !playerInventory->primaryToSpawn);
-	if (playerInventory->secondaryToSpawn) SpawnWeapon(playerInventory->secondaryToSpawn, !playerInventory->primaryToSpawn);
-	if (playerInventory->primaryToSpawn) SpawnWeapon(playerInventory->primaryToSpawn, true);
+	if (pInventory->meleeToSpawn) SpawnWeapon(pInventory->meleeToSpawn, !pInventory->secondaryToSpawn && !pInventory->primaryToSpawn);
+	if (pInventory->secondaryToSpawn) SpawnWeapon(pInventory->secondaryToSpawn, !pInventory->primaryToSpawn);
+	if (pInventory->primaryToSpawn) SpawnWeapon(pInventory->primaryToSpawn, true);
 
 	tryWeaponEquip.AddUObject(this, &AVal_Character::EquipWeapon);
 	// tryWeaponSpawn.AddUObject(this, &AVal_Character::SpawnWeapon);
@@ -98,9 +95,9 @@ void AVal_Character::SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn
 		spawnedWeapon->SetOwner(this);
 		spawnedWeapon->AttachToComponent(characterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, socketData->rightWeaponMasterSocket);
 		spawnedWeapon->SetActorHiddenInGame(true); // hidden by default, EquipWeapon(...) will unhide
-		playerInventory->UpdateInventoryWeapon(spawnedWeapon);
+		pInventory->UpdateInventoryWeapon(spawnedWeapon);
 
-		playerAnimInstance->UpdateAnimDataAsset(spawnedWeapon);
+		pAnimInstance->UpdateAnimDataAsset(spawnedWeapon);
 		onWeaponSpawn.Broadcast(spawnedWeapon);
 
 		if (shouldAutoEquip) this->EquipWeapon(spawnedWeapon->GetWeaponType());
@@ -115,23 +112,23 @@ void AVal_Character::EquipWeapon(const EWeaponType weaponType)
 {
 
 	/*
-	 * check if the animation data asset for the give type in playerAnimInstance is the same as the weapon in playerInventory.
+	 * check if the animation data asset for the give type in pAnimInstance is the same as the weapon in pInventory.
 	 * if not, we don't really care, we just return. 
 	 */
-	TObjectPtr<ACommonWeapon> const invWeapon = playerInventory->GetWeaponByType(weaponType);
-	TObjectPtr<UDataAsset> const animDataInstance = playerAnimInstance->GetAnimDataAsset(weaponType);
+	TObjectPtr<ACommonWeapon> const invWeapon = pInventory->GetWeaponByType(weaponType);
+	TObjectPtr<UDataAsset> const animDataInstance = pAnimInstance->GetAnimDataAsset(weaponType);
 	TObjectPtr<UDataAsset> const animDataWeapon = invWeapon ? invWeapon->GetAnimAsset() : nullptr;
 
-	bool const validAnim = playerAnimInstance && animDataWeapon == animDataInstance;
+	bool const validAnim = pAnimInstance && animDataWeapon == animDataInstance;
 	
-	if (!validAnim || !playerInventory->HasWeapon(weaponType)) return;
+	if (!validAnim || !pInventory->HasWeapon(weaponType)) return;
 	
 	
-	playerAnimInstance->UpdateCurrentWeapon(weaponType);
-	playerAnimInstance->UpdateWeaponState(EWeaponState::Equipping);
+	pAnimInstance->UpdateCurrentWeapon(weaponType);
+	pAnimInstance->UpdateWeaponState(EWeaponState::Equipping);
 	
-	playerInventory->UpdateEquippedWeapon(weaponType);
-	for (const auto& pair : playerInventory->GetInventory())
+	pInventory->UpdateEquippedWeapon(weaponType);
+	for (const auto& pair : pInventory->GetInventory())
 	{
 		if (ACommonWeapon* e = pair.Value) e->SetActorHiddenInGame(pair.Key != weaponType);
 	}
@@ -143,7 +140,7 @@ void AVal_Character::EquipWeapon(const EWeaponType weaponType)
 
 void AVal_Character::DropWeapon(EWeaponType weaponType)
 {
-	if (playerInventory->GetEquippedWeapon()->GetWeaponType() == weaponType)
+	if (pInventory->GetEquippedWeapon()->GetWeaponType() == weaponType)
 	{
 		switch (weaponType)
 		{
@@ -154,18 +151,18 @@ void AVal_Character::DropWeapon(EWeaponType weaponType)
 				return;
 			case EWeaponType::Secondary:
 				// when secondary is dropped, equip primary if it exists, or equip melee
-				this->EquipWeapon(playerInventory->HasWeapon(EWeaponType::Primary) ? EWeaponType::Primary : EWeaponType::Melee);
+				this->EquipWeapon(pInventory->HasWeapon(EWeaponType::Primary) ? EWeaponType::Primary : EWeaponType::Melee);
 				break;
 			case EWeaponType::Primary:
 				// when primary is dropped, equip secondary if it exists, or equip melee
-				this->EquipWeapon(playerInventory->HasWeapon(EWeaponType::Secondary) ? EWeaponType::Secondary : EWeaponType::Melee);
+				this->EquipWeapon(pInventory->HasWeapon(EWeaponType::Secondary) ? EWeaponType::Secondary : EWeaponType::Melee);
 				break;
 		}
 	}
 
 	// TODO: change this when implementing weapon drop and physics for weapon 
-	playerInventory->GetWeaponByType(weaponType)->Destroy();
-	playerInventory->DropWeaponByType(weaponType);
+	pInventory->GetWeaponByType(weaponType)->Destroy();
+	pInventory->DropWeaponByType(weaponType);
 	onWeaponDrop.Broadcast(weaponType);
 }
 

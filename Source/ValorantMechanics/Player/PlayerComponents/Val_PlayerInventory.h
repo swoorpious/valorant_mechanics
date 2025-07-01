@@ -1,12 +1,15 @@
-﻿// © 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
+﻿// Copyright 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
+
 
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/Object.h"
-#include "Shared/WeaponData/WeaponProperties.h"
+#include "Components/ActorComponent.h"
+#include "ValorantMechanics/Core/Shared/WeaponData/WeaponProperties.h"
 
-#include "PlayerInventory.generated.h"
+#include "Val_PlayerInventory.generated.h"
+
+
 
 class ACommonWeapon;
 class UWeaponAnimDataAsset;
@@ -15,8 +18,8 @@ class UWeaponAnimDataAsset;
 /**
  * 
  */
-UCLASS(EditInlineNew, DefaultToInstanced)
-class VALORANTMECHANICS_API UPlayerInventory : public UObject
+UCLASS()
+class VALORANTMECHANICS_API UVal_PlayerInventory : public UActorComponent
 {
     GENERATED_BODY()
 
@@ -24,7 +27,7 @@ class VALORANTMECHANICS_API UPlayerInventory : public UObject
     UPROPERTY() TMap<EWeaponType, TObjectPtr<ACommonWeapon>> inventoryMap; // cannot have EWeaponType::Empty
 
 public:
-    UPlayerInventory();
+    UVal_PlayerInventory();
 
 #pragma region WEAPONS TO SPAWN
     

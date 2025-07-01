@@ -1,18 +1,16 @@
-﻿// © 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
+﻿// Copyright 2025 Swaroop. Personal Unreal engine project inspired BY VALORANT.
 
-
-#include "PlayerInventory.h"
+#include "Val_PlayerInventory.h"
 #include "ValorantMechanics/Weapons/CommonWeapon.h"
-#include "Shared/WeaponData/WeaponAnimDataAsset.h"
 
 
-UPlayerInventory::UPlayerInventory()
+UVal_PlayerInventory::UVal_PlayerInventory()
 {
     inventoryMap.Add(EWeaponType::Empty, nullptr);
 }
 
 
-void UPlayerInventory::UpdateInventoryWeapon(const TObjectPtr<ACommonWeapon>& weapon)
+void UVal_PlayerInventory::UpdateInventoryWeapon(const TObjectPtr<ACommonWeapon>& weapon)
 {
     const EWeaponType weaponType = weapon->GetWeaponType();
     if (!weapon || weaponType == EWeaponType::Empty) return;
@@ -31,21 +29,21 @@ void UPlayerInventory::UpdateInventoryWeapon(const TObjectPtr<ACommonWeapon>& we
 }
 
 
-void UPlayerInventory::UpdateEquippedWeapon(EWeaponType weaponType)
+void UVal_PlayerInventory::UpdateEquippedWeapon(EWeaponType weaponType)
 {
     if (!this->HasWeapon(weaponType)) return;
     equippedWeaponType = weaponType;
 }
 
 
-TObjectPtr<ACommonWeapon> UPlayerInventory::GetWeaponByType(EWeaponType weaponType) const
+TObjectPtr<ACommonWeapon> UVal_PlayerInventory::GetWeaponByType(EWeaponType weaponType) const
 {
     if (weaponType == EWeaponType::Empty || !this->HasWeapon(weaponType)) return nullptr;
     return inventoryMap[weaponType];
 }
 
 
-void UPlayerInventory::DropWeaponByType(EWeaponType weaponType)
+void UVal_PlayerInventory::DropWeaponByType(EWeaponType weaponType)
 {
     /*
      * TODO: implement and call weapon->Drop logic
@@ -55,7 +53,7 @@ void UPlayerInventory::DropWeaponByType(EWeaponType weaponType)
 }
 
 
-void UPlayerInventory::DeleteWeaponByType(EWeaponType weaponType)
+void UVal_PlayerInventory::DeleteWeaponByType(EWeaponType weaponType)
 {
     if (weaponType == EWeaponType::Empty || !this->HasWeapon(weaponType)) return;
     inventoryMap[weaponType] = nullptr;

@@ -1,4 +1,5 @@
-﻿// © 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
+﻿// Copyright 2025 Swaroop. Personal Unreal engine project inspired BY VALORANT.
+
 
 #pragma once
 

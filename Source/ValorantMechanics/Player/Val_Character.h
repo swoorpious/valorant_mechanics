@@ -1,13 +1,13 @@
-﻿// Copyright © 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
+﻿// Copyright 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
+
 
 #pragma once
 
 #include "CoreMinimal.h"
 
-#include "Shared/PlayerDelegateDefinition.h"
+#include "ValorantMechanics/Core/Shared/PlayerDelegateDefinition.h"
 // #include "Shared/WeaponData/WeaponProperties.h"
-#include "Shared/SocketData.h"
-#include "PlayerInventory.h"
+#include "ValorantMechanics/Core/Shared/SocketData.h"
 
 #include "GameFramework/Character.h"
 
@@ -19,7 +19,7 @@ class UVal_AnimInstance;
 class UVal_InputComponent;
 class UVal_CharacterMovementComponent;
 class AVal_PlayerController;
-// class UPlayerInventory;
+class UVal_PlayerInventory;
 
 class USkeletalMeshComponent;
 class UCameraComponent;
@@ -89,8 +89,7 @@ public:
 	void DropWeapon(EWeaponType weaponType);
 	
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Instanced, Category = "Valorant Weapons")
-	TObjectPtr<UPlayerInventory> playerInventory;
+
 	
 protected:
 	virtual void BeginPlay() override;
@@ -100,7 +99,8 @@ protected:
 
 	// caching for some reason
 	UPROPERTY()	TObjectPtr<UVal_CharacterMovementComponent> movementComponent = nullptr;
-	UPROPERTY()	TObjectPtr<UVal_AnimInstance> playerAnimInstance = nullptr;
+	UPROPERTY()	TObjectPtr<UVal_AnimInstance> pAnimInstance = nullptr;
+	UPROPERTY()	TObjectPtr<UVal_PlayerInventory> pInventory;
 	
 	
 

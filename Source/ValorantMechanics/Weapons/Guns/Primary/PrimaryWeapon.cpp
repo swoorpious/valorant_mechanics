@@ -1,9 +1,8 @@
-﻿// Copyright © 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
+﻿// Copyright 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
+
 
 
 #include "PrimaryWeapon.h"
-
-#include "ValorantMechanics/Core/Shared/WeaponData/WeaponProperties.h"
 
 
 APrimaryWeapon::APrimaryWeapon()

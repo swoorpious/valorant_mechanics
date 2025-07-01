@@ -1,13 +1,15 @@
-﻿// Copyright © 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
+﻿// Copyright 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
+
 
 #pragma once
 
 #include "CoreMinimal.h"
 
 #include "GameFramework/Actor.h"
-#include "ValorantMechanics/Core/Shared/WeaponData/WeaponProperties.h"
 #include "ValorantMechanics/Core/Shared/SocketData.h"
+#include "ValorantMechanics/Core/Shared/WeaponData/WeaponProperties.h"
 #include "ValorantMechanics/Core/Shared/WeaponData/WeaponAnimDataAsset.h"
+
 
 #include "CommonWeapon.generated.h"
 

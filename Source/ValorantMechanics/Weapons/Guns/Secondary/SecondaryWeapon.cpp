@@ -1,8 +1,8 @@
-﻿// Copyright © 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
+﻿// Copyright 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
+
 
 
 #include "SecondaryWeapon.h"
-#include "ValorantMechanics/Core/Shared/WeaponData/WeaponProperties.h"
 
 
 // Sets default values
