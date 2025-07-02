@@ -3,9 +3,11 @@
 
 
 #include "Val_CharacterMovementComponent.h"
+
 #include "../Val_Character.h"
 #include "../Controller/Val_PlayerController.h"
 #include "../Controller/Val_InputSystem.h"
+#include "ValorantMechanics/Core/Val_LocalPlayerSubsystem.h"
 
 #include "ValorantMechanics/ValorantMechanics.h"
 
@@ -29,7 +31,12 @@ void UVal_CharacterMovementComponent::BeginPlay()
 	Super::BeginPlay();
 
 	pCharacter = Cast<AVal_Character>(GetOwner());
-	valInputSystem = pCharacter->GetValPlayerController()->GetInputSystem();
+	if (pCharacter)
+	{
+		valInputSystem = pCharacter->GetValPlayerController()->GetInputSystem();
+		pSubsystem = pCharacter->GetValPlayerController()->GetLocalPlayer()->GetSubsystem<UVal_LocalPlayerSubsystem>();
+		
+	}
 
 }
 
@@ -155,5 +162,99 @@ void UVal_CharacterMovementComponent::HandleAirMovement(float DeltaTime)
 	
 }
 
+
+
+#pragma region STATE MANAGER
+
+void UVal_CharacterMovementComponent::TryUpdateState(EMovementState state)
+{
+	if (!CanTransitionToState(state)) return;
+
+	const EMovementState prevState = pState;
+	pState = state;
+	OnUpdateState(prevState, state);
+}
+
+
+EMovementState UVal_CharacterMovementComponent::GetCurrentState() const
+{
+	return pState;
+}
+
+bool UVal_CharacterMovementComponent::IsCurrentState(EMovementState state) const
+{
+	if (state == EMovementState::None) return false;
+	return pState == state;
+}
+
+bool UVal_CharacterMovementComponent::CanTransitionToState(EMovementState state) const
+{
+	/*
+	 * PLACEHOLDER
+	 * TODO implement logic for light and heavy stuns
+	 */
+
+	switch (state)
+	{
+	case EMovementState::Idle: 
+	case EMovementState::Running:
+	case EMovementState::Crouching:
+		return true;
+	case EMovementState::Walking:
+		return !pCharacter->bIsCrouched;
+
+	/*
+	 * TODO complete CanTransitionToState logic
+	 */
+	default:
+	case EMovementState::LightStunned:
+	case EMovementState::HeavyStunned:
+	case EMovementState::UsingAbilityMovement:
+	case EMovementState::Jumping:
+	case EMovementState::None:
+		break;
+	}
+	
+	return true;
+}
+
+void UVal_CharacterMovementComponent::OnUpdateState(EMovementState previousState, EMovementState enteredState)
+{
+	pSubsystem->mStateChanged.Broadcast(previousState, enteredState);
+
+	
+	switch (enteredState)
+	{
+		case EMovementState::Idle:
+		case EMovementState::Running:
+			MaxWalkSpeed = movementProperties.runSpeed;
+			break;
+		case EMovementState::Walking:
+			MaxWalkSpeed = movementProperties.walkSpeed;
+			break;
+		case EMovementState::Crouching:
+			MaxWalkSpeed = movementProperties.crouchSpeed;
+			break;
+
+		/*
+		 * TODO complete OnStun logic
+		 */
+		case EMovementState::LightStunned:
+			MaxWalkSpeed = movementProperties.lightStunSpeed;
+			break;
+		case EMovementState::HeavyStunned:
+			MaxWalkSpeed = movementProperties.heavyStunSpeed;
+			break;
+		
+		default:
+		case EMovementState::UsingAbilityMovement:
+		case EMovementState::Jumping:
+		case EMovementState::None:
+			break;
+	}
+	
+}
+
+#pragma endregion STATE MANAGER
 
 

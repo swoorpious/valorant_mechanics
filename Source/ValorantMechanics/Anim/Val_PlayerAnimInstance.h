@@ -7,7 +7,7 @@
 #include "Animation/AnimInstance.h"
 #include "Delegates/DelegateCombinations.h"
 #include "ValorantMechanics/Core/Shared/WeaponData/WeaponProperties.h"
-#include "UVal_PlayerAnimInstance.generated.h"
+#include "Val_PlayerAnimInstance.generated.h"
 
 
 class ACommonWeapon;
@@ -40,7 +40,7 @@ struct FAnimAssets
  * 
  */
 UCLASS()
-class VALORANTMECHANICS_API UUVal_PlayerAnimInstance : public UAnimInstance
+class VALORANTMECHANICS_API UVal_PlayerAnimInstance : public UAnimInstance
 {
     GENERATED_BODY()
 

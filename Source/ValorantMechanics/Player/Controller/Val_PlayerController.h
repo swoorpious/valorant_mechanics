@@ -12,6 +12,7 @@
 #include "Val_PlayerController.generated.h"
 
 class AVal_Character;
+class UVal_CharacterMovementComponent;
 
 
 
@@ -25,7 +26,7 @@ class VALORANTMECHANICS_API AVal_PlayerController : public APlayerController
 
 public:
 	AVal_PlayerController();
-	virtual TObjectPtr<UVal_InputSystem> GetInputSystem() { return valInputSystem; } 	
+	virtual TObjectPtr<UVal_InputSystem> GetInputSystem() { return inputSystem; } 	
 
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Input")
@@ -45,7 +46,7 @@ public:
 
 
 #pragma region WEAPON ACTIONS
-	FORCEINLINE void TryWeaponEquip(const EWeaponType weaponType) const { pCharacter->EquipWeapon(weaponType); }
+	FORCEINLINE void TryWeaponEquip(const EWeaponType weaponType) const { pCharacter->EquipWeapon(weaponType, EWeaponState::Equip_Default); }
 	// FORCEINLINE void TryWeaponDrop(const EWeaponType weaponType) const { pCharacter->DropWeapon(weaponType); }
 
 #pragma endregion WEAPON ACTIONS
@@ -55,9 +56,9 @@ protected:
 	void AddLookInput(FVector2D Look) const;
 
 	UPROPERTY() TObjectPtr<AVal_Character> pCharacter = nullptr;
-	
+	UPROPERTY() TObjectPtr<UVal_CharacterMovementComponent> pMovement = nullptr;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Instanced, Category="Input")
-	TObjectPtr<UVal_InputSystem> valInputSystem = nullptr;
+	TObjectPtr<UVal_InputSystem> inputSystem = nullptr;
 
 
 	virtual void OnPossess(APawn* aPawn) override;

@@ -23,7 +23,8 @@ void UVal_PlayerInventory::UpdateInventoryWeapon(const TObjectPtr<ACommonWeapon>
     {
         const TObjectPtr<ACommonWeapon>& value = pair.Value;
         const EWeaponType& key = pair.Key;
-        
+
+        if (key == EWeaponType::Empty) break;
         if (key != value->GetWeaponType()) this->DeleteWeaponByType(key);
     }
 }

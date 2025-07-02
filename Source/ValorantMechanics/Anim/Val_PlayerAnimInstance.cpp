@@ -1,14 +1,14 @@
 ﻿// Copyright 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
 
 
-#include "UVal_PlayerAnimInstance.h"
+#include "Val_PlayerAnimInstance.h"
 #include "AnimNotifier.h"
 #include "ValorantMechanics/Weapons/CommonWeapon.h"
 #include "ValorantMechanics/ValorantMechanics.h"
 #include "ValorantMechanics/Player/Val_Character.h"
 
 
-void UUVal_PlayerAnimInstance::NativeBeginPlay()
+void UVal_PlayerAnimInstance::NativeBeginPlay()
 {
     Super::NativeBeginPlay();
 
@@ -24,7 +24,7 @@ void UUVal_PlayerAnimInstance::NativeBeginPlay()
 }
 
 
-void UUVal_PlayerAnimInstance::UpdateAnimDataAsset(ACommonWeapon* equippedWeapon)
+void UVal_PlayerAnimInstance::UpdateAnimDataAsset(ACommonWeapon* equippedWeapon)
 {
     TObjectPtr<UWeaponAnimDataAsset> const animDataAsset = equippedWeapon->GetAnimAsset();
     EWeaponType const weaponType = equippedWeapon->GetWeaponType();
@@ -35,27 +35,27 @@ void UUVal_PlayerAnimInstance::UpdateAnimDataAsset(ACommonWeapon* equippedWeapon
 }
 
 
-void UUVal_PlayerAnimInstance::UpdateCurrentWeapon(EWeaponType weaponType)
+void UVal_PlayerAnimInstance::UpdateCurrentWeapon(EWeaponType weaponType)
 {
     if (!HasAnimDataForType(weaponType)) return;
     animAssets.currentWeaponType = weaponType;
 }
 
 
-TObjectPtr<UWeaponAnimDataAsset> UUVal_PlayerAnimInstance::GetAnimDataAsset(EWeaponType weaponType)
+TObjectPtr<UWeaponAnimDataAsset> UVal_PlayerAnimInstance::GetAnimDataAsset(EWeaponType weaponType)
 {
 	if (weaponType == EWeaponType::Empty || !HasAnimDataForType(weaponType)) return nullptr;
     return animAssets.animDataMap[weaponType];
 }
 
 
-void UUVal_PlayerAnimInstance::RemoveAnimDataAsset(EWeaponType weaponType)
+void UVal_PlayerAnimInstance::RemoveAnimDataAsset(EWeaponType weaponType)
 {
 	if (weaponType == EWeaponType::Empty || !HasAnimDataForType(weaponType)) return;
     animAssets.animDataMap.Remove(weaponType);
 }
 
-UWeaponAnimDataAsset* UUVal_PlayerAnimInstance::GetCurrentAnimDataAsset()
+UWeaponAnimDataAsset* UVal_PlayerAnimInstance::GetCurrentAnimDataAsset()
 {
     if (!HasAnimDataForType(animAssets.currentWeaponType)) return nullptr;
     

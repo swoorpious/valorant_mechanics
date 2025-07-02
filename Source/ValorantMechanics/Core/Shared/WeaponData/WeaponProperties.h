@@ -39,16 +39,7 @@ enum class EWeaponType : uint8
 };
 
 
-UENUM(BlueprintType)
-enum class EWeaponState : uint8
-{
-    None,
-    Equipping,
-    Idle, // equipped -> idle
-    Reloading,
-    Firing, // state for single tick
-    FireCooldown // firing -> fire cooldown -> idle/firing
-};
+
 
 
 // definition for alternate weapon actions 

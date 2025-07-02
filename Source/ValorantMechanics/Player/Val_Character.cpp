@@ -3,9 +3,10 @@
 
 #include "Val_Character.h"
 
-#include "ValorantMechanics/Anim/UVal_PlayerAnimInstance.h"
+#include "ValorantMechanics/Anim/Val_PlayerAnimInstance.h"
 #include "ValorantMechanics/Weapons/CommonWeapon.h"
 #include "ValorantMechanics/ValorantMechanics.h"
+#include "ValorantMechanics/Core/Val_DefaultGameMode.h"
 
 #include "PlayerComponents/Val_CharacterMovementComponent.h"
 #include "PlayerComponents/Val_PlayerInventory.h"
@@ -16,8 +17,6 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "Materials/MaterialInstanceDynamic.h"
-
-
 
 
 AVal_Character::AVal_Character(const FObjectInitializer& ObjectInitializer) :
@@ -64,26 +63,44 @@ void AVal_Character::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	movementComponent = GetValMovementComponent();
-	pAnimInstance = Cast<UUVal_PlayerAnimInstance>(characterMesh->GetAnimInstance());
-	if (!movementComponent) LOG(Val_Player, Error, "movementComponent is likely a nullptr.");
+	pMovement = Cast<UVal_CharacterMovementComponent>(GetCharacterMovement());
+	pAnimInstance = Cast<UVal_PlayerAnimInstance>(characterMesh->GetAnimInstance());
+	if (!pMovement) LOG(Val_Player, Error, "pMovement is likely a nullptr.");
 	if (!pAnimInstance) LOG(Val_Player, Error, "pAnimInstance is likely a nullptr.");
+
+
+	if (const auto* e = GetWorld()->GetAuthGameMode<AVal_DefaultGameMode>())
+	{
+		if (e->meleeToSpawn) SpawnWeapon(e->meleeToSpawn, !e->secondaryToSpawn && !e->primaryToSpawn);
+		if (e->secondaryToSpawn) SpawnWeapon(e->secondaryToSpawn, !e->primaryToSpawn);
+		if (e->primaryToSpawn) SpawnWeapon(e->primaryToSpawn, true);
+	}
 	
 
-	if (pInventory->meleeToSpawn) SpawnWeapon(pInventory->meleeToSpawn, !pInventory->secondaryToSpawn && !pInventory->primaryToSpawn);
-	if (pInventory->secondaryToSpawn) SpawnWeapon(pInventory->secondaryToSpawn, !pInventory->primaryToSpawn);
-	if (pInventory->primaryToSpawn) SpawnWeapon(pInventory->primaryToSpawn, true);
-
-	tryWeaponEquip.AddUObject(this, &AVal_Character::EquipWeapon);
+	// tryWeaponEquip.AddUObject(this, &AVal_Character::EquipWeapon);
 	// tryWeaponSpawn.AddUObject(this, &AVal_Character::SpawnWeapon);
-	tryWeaponDrop.AddUObject(this, &AVal_Character::DropWeapon);
+	// tryWeaponDrop.AddUObject(this, &AVal_Character::DropWeapon);
 	
 }
 
 
 
 
-// TODO: make common list for socket names, and remove @param socketName
+void AVal_Character::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+}
+
+
+
+void AVal_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+}
+
+
+
+
 void AVal_Character::SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn, bool shouldAutoEquip)
 {
 	if (!weaponToSpawn) return;
@@ -97,9 +114,8 @@ void AVal_Character::SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn
 		pInventory->UpdateInventoryWeapon(spawnedWeapon);
 
 		pAnimInstance->UpdateAnimDataAsset(spawnedWeapon);
-		onWeaponSpawn.Broadcast(spawnedWeapon);
 
-		if (shouldAutoEquip) this->EquipWeapon(spawnedWeapon->GetWeaponType());
+		if (shouldAutoEquip) this->EquipWeapon(spawnedWeapon->GetWeaponType(), EWeaponState::Equip_Default);
 		
 	}
 	
@@ -107,7 +123,7 @@ void AVal_Character::SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn
 
 
 
-void AVal_Character::EquipWeapon(const EWeaponType weaponType)
+void AVal_Character::EquipWeapon(const EWeaponType weaponType, const EWeaponState equipType = EWeaponState::Equip_Default)
 {
 	/*
 	 * check if the animation data asset for the give type in pAnimInstance is the same as the weapon in pInventory.
@@ -123,7 +139,7 @@ void AVal_Character::EquipWeapon(const EWeaponType weaponType)
 	
 	
 	pAnimInstance->UpdateCurrentWeapon(weaponType);
-	pAnimInstance->UpdateWeaponState(EWeaponState::Equipping);
+	pAnimInstance->UpdateWeaponState(equipType);
 	
 	pInventory->UpdateEquippedWeapon(weaponType);
 	for (const auto& pair : pInventory->GetInventory())
@@ -131,7 +147,6 @@ void AVal_Character::EquipWeapon(const EWeaponType weaponType)
 		if (ACommonWeapon* e = pair.Value) e->SetActorHiddenInGame(pair.Key != weaponType);
 	}
 	
-	onWeaponEquip.Broadcast(weaponType);
 }
 
 
@@ -161,45 +176,11 @@ void AVal_Character::DropWeapon(EWeaponType weaponType)
 	// TODO: change this when implementing weapon drop and physics for weapon 
 	pInventory->GetWeaponByType(weaponType)->Destroy();
 	pInventory->DropWeaponByType(weaponType);
-	onWeaponDrop.Broadcast(weaponType);
+	
 }
 
 
 
-void AVal_Character::Jump()
-{
-	Super::Jump();
-}
-
-void AVal_Character::Landed(const FHitResult& Hit)
-{
-	Super::Landed(Hit);
-}
-
-
-void AVal_Character::Walk()
-{
-	UE_LOG(LogTemp, Warning, TEXT("Walking"));
-}
-
-
-void AVal_Character::Unwalk() 
-{
-	UE_LOG(LogTemp, Warning, TEXT("Unwalking"));
-}
-
-
-void AVal_Character::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
-
-
-
-void AVal_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-}
 
 
 
@@ -207,5 +188,5 @@ void AVal_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 AVal_PlayerController* AVal_Character::GetValPlayerController() const { return Cast<AVal_PlayerController>(GetController()); }
 AVal_Character* AVal_Character::GetValCharacter() { return this; }
 UVal_CharacterMovementComponent* AVal_Character::GetValMovementComponent() const { return Cast<UVal_CharacterMovementComponent>(GetCharacterMovement()); }
-UUVal_PlayerAnimInstance* AVal_Character::GetValAnimInstance() const { return Cast<UUVal_PlayerAnimInstance>(characterMesh->GetAnimInstance()); }
+UVal_PlayerAnimInstance* AVal_Character::GetValAnimInstance() const { return Cast<UVal_PlayerAnimInstance>(characterMesh->GetAnimInstance()); }
 

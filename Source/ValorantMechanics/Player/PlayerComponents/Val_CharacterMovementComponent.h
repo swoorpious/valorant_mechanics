@@ -4,7 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PlayerMovementProperties.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "ValorantMechanics/Core/Shared/StateController/StateManager.h"
+#include "PlayerMovementProperties.h"
+#include "ValorantMechanics/Core/Shared/StateController/PlayerStates.h"
 #include "Val_CharacterMovementComponent.generated.h"
 
 
@@ -21,107 +25,27 @@
 
 class AVal_Character;
 class UVal_InputSystem;
-
-
-UENUM(BlueprintType)
-enum class EAirMovementInputDirection : uint8
-{
-	None			UMETA(Description = "Default for when on ground, or when not falling."),
-	Matching		UMETA(Description = "Mouse movement with matching strafe key, e.g. mouse moves right while holding D on the keyboard."),
-	Opposing		UMETA(Description = "Mouse movement with opposing strafe key, e.g. mouse moves right while holding A on the keyboard."),
-	Neutral			UMETA(Description = "No mouse movement while strafe key is held, or vice versa.")
-};
-
-UENUM(BlueprintType)
-enum class EPlayerState : uint8
-{
-	// ability specific movements are not defined here
-	Still,
-	Walking,
-	Running,
-	Crouching,
-	Falling,
-	MovementStunned
-};
-
-
-USTRUCT(BlueprintType)
-struct FPlayerMovementProperties
-{
-	GENERATED_BODY()
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Movement")
-    float runSpeed = 750.0f;
-
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Movement")
-    float walkSpeed = 400.0f;
-
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Movement")
-    float regularAcceleration = 3072.0f;
-
-    // jump
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Movement")
-    float bunnyHopTimeThreshold = 0.08f;
-
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Movement")
-    float walkSpeedAfterJump = 300.0f; // could be 150.0f
-    
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Movement")
-    float jumpStunDuration = 0.2f;
-    
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Movement")
-    float movementAccelerationWhileJumping = 1024.0f;
-
-	// jump uses last ground velocity
-    // UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Movement", meta = (META))
-    // float walkSpeedWhileJumping = 0.0f;
-	
-};
-
-
-USTRUCT(BlueprintType)
-struct FPlayerAirMovementProperties
-{
-	GENERATED_BODY()
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMin = "0.0", ClampMax = "100.0")) // 10
-	float maxAirControl = 0.7f;
-    
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMin = "0.0", ClampMax = "100.0")) // 10
-	float midAirControl = 0.3f;
-    
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMin = "0.0", ClampMax = "100.0")) // 100
-	float minAirControl = 0.1f;
-    
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMn = "1.0", ClampMax = "50.0")) // 5
-	float maxAirStrafeMultiplier = 1.5f;
-    
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMin = "0.0", ClampMax = "50.0")) // 5
-	float airStrafeAccelerationRate = 0.5f;
-    
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMin = "0.0", ClampMax = "100.0")) // 10
-	float airStrafeDecayRate = 2.0f;
-    
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMin = "0.0", ClampMax = "10000.0"))
-	float airStrafeForce = 250.0f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMin = "0.0", ClampMax = "10.0"))
-	float forceFactorX = 1.0f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMin = "0.0", ClampMax = "10.0"))
-	float forceFactorY = 1.0f;
-};
+class UVal_LocalPlayerSubsystem;
 
 
 
 UCLASS(ClassGroup=(Valorant), meta=(BlueprintSpawnableComponent))
-class VALORANTMECHANICS_API UVal_CharacterMovementComponent : public UCharacterMovementComponent
+class VALORANTMECHANICS_API UVal_CharacterMovementComponent : public UCharacterMovementComponent, public CommonStateManager<EMovementState>
 {
 	GENERATED_BODY()
 
 public:
 	UVal_CharacterMovementComponent();
 	virtual bool DoJump(bool bReplayingMoves, float DeltaTime) override;
-	// virtual void OnLanded(/* add hit target @params in future */); 
+	// virtual void OnLanded(/* add hit target @params in future */);
+	
+
+	virtual void TryUpdateState(EMovementState) override;
+	virtual EMovementState GetCurrentState() const override;
+	virtual bool IsCurrentState(EMovementState state) const override;
+	virtual bool CanTransitionToState(EMovementState state) const override;
+
+	virtual void OnUpdateState(EMovementState previousState, EMovementState enteredState) override;
 
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties")
@@ -143,9 +67,10 @@ protected:
 private:
 	
 	UPROPERTY()	TObjectPtr<AVal_Character> pCharacter = nullptr;
+	UPROPERTY() TObjectPtr<UVal_LocalPlayerSubsystem> pSubsystem = nullptr;
 	UPROPERTY()	TObjectPtr<UVal_InputSystem> valInputSystem = nullptr;
 	
-	
+	EMovementState pState = EMovementState::Idle;
 	float airStrafeTime = 0.0f;
 	float currentAirStrafeMultiplier = 1.0f;
 	

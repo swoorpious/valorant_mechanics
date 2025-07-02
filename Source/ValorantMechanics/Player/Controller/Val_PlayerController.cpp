@@ -3,9 +3,11 @@
 
 
 #include "Val_PlayerController.h"
+
 #include "../Val_Character.h"
 #include "Val_InputSystem.h"
 #include "ValorantMechanics/ValorantMechanics.h"
+#include "ValorantMechanics/Player/PlayerComponents/Val_CharacterMovementComponent.h"
 
 #include "Camera/CameraComponent.h"
 #include "GameFramework/InputSettings.h"
@@ -13,9 +15,35 @@
 
 AVal_PlayerController::AVal_PlayerController()
 {
-	valInputSystem = CreateDefaultSubobject<UVal_InputSystem>(TEXT("Val Input System"));
+	inputSystem = CreateDefaultSubobject<UVal_InputSystem>(TEXT("Val Input System"));
 	
 }
+
+void AVal_PlayerController::OnPossess(APawn* aPawn)
+{
+	Super::OnPossess(aPawn);
+	
+	pCharacter = Cast<AVal_Character>(aPawn);
+	if (!pCharacter) LOG(Val_Player, Error, "This controller and its descendants should only possess AMySpecificCharacterClass derived pawns!");
+	pMovement = pCharacter->GetValMovementComponent();
+
+	
+	inputSystem->Init(this, InputComponent);
+	
+	InputComponent->bBlockInput = false;
+
+	UInputSettings* inputSettings = UInputSettings::GetInputSettings();
+	inputSettings->bUseMouseForTouch = false;
+	bEnableMouseOverEvents = true;
+	
+}
+
+void AVal_PlayerController::OnUnPossess()
+{
+	Super::OnUnPossess();
+}
+
+
 
 
 void AVal_PlayerController::AddLookInput(FVector2D Look) const
@@ -47,9 +75,9 @@ void AVal_PlayerController::AddLookInput(FVector2D Look) const
 
 void AVal_PlayerController::PlayerMove() const
 {
-	if (!valInputSystem->HasMovementInput()) return;
+	if (!inputSystem->HasMovementInput()) return;
 	
-	FVector2d moveVector = valInputSystem->GetAdditiveMovementInput();
+	FVector2d moveVector = inputSystem->GetAdditiveMovementInput();
 	constexpr float minThreshold = 0.05f;
 	constexpr float maxScale = 10.0f;
 
@@ -60,10 +88,10 @@ void AVal_PlayerController::PlayerMove() const
 	 * this softens the player movement making it feel natural and not overly responsive, and
 	 * reduces the feeling of "player sliding"
 	 */
-	if (FMath::Abs(valInputSystem->GetLastLookVector().X) > minThreshold)
+	if (FMath::Abs(inputSystem->GetLastLookVector().X) > minThreshold)
 	{
 		float scaleFactor = FMath::Clamp(
-			1.0f / FMath::Pow(FMath::Abs(valInputSystem->GetLastLookVector().X), 0.5f), 
+			1.0f / FMath::Pow(FMath::Abs(inputSystem->GetLastLookVector().X), 0.5f), 
 			1.0f / maxScale,
 			maxScale
 		);
@@ -87,12 +115,9 @@ void AVal_PlayerController::PlayerMove() const
 /*
  * TODO: implement short time period after landing to slow down the player, with an even shorter window before it activates
  */
-void AVal_PlayerController::PlayerJump(const FInputActionInstance& InputActionInstance)
+void AVal_PlayerController::PlayerJump(const FInputActionInstance& inputInstance)
 {
-	// TArray<UInputTrigger*> triggers = InputActionInstance.GetTriggers();
-
 	// TODO: implement started, ongoing, cancelled/completed
-	/* switch (InputActionInstance.GetTriggerEvent()) {...} */
 	
 	if (pCharacter)
     {
@@ -101,57 +126,35 @@ void AVal_PlayerController::PlayerJump(const FInputActionInstance& InputActionIn
     }
 }
 
-void AVal_PlayerController::PlayerCrouch(const FInputActionInstance& InputActionInstance)
+void AVal_PlayerController::PlayerCrouch(const FInputActionInstance& inputInstance)
 {
 }
 
-void AVal_PlayerController::PlayerWalk(const FInputActionInstance& InputActionInstance)
+
+void AVal_PlayerController::PlayerWalk(const FInputActionInstance& inputInstance)
 {
-	if (pCharacter->bIsCrouched) return;
-	
-	switch (InputActionInstance.GetTriggerEvent()) {
+	switch (inputInstance.GetTriggerEvent()) {
 		case ETriggerEvent::Started:
 		case ETriggerEvent::Triggered:
 		case ETriggerEvent::Ongoing:
-			pCharacter->Walk();
+			pMovement->TryUpdateState(EMovementState::Walking);
 			break;
 		
 		case ETriggerEvent::Canceled:
 		case ETriggerEvent::Completed:
-			pCharacter->Unwalk();
+			pCharacter->bIsCrouched ?
+				pMovement->TryUpdateState(EMovementState::Crouching) :
+				pMovement->TryUpdateState(EMovementState::Running);
 			break;
 
 		default: break;
 	}
 }
 
-void AVal_PlayerController::PlayerUse(const FInputActionInstance& InputActionInstance)
+void AVal_PlayerController::PlayerUse(const FInputActionInstance& inputInstance)
 {
 }
 
-
-void AVal_PlayerController::OnPossess(APawn* aPawn)
-{
-	Super::OnPossess(aPawn);
-	
-	pCharacter = Cast<AVal_Character>(aPawn);
-	if (!pCharacter) LOG(Val_Player, Error, "This controller and its descendants should only possess AMySpecificCharacterClassderived pawns!");
-	
-	valInputSystem->Init(this, InputComponent);
-	
-	
-	InputComponent->bBlockInput = false;
-
-	UInputSettings* inputSettings = UInputSettings::GetInputSettings();
-	inputSettings->bUseMouseForTouch = false;
-	bEnableMouseOverEvents = true;
-	
-}
-
-void AVal_PlayerController::OnUnPossess()
-{
-	Super::OnUnPossess();
-}
 
 
 

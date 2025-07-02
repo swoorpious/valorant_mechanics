@@ -32,7 +32,7 @@ public:
     virtual void Reload() {}
     virtual void Equip(EEquipType EquipType) {}
     FORCEINLINE virtual EWeaponType GetWeaponType() { return weaponType; }
-    FORCEINLINE virtual EWeaponState GetWeaponState() { return weaponState; }
+    // FORCEINLINE virtual EWeaponState GetWeaponState() { return weaponState; }
     FORCEINLINE virtual EWeaponPickupType GetWeaponPickupType() { return weaponPickupType; }
     virtual TObjectPtr<UWeaponAnimDataAsset> GetAnimAsset() { return animAsset; }
     
@@ -60,7 +60,7 @@ protected:
     virtual void Tick(float DeltaTime) override;
 
     EWeaponType weaponType; // variables initialized in derived class constructors
-    EWeaponState weaponState; 
+    // EWeaponState weaponState;
     EWeaponPickupType weaponPickupType;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Animations", meta = (DisplayName = "Animation Data Asset"))

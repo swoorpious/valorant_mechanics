@@ -29,20 +29,7 @@ class VALORANTMECHANICS_API UVal_PlayerInventory : public UActorComponent
 public:
     UVal_PlayerInventory();
 
-#pragma region WEAPONS TO SPAWN
     
-    UPROPERTY(EditDefaultsOnly, Category = "Spawn Properties|Equipped Weapons")
-    TSubclassOf<ACommonWeapon> meleeToSpawn = nullptr;
-
-    UPROPERTY(EditDefaultsOnly, Category = "Spawn Properties|Equipped Weapons")
-    TSubclassOf<ACommonWeapon> secondaryToSpawn = nullptr;
-
-    UPROPERTY(EditDefaultsOnly, Category = "Spawn Properties|Equipped Weapons")
-    TSubclassOf<ACommonWeapon> primaryToSpawn = nullptr;
-    
-#pragma endregion WEAPONS TO SPAWN
-    
-
     /*
      * does not update equippedWeaponType
      * updates if weapon of EWeaponType exists
