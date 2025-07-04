@@ -7,7 +7,8 @@
 
 /*
  * every state related to player's basic kinematic movement
- * 
+ *
+ * EMovementState is meant to be used by the Val_CharacterMovementComponent
  * UsingAbilityMovement indicates that the player character is now using movement altered by an ability
  */
 UENUM()
@@ -15,20 +16,30 @@ enum class EMovementState : uint8
 {
     None,
     Idle,
-    Crouching,
     Walking,
     Running,
     Jumping,
-    LightStunned,
+    LightStunned, // movement is allowed, will use walking animation
+    MediumStunned,
     HeavyStunned,
+
     UsingAbilityMovement,
+
+    /*
+     * TODO: implement a jumping system to keep track of players jump height
+     * allow queuing bunnyhop jumps certain distance above the ground before landing
+     *
+     * jump system shall also keep track of players jumping z-coordinate and landing z-coordinate to determine light/medium/heavy stuns
+     */
+    
+    // crouching is detected by bIsCrouched, it will reduce the current MaxWalkSpeed by 33%
 };
 
 
 /*
  * these states are used by both the player and the weapon in AVal_Character and ACommonWeapon
  *
- * AVal_Character uses these states to apply corresponding character animations according to the state
+ * AVal_Character uses a pseudo implementation of these states to apply corresponding character animations according to the state
  * ACommonWeapon uses these states to apply corresponding weapon animations/effects according to the state
  */
 UENUM(BlueprintType)
