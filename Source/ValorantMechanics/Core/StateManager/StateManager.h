@@ -2,6 +2,11 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
+#include "../Shared/PlayerStates.h"
+
+
+#pragma region STATE MANAGER
 
 template<typename TStateEnum>
 class StateManager
@@ -9,23 +14,25 @@ class StateManager
 public:
     virtual ~StateManager() = default;
 
-    
-    virtual void UnallowStateTransition(TStateEnum fromState, TSet<TStateEnum> unallowedStates);
-    
-    virtual TStateEnum GetCurrentState() const;
-    
-    virtual bool IsCurrentState(TStateEnum state) const;
-    
-    virtual bool CanTransitionToState(TStateEnum state) const;
+    DECLARE_MULTICAST_DELEGATE_TwoParams(OnStateUpdatedCallback, TStateEnum /* old state */, TStateEnum /* new state */);
 
-    virtual void TryTransitionToState(TStateEnum updateToState);
-
-    
-protected:
     virtual void TickState(float deltaTime);
     
-    virtual void InternalUpdateState(TStateEnum stateToExit, TStateEnum stateToEnter);
+    virtual void UnallowStateTransition(TStateEnum fromState, TSet<TStateEnum> unallowedStates);
+    virtual TStateEnum GetCurrentState() const;    
+    virtual bool IsCurrentState(TStateEnum state) const;
+    virtual bool CanTransitionToState(TStateEnum state) const;
+    virtual void TryTransitionToState(TStateEnum updateToState);
 
+    /*
+     * for external functions to bind
+     */
+    OnStateUpdatedCallback& GetStateUpdateCallbackDelegate() { return onStateUpdatedDelegate; };
+    
+    
+protected:
+    virtual void InternalTickState(float deltaTime);
+    virtual void InternalUpdateState(TStateEnum stateToExit, TStateEnum stateToEnter);
     virtual void OnUpdateState(TStateEnum previousState, TStateEnum enteredState) = 0;
     
 
@@ -43,6 +50,8 @@ protected:
     
     TStateEnum lastState;
     TStateEnum currentState;
+
+    OnStateUpdatedCallback onStateUpdatedDelegate;
 };
 
 
@@ -50,7 +59,7 @@ protected:
 template <typename TStateEnum>
 void StateManager<TStateEnum>::TickState(float deltaTime)
 {
-    timeSinceLastStateTransition += deltaTime;
+    InternalTickState(deltaTime);
 }
 
 
@@ -95,6 +104,11 @@ void StateManager<TStateEnum>::TryTransitionToState(TStateEnum updateToState)
 }
 
 
+template <typename TStateEnum>
+void StateManager<TStateEnum>::InternalTickState(float deltaTime)
+{
+    timeSinceLastStateTransition += deltaTime;
+}
 
 template <typename TStateEnum>
 void StateManager<TStateEnum>::InternalUpdateState(TStateEnum stateToExit, TStateEnum stateToEnter)
@@ -105,3 +119,11 @@ void StateManager<TStateEnum>::InternalUpdateState(TStateEnum stateToExit, TStat
     
     OnUpdateState(stateToExit, stateToEnter);
 }
+
+#pragma endregion STATE MANAGER
+
+
+
+using MovementStateManager = StateManager<EMovementState>;
+using WeaponLogicStateManager = StateManager<EWeaponLogicState>;
+using WeaponAnimStateManager = StateManager<EWeaponAnimState>;
