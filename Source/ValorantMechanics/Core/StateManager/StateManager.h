@@ -19,7 +19,7 @@ public:
 
     DECLARE_MULTICAST_DELEGATE_TwoParams(OnStateUpdatedCallback, TStateEnum /* old state */, TStateEnum /* new state */);
     DECLARE_MULTICAST_DELEGATE_OneParam(OnTimedStateCallback, TStateEnum /* state that timed out */);
-    DECLARE_MULTICAST_DELEGATE_TwoParams(OnStateStackUpdatedCallback, TStateEnum /* state */, bool /* bIsStacked - true for stacked, false for unstacked */);
+    DECLARE_MULTICAST_DELEGATE_TwoParams(OnStateStackUpdatedCallback, TStateEnum /* state */, bool /* isStacked - true for stacked, false for unstacked */);
 
     virtual void TickState(float deltaTime);
     
@@ -37,7 +37,7 @@ public:
     /*
      * declare which states should tick and their notification times
      */
-    virtual void SetStateTickingEnabled(TStateEnum state, bool bEnabled);
+    virtual void SetStateTickingEnabled(TStateEnum state, bool isEnabled);
     virtual void SetStateNotificationTime(TStateEnum state, float notificationTime);
 
     /*
@@ -125,7 +125,7 @@ protected:
      * default state to transition to when timed states complete (if no queued state)
      */
     TStateEnum defaultState;
-    bool bHasDefaultState = false;
+    bool hasDefaultState = false;
 
     /*
      * state queue
@@ -234,9 +234,9 @@ void StateManager<TStateEnum>::TryUnstackState(TStateEnum stateToUnstack)
 
 
 template<typename TStateEnum>
-void StateManager<TStateEnum>::SetStateTickingEnabled(TStateEnum state, bool bEnabled)
+void StateManager<TStateEnum>::SetStateTickingEnabled(TStateEnum state, bool isEnabled)
 {
-    if (bEnabled)
+    if (isEnabled)
         tickingStates.Add(state);
     else
         tickingStates.Remove(state);
@@ -255,7 +255,7 @@ template<typename TStateEnum>
 void StateManager<TStateEnum>::SetDefaultState(TStateEnum state)
 {
     defaultState = state;
-    bHasDefaultState = true;
+    hasDefaultState = true;
 }
 
 
@@ -442,7 +442,7 @@ void StateManager<TStateEnum>::HandleTimedStateCompletion(TStateEnum completedSt
         shouldTransition = true;
         ClearQueuedState();
     }
-    else if (bHasDefaultState)
+    else if (hasDefaultState)
     {
         nextState = defaultState;
         shouldTransition = true;
