@@ -6,15 +6,10 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "Delegates/DelegateCombinations.h"
-#include "ValorantMechanics/Core/Shared/WeaponData/WeaponProperties.h"
 #include "AnimNotifier.generated.h"
 
 
-DECLARE_DYNAMIC_DELEGATE_OneParam(FOnCurrentAnimationDataChange, UWeaponAnimDataAsset*, UpdatedAnimAsset);
-DECLARE_DYNAMIC_DELEGATE_OneParam(FOnWeaponStateChange, EWeaponState, weaponState);
-
-DECLARE_MULTICAST_DELEGATE_OneParam(OnStateChangeByAnim, EWeaponState);
-
+class UVal_LocalPlayerSubsystem;
 
 /**
  * 
@@ -26,15 +21,10 @@ class VALORANTMECHANICS_API UAnimNotifier : public UObject
 
 public:
 
-    OnStateChangeByAnim onStateChange;
-    
-    // UPROPERTY(BlueprintReadWrite, BlueprintReadWrite, BlueprintType, EditAnywhere, Category="Animations|Events", meta = (AllowPrivateAccess = true))
-    // FOnCurrentAnimationDataChange onCurrentAnimDataChange;
-    //
-    // UPROPERTY(BlueprintReadWrite, BlueprintReadWrite, BlueprintType, EditAnywhere, Category="Animations|Events", meta = (AllowPrivateAccess = true))
-    // FOnWeaponStateChange onWeaponStateChange;
+    void Init(UVal_LocalPlayerSubsystem* localPlayerSubsystem);
 
-    UFUNCTION(BlueprintCallable, Category = "Animation Notifier")
-    void TryUpdateAnimState(const EWeaponState newState);
-    
+    void NotifyWeaponStateMachineStateChange(FName lastState, FName newState);
+
+private:
+    UPROPERTY() TObjectPtr<UVal_LocalPlayerSubsystem> pSubsystem = nullptr;
 };

@@ -22,16 +22,24 @@ public:
 
 #pragma region STATE MACHINE
 
+    /*
+     * prefixes
+     * m -> movement
+     * w -> weapon
+     */
     OnMovementStateChanged mStateChanged;
-    OnWeaponStateChanged wStateChanged;
-    OnPlayerAnimStateChanged pAnimStateChanged;
+    OnWeaponLogicStateChanged wLogicStateChanged;
+    OnMovementAnimStateChanged mAnimStateChanged;
     OnWeaponAnimStateChanged wAnimStateChanged;
 
 
-    void UpdateMovementState();
-    void UpdateWeaponState();
-    void UpdateMovementAnimState();
-    void UpdateWeaponAnimState();
+    void UpdateMovementState(EMovementState oldState, EMovementState newState) const;
+    void UpdateWeaponLogicState(EWeaponLogicState oldState, EWeaponLogicState newState) const;
+
+    // update for when the anim sequence finishes playing
+    // can be used to check for time duration for actions, like equipping.
+    void UpdateMovementAnimState(EMovementState oldState, EMovementState newState) const;
+    void UpdateWeaponAnimState(EWeaponAnimState oldState, EWeaponAnimState newState) const;
 
 #pragma endregion STATE MACHINE
 };

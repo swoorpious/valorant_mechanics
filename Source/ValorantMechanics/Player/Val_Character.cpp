@@ -22,65 +22,64 @@
 AVal_Character::AVal_Character(const FObjectInitializer& ObjectInitializer) :
 Super(ObjectInitializer.SetDefaultSubobjectClass<UVal_CharacterMovementComponent>(CharacterMovementComponentName))
 {
-	PrimaryActorTick.bCanEverTick = true;
+    PrimaryActorTick.bCanEverTick = true;
 
-	socketData = CreateDefaultSubobject<UPlayerSocketNames>(TEXT("Player Socket Names"));
-	pInventory = CreateDefaultSubobject<UVal_PlayerInventory>(TEXT("Player Inventory"));
-	
+    socketData = CreateDefaultSubobject<UPlayerSocketNames>(TEXT("Player Socket Names"));
+    pInventory = CreateDefaultSubobject<UVal_PlayerInventory>(TEXT("Player Inventory"));
+    
 
-	RootComponent = GetCapsuleComponent();
-	sceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Scene"));
-	sceneComponent->SetupAttachment(RootComponent);
-	
-	characterMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Character Mesh"));
-	characterMesh->SetupAttachment(sceneComponent);
-	characterMesh->CastShadow = false;
-	characterMesh->bCastDynamicShadow = true;
-	characterMesh->SetSimulatePhysics(false);
-	
-	characterMeshCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Character Mesh Camera"));
-	characterMeshCamera->SetupAttachment(characterMesh, socketData->cameraSocket);
-	characterMeshCamera->bUsePawnControlRotation = false;
-	
+    RootComponent = GetCapsuleComponent();
+    sceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Scene"));
+    sceneComponent->SetupAttachment(RootComponent);
+    
+    characterMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Character Mesh"));
+    characterMesh->SetupAttachment(sceneComponent);
+    characterMesh->CastShadow = false;
+    characterMesh->bCastDynamicShadow = true;
+    characterMesh->SetSimulatePhysics(false);
+    
+    characterMeshCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Character Mesh Camera"));
+    characterMeshCamera->SetupAttachment(characterMesh, socketData->cameraSocket);
+    characterMeshCamera->bUsePawnControlRotation = false;
+    
 
-	bUseControllerRotationYaw = false;
-	bUseControllerRotationPitch = false;
-	bUseControllerRotationRoll = false;
+    bUseControllerRotationYaw = false;
+    bUseControllerRotationPitch = false;
+    bUseControllerRotationRoll = false;
 
-	bReplicates = true;
+    bReplicates = true;
 
-	// disable physics
-	GetMesh()->SetSimulatePhysics(false);
-	characterMesh->SetSimulatePhysics(false);
-	characterMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	characterMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+    // disable physics
+    GetMesh()->SetSimulatePhysics(false);
+    characterMesh->SetSimulatePhysics(false);
+    characterMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    characterMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
 
-	
+    
 }
 
 
 void AVal_Character::BeginPlay()
 {
-	Super::BeginPlay();
-	
-	pMovement = Cast<UVal_CharacterMovementComponent>(GetCharacterMovement());
-	pAnimInstance = Cast<UVal_PlayerAnimInstance>(characterMesh->GetAnimInstance());
-	if (!pMovement) LOG(Val_Player, Error, "pMovement is likely a nullptr.");
-	if (!pAnimInstance) LOG(Val_Player, Error, "pAnimInstance is likely a nullptr.");
+    Super::BeginPlay();
+    
+    pMovement = Cast<UVal_CharacterMovementComponent>(GetCharacterMovement());
+    pAnimInstance = Cast<UVal_PlayerAnimInstance>(characterMesh->GetAnimInstance());
+    if (!pMovement) LOG(Val_Player, Error, "pMovement is likely a nullptr.");
+    if (!pAnimInstance) LOG(Val_Player, Error, "pAnimInstance is likely a nullptr.");
 
+    if (const auto* e = GetWorld()->GetAuthGameMode<AVal_DefaultGameMode>())
+    {
+        if (e->meleeToSpawn) SpawnWeapon(e->meleeToSpawn, !e->secondaryToSpawn && !e->primaryToSpawn);
+        if (e->secondaryToSpawn) SpawnWeapon(e->secondaryToSpawn, !e->primaryToSpawn);
+        if (e->primaryToSpawn) SpawnWeapon(e->primaryToSpawn, true);
+    }
+    
 
-	if (const auto* e = GetWorld()->GetAuthGameMode<AVal_DefaultGameMode>())
-	{
-		if (e->meleeToSpawn) SpawnWeapon(e->meleeToSpawn, !e->secondaryToSpawn && !e->primaryToSpawn);
-		if (e->secondaryToSpawn) SpawnWeapon(e->secondaryToSpawn, !e->primaryToSpawn);
-		if (e->primaryToSpawn) SpawnWeapon(e->primaryToSpawn, true);
-	}
-	
-
-	// tryWeaponEquip.AddUObject(this, &AVal_Character::EquipWeapon);
-	// tryWeaponSpawn.AddUObject(this, &AVal_Character::SpawnWeapon);
-	// tryWeaponDrop.AddUObject(this, &AVal_Character::DropWeapon);
-	
+    // tryWeaponEquip.AddUObject(this, &AVal_Character::EquipWeapon);
+    // tryWeaponSpawn.AddUObject(this, &AVal_Character::SpawnWeapon);
+    // tryWeaponDrop.AddUObject(this, &AVal_Character::DropWeapon);
+    
 }
 
 
@@ -88,14 +87,16 @@ void AVal_Character::BeginPlay()
 
 void AVal_Character::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
+    Super::Tick(DeltaTime);
+
 }
+
 
 
 
 void AVal_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
+    Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
 
@@ -103,85 +104,80 @@ void AVal_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 void AVal_Character::SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn, bool shouldAutoEquip)
 {
-	if (!weaponToSpawn) return;
+    if (!weaponToSpawn) return;
 
-	
-	if (ACommonWeapon* spawnedWeapon = GetWorld()->SpawnActor<ACommonWeapon>(weaponToSpawn))
-	{
-		spawnedWeapon->SetOwner(this);
-		spawnedWeapon->AttachToComponent(characterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, socketData->rightWeaponMasterSocket);
-		spawnedWeapon->SetActorHiddenInGame(true); // hidden by default, EquipWeapon(...) will unhide
-		pInventory->UpdateInventoryWeapon(spawnedWeapon);
+    
+    if (ACommonWeapon* spawnedWeapon = GetWorld()->SpawnActor<ACommonWeapon>(weaponToSpawn))
+    {
+        spawnedWeapon->SetOwner(this);
+        spawnedWeapon->AttachToComponent(characterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, socketData->rightWeaponMasterSocket);
+        spawnedWeapon->SetActorHiddenInGame(true); // hidden by default, EquipWeapon(...) will unhide
+        pInventory->UpdateInventoryWeapon(spawnedWeapon);
 
-		pAnimInstance->UpdateAnimDataAsset(spawnedWeapon);
+        pAnimInstance->UpdateAnimDataAsset(spawnedWeapon);
 
-		if (shouldAutoEquip) this->EquipWeapon(spawnedWeapon->GetWeaponType(), EWeaponState::Equip_Default);
-		
-	}
-	
+        if (shouldAutoEquip) this->EquipWeapon(spawnedWeapon->GetWeaponType(), EWeaponLogicState::Equip_Default);
+        
+    }
+    
 }
 
 
-
-void AVal_Character::EquipWeapon(const EWeaponType weaponType, const EWeaponState equipType = EWeaponState::Equip_Default)
+void AVal_Character::EquipWeapon(const EWeaponType weaponType, const EWeaponLogicState equipType = EWeaponLogicState::Equip_Default)
 {
-	/*
-	 * check if the animation data asset for the give type in pAnimInstance is the same as the weapon in pInventory.
-	 * if not, we don't really care, we just return. 
-	 */
-	TObjectPtr<ACommonWeapon> const invWeapon = pInventory->GetWeaponByType(weaponType);
-	TObjectPtr<UDataAsset> const animDataInstance = pAnimInstance->GetAnimDataAsset(weaponType);
-	TObjectPtr<UDataAsset> const animDataWeapon = invWeapon ? invWeapon->GetAnimAsset() : nullptr;
+    if (equipType != EWeaponLogicState::Equip_Default && equipType != EWeaponLogicState::Equip_Fast) return;
 
-	bool const validAnim = pAnimInstance && animDataWeapon == animDataInstance;
-	
-	if (!validAnim || !pInventory->HasWeapon(weaponType)) return;
-	
-	
-	pAnimInstance->UpdateCurrentWeapon(weaponType);
-	pAnimInstance->UpdateWeaponState(equipType);
-	
-	pInventory->UpdateEquippedWeapon(weaponType);
-	for (const auto& pair : pInventory->GetInventory())
-	{
-		if (ACommonWeapon* e = pair.Value) e->SetActorHiddenInGame(pair.Key != weaponType);
-	}
-	
+    TObjectPtr<ACommonWeapon> invWeapon = pInventory->GetWeaponByType(weaponType);
+    TObjectPtr<UDataAsset> animDataInstance = pAnimInstance->GetAnimDataAsset(weaponType);
+    TObjectPtr<UDataAsset> animDataWeapon = invWeapon ? invWeapon->GetAnimAsset() : nullptr;
+
+    bool const validAnim = pAnimInstance && animDataWeapon == animDataInstance;
+
+    if (!validAnim || !pInventory->HasWeapon(weaponType)) return;
+
+    for (const auto& pair : pInventory->GetInventory())
+        if (ACommonWeapon* e = pair.Value) e->SetActorHiddenInGame(true);
+
+    // TryTransitionToState(EWeaponAnimState::None);
+
+    pInventory->UpdateEquippedWeapon(weaponType);
+    pAnimInstance->UpdateCurrentWeapon(weaponType);
+    // TryTransitionToState(equipType == EWeaponLogicState::Equip_Default ? EWeaponAnimState::Equip_Default : EWeaponAnimState::Equip_Fast);
+
+    for (const auto& pair : pInventory->GetInventory())
+        if (ACommonWeapon* e = pair.Value) e->SetActorHiddenInGame(pair.Key != weaponType);
+    
 }
 
 
 
 void AVal_Character::DropWeapon(EWeaponType weaponType)
 {
-	if (pInventory->GetEquippedWeapon()->GetWeaponType() == weaponType)
-	{
-		switch (weaponType)
-		{
-			case EWeaponType::Melee:
-			case EWeaponType::Empty:
-			default:
-				// cannot drop an empty, or...the melee lol
-				return;
-			case EWeaponType::Secondary:
-				// when secondary is dropped, equip primary if it exists, or equip melee
-				this->EquipWeapon(pInventory->HasWeapon(EWeaponType::Primary) ? EWeaponType::Primary : EWeaponType::Melee);
-				break;
-			case EWeaponType::Primary:
-				// when primary is dropped, equip secondary if it exists, or equip melee
-				this->EquipWeapon(pInventory->HasWeapon(EWeaponType::Secondary) ? EWeaponType::Secondary : EWeaponType::Melee);
-				break;
-		}
-	}
+    if (pInventory->GetEquippedWeapon()->GetWeaponType() == weaponType)
+    {
+        switch (weaponType)
+        {
+            case EWeaponType::Melee:
+            case EWeaponType::Empty:
+            default:
+                // cannot drop an empty, or...the melee lol
+                return;
+            case EWeaponType::Secondary:
+                // when secondary is dropped, equip primary if it exists, or equip melee
+                this->EquipWeapon(pInventory->HasWeapon(EWeaponType::Primary) ? EWeaponType::Primary : EWeaponType::Melee);
+                break;
+            case EWeaponType::Primary:
+                // when primary is dropped, equip secondary if it exists, or equip melee
+                this->EquipWeapon(pInventory->HasWeapon(EWeaponType::Secondary) ? EWeaponType::Secondary : EWeaponType::Melee);
+                break;
+        }
+    }
 
-	// TODO: change this when implementing weapon drop and physics for weapon 
-	pInventory->GetWeaponByType(weaponType)->Destroy();
-	pInventory->DropWeaponByType(weaponType);
-	
+    // TODO: change this when implementing weapon drop and physics for weapon 
+    pInventory->GetWeaponByType(weaponType)->Destroy();
+    pInventory->DropWeaponByType(weaponType);
+    
 }
-
-
-
-
 
 
 

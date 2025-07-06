@@ -16,37 +16,51 @@
 // Sets default values for this component's properties
 UVal_CharacterMovementComponent::UVal_CharacterMovementComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
-	bOrientRotationToMovement = false;
+    PrimaryComponentTick.bCanEverTick = true;
+    bOrientRotationToMovement = false;
+
+
+    movementManager = CreateDefaultSubobject<UMovementStateManager>(TEXT("Movement State Manager"));
+    InitializeStateManager();
+    
+    // UnallowStateTransition(EMovement);
 }
 
-bool UVal_CharacterMovementComponent::DoJump(bool bReplayingMoves, float DeltaTime)
+
+void UVal_CharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	return Super::DoJump(bReplayingMoves, DeltaTime);
+    Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+    
+
+    HandleAirMovement(DeltaTime);
+
 }
+
+
 
 
 void UVal_CharacterMovementComponent::BeginPlay()
 {
-	Super::BeginPlay();
+    Super::BeginPlay();
 
-	pCharacter = Cast<AVal_Character>(GetOwner());
-	if (pCharacter)
-	{
-		valInputSystem = pCharacter->GetValPlayerController()->GetInputSystem();
-		pSubsystem = pCharacter->GetValPlayerController()->GetLocalPlayer()->GetSubsystem<UVal_LocalPlayerSubsystem>();
-		
-	}
+    pCharacter = Cast<AVal_Character>(GetOwner());
+    if (pCharacter)
+    {
+        valInputSystem = pCharacter->GetValPlayerController()->GetInputSystem();
+        pSubsystem = pCharacter->GetValPlayerController()->GetLocalPlayer()->GetSubsystem<UVal_LocalPlayerSubsystem>();
+        
+    }
 
+    movementManager = NewObject<UMovementStateManager>(this);
+    
 }
 
-void UVal_CharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+
+bool UVal_CharacterMovementComponent::DoJump(bool bReplayingMoves, float DeltaTime)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	HandleAirMovement(DeltaTime);
-
+    return Super::DoJump(bReplayingMoves, DeltaTime);
 }
+
 
 /*
  * TODO: Function needs tweaking
@@ -55,206 +69,118 @@ void UVal_CharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick 
  */
 void UVal_CharacterMovementComponent::HandleAirMovement(float DeltaTime)
 {
-	if (!IsFalling())
-	{
-		airStrafeTime = 0.0f;
-		currentAirStrafeMultiplier = 1.0f;
-		lastAirInputDirection = EAirMovementInputDirection::None;
-		return;
-	}
-	
+    if (!IsFalling())
+    {
+        airStrafeTime = 0.0f;
+        currentAirStrafeMultiplier = 1.0f;
+        lastAirInputDirection = EAirMovementInputDirection::None;
+        return;
+    }
+    
 
-	FVector const viewVectorX = pCharacter->GetActorForwardVector();
-	FVector const viewVectorY = pCharacter->GetActorRightVector();
-	FVector2d const inputVector = valInputSystem->GetAdditiveMovementInput();
+    FVector const viewVectorX = pCharacter->GetActorForwardVector();
+    FVector const viewVectorY = pCharacter->GetActorRightVector();
+    FVector2d const inputVector = valInputSystem->GetAdditiveMovementInput();
 
-	float const viewDeltaX = valInputSystem->GetLastLookVector().X;
+    float const viewDeltaX = valInputSystem->GetLastLookVector().X;
 
-	FVector const currentDirection = Velocity.GetSafeNormal();
-	
-	bool const isMovingLeft = inputVector.X < -0.1f;
-	bool const isMovingRight = inputVector.X > 0.1f;
-
-
-	
-	EAirMovementInputDirection currentAirMovementDirection;
-	if (isMovingLeft && viewDeltaX < -0.1f)
-		currentAirMovementDirection = EAirMovementInputDirection::Matching;
-	
-	else if (isMovingRight && viewDeltaX > 0.1f)
-		currentAirMovementDirection = EAirMovementInputDirection::Matching;
-	
-	else if ((isMovingLeft && viewDeltaX > 0.1f) || (isMovingRight && viewDeltaX < -0.1f))
-		currentAirMovementDirection = EAirMovementInputDirection::Opposing;
-	
-	else currentAirMovementDirection = EAirMovementInputDirection::Neutral;
+    FVector const currentDirection = Velocity.GetSafeNormal();
+    
+    bool const isMovingLeft = inputVector.X < -0.1f;
+    bool const isMovingRight = inputVector.X > 0.1f;
 
 
-	float airControlFactor;
-	
-	switch (currentAirMovementDirection)
-	{
-		// gain momentum when strafing with the view direction
-		case EAirMovementInputDirection::Matching: 
+    
+    EAirMovementInputDirection currentAirMovementDirection;
+    if (isMovingLeft && viewDeltaX < -0.1f)
+        currentAirMovementDirection = EAirMovementInputDirection::Matching;
+    
+    else if (isMovingRight && viewDeltaX > 0.1f)
+        currentAirMovementDirection = EAirMovementInputDirection::Matching;
+    
+    else if ((isMovingLeft && viewDeltaX > 0.1f) || (isMovingRight && viewDeltaX < -0.1f))
+        currentAirMovementDirection = EAirMovementInputDirection::Opposing;
+    
+    else currentAirMovementDirection = EAirMovementInputDirection::Neutral;
 
-			LOG(Val_Player, Warning, "Matching Direction");
-		
-			airStrafeTime += DeltaTime;
-			currentAirStrafeMultiplier = FMath::Min(
-				airMovementProperties.maxAirStrafeMultiplier,
-				1.0f + airMovementProperties.airStrafeAccelerationRate * airStrafeTime
-			);
-			airControlFactor = airMovementProperties.maxAirControl;
-			break;
 
-		// reduce speed when strafing against view direction
-		case EAirMovementInputDirection::Opposing: 
+    float airControlFactor;
+    
+    switch (currentAirMovementDirection)
+    {
+        // gain momentum when strafing with the view direction
+        case EAirMovementInputDirection::Matching: 
 
-			LOG(Val_Player, Warning, "Opposing Direction");
-					
-			airStrafeTime = FMath::Max(0.0f, airStrafeTime - DeltaTime * 2.0f);
-			currentAirStrafeMultiplier = FMath::Max(
-				1.0f,
-				currentAirStrafeMultiplier * 0.95f
-			);
-			airControlFactor = airMovementProperties.minAirControl;
-			break;
+            LOG(Val_Player, Warning, "Matching Direction");
+        
+            airStrafeTime += DeltaTime;
+            currentAirStrafeMultiplier = FMath::Min(
+                airMovementProperties.maxAirStrafeMultiplier,
+                1.0f + airMovementProperties.airStrafeAccelerationRate * airStrafeTime
+            );
+            airControlFactor = airMovementProperties.maxAirControl;
+            break;
 
-		// to maintain momentum when not strafing
-		case EAirMovementInputDirection::Neutral: 
-		
-			LOG(Val_Player, Warning, "Neutral Direction");
-			
-			airStrafeTime = FMath::Max(0.0f, airStrafeTime - DeltaTime * 0.5f);
-			currentAirStrafeMultiplier = FMath::Lerp(
-				currentAirStrafeMultiplier,
-				1.0f,
-				DeltaTime * airMovementProperties.airStrafeDecayRate
-			);
-			airControlFactor = airMovementProperties.midAirControl;
-			break;
-	            
-		default:
-			airControlFactor = 0.0f;
-			break;
-	}
+        // reduce speed when strafing against view direction
+        case EAirMovementInputDirection::Opposing: 
 
-	bool const hasMovementInput = valInputSystem->HasMovementInput();
+            LOG(Val_Player, Warning, "Opposing Direction");
+                    
+            airStrafeTime = FMath::Max(0.0f, airStrafeTime - DeltaTime * 2.0f);
+            currentAirStrafeMultiplier = FMath::Max(
+                1.0f,
+                currentAirStrafeMultiplier * 0.95f
+            );
+            airControlFactor = airMovementProperties.minAirControl;
+            break;
 
-	AirControl = hasMovementInput ? airControlFactor : 0.0f;
+        // to maintain momentum when not strafing
+        case EAirMovementInputDirection::Neutral: 
+        
+            LOG(Val_Player, Warning, "Neutral Direction");
+            
+            airStrafeTime = FMath::Max(0.0f, airStrafeTime - DeltaTime * 0.5f);
+            currentAirStrafeMultiplier = FMath::Lerp(
+                currentAirStrafeMultiplier,
+                1.0f,
+                DeltaTime * airMovementProperties.airStrafeDecayRate
+            );
+            airControlFactor = airMovementProperties.midAirControl;
+            break;
+                
+        default:
+            airControlFactor = 0.0f;
+            break;
+    }
 
-	if (currentAirStrafeMultiplier > 1.0f && hasMovementInput && Velocity.Size() > 0.0f)
-	{
-		FVector const desiredDirection = (viewVectorY * inputVector.Y * airMovementProperties.forceFactorY +
-			viewVectorX * (lastAirInputDirection != EAirMovementInputDirection::Opposing ? inputVector.X : 0) * airMovementProperties.forceFactorX)
-			.GetSafeNormal();
+    bool const hasMovementInput = valInputSystem->HasMovementInput();
 
-		
-		if (float const directionAlignment = FVector::DotProduct(desiredDirection, currentDirection) > 0.0f)
-		{
-			float const extraForce = currentAirStrafeMultiplier * airMovementProperties.airStrafeForce * directionAlignment;
-			
-			if (Velocity.Size() + extraForce <= 0.0f) AddForce(desiredDirection * extraForce);
-		}
-	}
+    AirControl = hasMovementInput ? airControlFactor : 0.0f;
 
-	lastAirInputDirection = currentAirMovementDirection;
-	
+    if (currentAirStrafeMultiplier > 1.0f && hasMovementInput && Velocity.Size() > 0.0f)
+    {
+        FVector const desiredDirection = (viewVectorY * inputVector.Y * airMovementProperties.forceFactorY +
+            viewVectorX * (lastAirInputDirection != EAirMovementInputDirection::Opposing ? inputVector.X : 0) * airMovementProperties.forceFactorX)
+            .GetSafeNormal();
+
+        
+        if (float const directionAlignment = FVector::DotProduct(desiredDirection, currentDirection) > 0.0f)
+        {
+            float const extraForce = currentAirStrafeMultiplier * airMovementProperties.airStrafeForce * directionAlignment;
+            
+            if (Velocity.Size() + extraForce <= 0.0f) AddForce(desiredDirection * extraForce);
+        }
+    }
+
+    lastAirInputDirection = currentAirMovementDirection;
+    
 }
 
-
-
-#pragma region STATE MANAGER
-
-void UVal_CharacterMovementComponent::TryUpdateState(EMovementState state)
+UMovementStateManager* UVal_CharacterMovementComponent::GetStateManager() const
 {
-	if (!CanTransitionToState(state)) return;
-
-	const EMovementState prevState = pState;
-	pState = state;
-	OnUpdateState(prevState, state);
+    return movementManager;
 }
 
 
-EMovementState UVal_CharacterMovementComponent::GetCurrentState() const
-{
-	return pState;
-}
-
-bool UVal_CharacterMovementComponent::IsCurrentState(EMovementState state) const
-{
-	if (state == EMovementState::None) return false;
-	return pState == state;
-}
-
-bool UVal_CharacterMovementComponent::CanTransitionToState(EMovementState state) const
-{
-	/*
-	 * PLACEHOLDER
-	 * TODO implement logic for light and heavy stuns
-	 */
-
-	switch (state)
-	{
-	case EMovementState::Idle: 
-	case EMovementState::Running:
-	case EMovementState::Crouching:
-		return true;
-	case EMovementState::Walking:
-		return !pCharacter->bIsCrouched;
-
-	/*
-	 * TODO complete CanTransitionToState logic
-	 */
-	default:
-	case EMovementState::LightStunned:
-	case EMovementState::HeavyStunned:
-	case EMovementState::UsingAbilityMovement:
-	case EMovementState::Jumping:
-	case EMovementState::None:
-		break;
-	}
-	
-	return true;
-}
-
-void UVal_CharacterMovementComponent::OnUpdateState(EMovementState previousState, EMovementState enteredState)
-{
-	pSubsystem->mStateChanged.Broadcast(previousState, enteredState);
-
-	
-	switch (enteredState)
-	{
-		case EMovementState::Idle:
-		case EMovementState::Running:
-			MaxWalkSpeed = movementProperties.runSpeed;
-			break;
-		case EMovementState::Walking:
-			MaxWalkSpeed = movementProperties.walkSpeed;
-			break;
-		case EMovementState::Crouching:
-			MaxWalkSpeed = movementProperties.crouchSpeed;
-			break;
-
-		/*
-		 * TODO complete OnStun logic
-		 */
-		case EMovementState::LightStunned:
-			MaxWalkSpeed = movementProperties.lightStunSpeed;
-			break;
-		case EMovementState::HeavyStunned:
-			MaxWalkSpeed = movementProperties.heavyStunSpeed;
-			break;
-		
-		default:
-		case EMovementState::UsingAbilityMovement:
-		case EMovementState::Jumping:
-		case EMovementState::None:
-			break;
-	}
-	
-}
-
-#pragma endregion STATE MANAGER
 
 

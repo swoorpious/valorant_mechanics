@@ -14,12 +14,15 @@
 UENUM()
 enum class EMovementState : uint8
 {
-    None,
+    None, 
     Idle,
     Walking,
     Running,
     Jumping,
-    LightStunned, // movement is allowed, will use walking animation
+
+    // stackable states
+    Crouched,
+    LightStunned,
     MediumStunned,
     HeavyStunned,
 
@@ -43,7 +46,25 @@ enum class EMovementState : uint8
  * ACommonWeapon uses these states to apply corresponding weapon animations/effects according to the state
  */
 UENUM(BlueprintType)
-enum class EWeaponState : uint8
+enum class EWeaponLogicState : uint8
+{
+    None, // when the weapon is dropped or not picked up yet
+    Equip_Default,
+    Equip_Fast,
+    Idle, // equipped -> idle
+    Reloading,
+    Fired, // state for single tick
+    FireCooldown, // firing -> fire cooldown -> idle/firing
+    Inspecting,
+
+        
+    // stackable states
+    Blocked,
+    ScopedIn, // scope/ADS
+};
+
+UENUM(BlueprintType)
+enum class EWeaponAnimState : uint8
 {
     None, // when the weapon is dropped or not picked up yet
     Equip_Default,
@@ -51,12 +72,13 @@ enum class EWeaponState : uint8
     Blocked,
     Idle, // equipped -> idle
     Reloading,
-    Fired, // state for single tick
-    AltFired,
-    FireCooldown, // firing -> fire cooldown -> idle/firing
+    Firing,
     Inspecting,
+
+    // stackable states
     ScopedIn, // scope/ADS
 };
+
 
 UENUM(BlueprintType)
 enum class EMagazineState : uint8

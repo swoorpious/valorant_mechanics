@@ -46,10 +46,10 @@ public:
    
 
     // returns look vector (mouse movement) in previous tick
-	FVector2d GetLastLookVector() const { return lastLookVector; }
+    FVector2d GetLastLookVector() const { return lastLookVector; }
 
     // returns true if there is any movement that is not cancelled by the opposite direction
-	FORCEINLINE bool HasMovementInput() const { return inputMap.W ^ inputMap.S || inputMap.A ^ inputMap.D; }
+    FORCEINLINE bool HasMovementInput() const { return inputMap.W ^ inputMap.S || inputMap.A ^ inputMap.D; }
     
     // adds input in both axes separately
     // ActionA and ActionD cancel out each other, similarly ActionW and ActionS
@@ -68,8 +68,8 @@ public:
     
     
 protected:
-	UPROPERTY() TObjectPtr<UEnhancedInputComponent> enhancedInputComponent = nullptr;
-	UPROPERTY() AVal_PlayerController* pController = nullptr;
+    UPROPERTY() TObjectPtr<UEnhancedInputComponent> enhancedInputComponent = nullptr;
+    UPROPERTY() AVal_PlayerController* pController = nullptr;
 
     FVector2D lastLookVector;
     InputMap inputMap;

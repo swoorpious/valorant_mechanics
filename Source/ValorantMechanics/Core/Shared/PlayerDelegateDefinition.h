@@ -4,8 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "WeaponData/WeaponProperties.h"
-#include "StateController/PlayerStates.h"
+#include "WeaponProperties.h"
+#include "PlayerStates.h"
 
 class ACommonWeapon;
 class UDataAsset;
@@ -36,7 +36,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(OnWeaponSpawned, ACommonWeapon*)
  * 
  * equipping a TSubclassOf<ACommonWeapon> updates the following things:
  *  - current weapon type in FPlayerInventory and UVal_AnimInstance
- *  - update EWeaponState in the corresponding weapon class to EWeaponState::Equipping 
+ *  - update EWeaponLogicState in the corresponding weapon class to EWeaponLogicState::Equipping 
  */
 DECLARE_MULTICAST_DELEGATE_OneParam(OnWeaponEquipped, EWeaponType)
 
@@ -53,10 +53,10 @@ DECLARE_MULTICAST_DELEGATE_OneParam(OnWeaponDropped, EWeaponType)
 
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(OnMovementStateChanged, EMovementState /* old state */, EMovementState /* new state */);
-DECLARE_MULTICAST_DELEGATE_TwoParams(OnWeaponStateChanged, EWeaponState /* old state */, EWeaponState /* new state */);
+DECLARE_MULTICAST_DELEGATE_TwoParams(OnWeaponLogicStateChanged, EWeaponLogicState /* old state */, EWeaponLogicState /* new state */);
 
-DECLARE_MULTICAST_DELEGATE_TwoParams(OnPlayerAnimStateChanged, EMovementState /* old state */, EMovementMode /* new state */);
-DECLARE_MULTICAST_DELEGATE_TwoParams(OnWeaponAnimStateChanged, EWeaponState /* old state */, EWeaponState /* new state */);
+DECLARE_MULTICAST_DELEGATE_TwoParams(OnMovementAnimStateChanged, EMovementState /* old state */, EMovementState /* new state */);
+DECLARE_MULTICAST_DELEGATE_TwoParams(OnWeaponAnimStateChanged, EWeaponAnimState /* old state */, EWeaponAnimState /* new state */);
 
 
 

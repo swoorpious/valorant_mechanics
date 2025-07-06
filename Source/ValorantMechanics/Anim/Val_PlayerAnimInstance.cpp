@@ -4,6 +4,8 @@
 #include "Val_PlayerAnimInstance.h"
 #include "AnimNotifier.h"
 #include "ValorantMechanics/Weapons/CommonWeapon.h"
+#include "ValorantMechanics/Core/Val_LocalPlayerSubsystem.h"
+#include "ValorantMechanics/Player/Controller/Val_PlayerController.h"
 #include "ValorantMechanics/ValorantMechanics.h"
 #include "ValorantMechanics/Player/Val_Character.h"
 
@@ -13,17 +15,41 @@ void UVal_PlayerAnimInstance::NativeBeginPlay()
     Super::NativeBeginPlay();
 
     // notifier = CreateDefaultSubobject<UAnimNotifier>(TEXT("Animation Notifier"));
-    // notifier->onStateChange.AddUObject(this, &UUVal_PlayerAnimInstance::UpdateWeaponState);
 
-    // if (AVal_Character* e = Cast<AVal_Character>(TryGetPawnOwner()))
-    // {
-    //     e->onWeaponSpawn.AddUObject(this, &UVal_AnimInstance::UpdateAnimDataAsset);
-    //     e->onWeaponEquip.AddUObject(this, &UVal_AnimInstance::UpdateCurrentWeapon);
-    //     e->onWeaponDrop.AddUObject(this, &UVal_AnimInstance::RemoveAnimDataAsset);
-    // }
+    if (AVal_Character* e = Cast<AVal_Character>(TryGetPawnOwner()))
+    {
+        // e->onWeaponSpawn.AddUObject(this, &UVal_PlayerAnimInstance::UpdateAnimDataAsset);
+        // e->onWeaponEquip.AddUObject(this, &UVal_PlayerAnimInstance::UpdateCurrentWeapon);
+        // e->onWeaponDrop.AddUObject(this, &UVal_PlayerAnimInstance::RemoveAnimDataAsset);
+		UVal_LocalPlayerSubsystem* j = e->GetValPlayerController()->GetLocalPlayer()->GetSubsystem<UVal_LocalPlayerSubsystem>();
+        j->mStateChanged.AddUObject(this, &UVal_PlayerAnimInstance::UpdateMovementState);
+        j->wLogicStateChanged.AddUObject(this, &UVal_PlayerAnimInstance::UpdateWeaponLogicState);
+
+        // notifier->Init(j);
+    }
+
+}
+
+void UVal_PlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
+{
+    Super::NativeUpdateAnimation(DeltaSeconds);
+
+    if (const FName currentState = GetCurrentStateNameFromStateMachine(wStateMachineName); currentState != lastPlayerStateMachineStateName)
+    {
+        notifier->NotifyWeaponStateMachineStateChange(lastPlayerStateMachineStateName, currentState);
+        lastPlayerStateMachineStateName = currentState;
+    }
 }
 
 
+FName UVal_PlayerAnimInstance::GetCurrentStateNameFromStateMachine(FName stateMachineName)
+{
+    const int8 machineIndex = GetStateMachineIndex(stateMachineName);
+    return GetCurrentStateName(machineIndex);
+}
+
+
+#pragma region ANIM DATA
 void UVal_PlayerAnimInstance::UpdateAnimDataAsset(ACommonWeapon* equippedWeapon)
 {
     TObjectPtr<UWeaponAnimDataAsset> const animDataAsset = equippedWeapon->GetAnimAsset();
@@ -39,6 +65,14 @@ void UVal_PlayerAnimInstance::UpdateCurrentWeapon(EWeaponType weaponType)
 {
     if (!HasAnimDataForType(weaponType)) return;
     animAssets.currentWeaponType = weaponType;
+    animAssets.currentAnimDataAsset = GetAnimDataAsset(weaponType);
+}
+
+
+void UVal_PlayerAnimInstance::RemoveAnimDataAsset(EWeaponType weaponType)
+{
+    if (weaponType == EWeaponType::Empty || !HasAnimDataForType(weaponType)) return;
+    animAssets.animDataMap.Remove(weaponType);
 }
 
 
@@ -49,15 +83,12 @@ TObjectPtr<UWeaponAnimDataAsset> UVal_PlayerAnimInstance::GetAnimDataAsset(EWeap
 }
 
 
-void UVal_PlayerAnimInstance::RemoveAnimDataAsset(EWeaponType weaponType)
-{
-	if (weaponType == EWeaponType::Empty || !HasAnimDataForType(weaponType)) return;
-    animAssets.animDataMap.Remove(weaponType);
-}
-
 UWeaponAnimDataAsset* UVal_PlayerAnimInstance::GetCurrentAnimDataAsset()
 {
     if (!HasAnimDataForType(animAssets.currentWeaponType)) return nullptr;
     
     return animAssets.animDataMap[animAssets.currentWeaponType];
 }
+
+
+#pragma endregion ANIM DATA

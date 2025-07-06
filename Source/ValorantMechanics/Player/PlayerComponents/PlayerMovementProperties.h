@@ -9,31 +9,31 @@
 UENUM(BlueprintType)
 enum class EAirMovementInputDirection : uint8
 {
-	None			UMETA(Description = "Default for when on ground, or when not falling."),
-	Matching		UMETA(Description = "Mouse movement with matching strafe key, e.g. mouse moves right while holding D on the keyboard."),
-	Opposing		UMETA(Description = "Mouse movement with opposing strafe key, e.g. mouse moves right while holding A on the keyboard."),
-	Neutral			UMETA(Description = "No mouse movement while strafe key is held, or vice versa.")
+    None            UMETA(Description = "Default for when on ground, or when not falling."),
+    Matching        UMETA(Description = "Mouse movement with matching strafe key, e.g. mouse moves right while holding D on the keyboard."),
+    Opposing        UMETA(Description = "Mouse movement with opposing strafe key, e.g. mouse moves right while holding A on the keyboard."),
+    Neutral            UMETA(Description = "No mouse movement while strafe key is held, or vice versa.")
 };
 
 
 USTRUCT(BlueprintType)
 struct FPlayerMovementProperties
 {
-	GENERATED_BODY()
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Movement")
+    GENERATED_BODY()
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Movement")
     float runSpeed = 750.0f;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Movement")
     float walkSpeed = 400.0f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Movement")
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Movement")
     float crouchSpeed = 400.0f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Movement")
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Movement")
     float lightStunSpeed = 400.0f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Movement")
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Movement")
     float heavyStunSpeed = 400.0f;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Movement")
@@ -58,31 +58,31 @@ struct FPlayerMovementProperties
 USTRUCT(BlueprintType)
 struct FPlayerAirMovementProperties
 {
-	GENERATED_BODY()
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMin = "0.0", ClampMax = "100.0")) // 10
-	float maxAirControl = 0.7f;
+    GENERATED_BODY()
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMin = "0.0", ClampMax = "100.0")) // 10
+    float maxAirControl = 0.7f;
     
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMin = "0.0", ClampMax = "100.0")) // 10
-	float midAirControl = 0.3f;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMin = "0.0", ClampMax = "100.0")) // 10
+    float midAirControl = 0.3f;
     
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMin = "0.0", ClampMax = "100.0")) // 100
-	float minAirControl = 0.1f;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMin = "0.0", ClampMax = "100.0")) // 100
+    float minAirControl = 0.1f;
     
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMn = "1.0", ClampMax = "50.0")) // 5
-	float maxAirStrafeMultiplier = 1.5f;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMn = "1.0", ClampMax = "50.0")) // 5
+    float maxAirStrafeMultiplier = 1.5f;
     
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMin = "0.0", ClampMax = "50.0")) // 5
-	float airStrafeAccelerationRate = 0.5f;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMin = "0.0", ClampMax = "50.0")) // 5
+    float airStrafeAccelerationRate = 0.5f;
     
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMin = "0.0", ClampMax = "100.0")) // 10
-	float airStrafeDecayRate = 2.0f;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMin = "0.0", ClampMax = "100.0")) // 10
+    float airStrafeDecayRate = 2.0f;
     
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMin = "0.0", ClampMax = "10000.0"))
-	float airStrafeForce = 250.0f;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMin = "0.0", ClampMax = "10000.0"))
+    float airStrafeForce = 250.0f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMin = "0.0", ClampMax = "10.0"))
-	float forceFactorX = 1.0f;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMin = "0.0", ClampMax = "10.0"))
+    float forceFactorX = 1.0f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMin = "0.0", ClampMax = "10.0"))
-	float forceFactorY = 1.0f;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Character Properties|Air Movement", meta = (ClampMin = "0.0", ClampMax = "10.0"))
+    float forceFactorY = 1.0f;
 };

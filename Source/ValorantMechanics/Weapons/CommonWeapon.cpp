@@ -15,7 +15,7 @@ ACommonWeapon::ACommonWeapon()
 {
     PrimaryActorTick.bCanEverTick = true;
     
-	socketData = CreateDefaultSubobject<UWeaponSocketData>(TEXT("Player Socket Names"));	
+    socketData = CreateDefaultSubobject<UWeaponSocketData>(TEXT("Player Socket Names"));    
     
 
     weaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon Mesh"));

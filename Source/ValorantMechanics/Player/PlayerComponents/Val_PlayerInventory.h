@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "ValorantMechanics/Core/Shared/WeaponData/WeaponProperties.h"
+#include "ValorantMechanics/Core/Shared/WeaponProperties.h"
 
 #include "Val_PlayerInventory.generated.h"
 
@@ -51,7 +51,7 @@ public:
     void DeleteWeaponByType(EWeaponType weaponType);
     
     bool HasWeapon(const EWeaponType weaponType) const { return inventoryMap.FindRef(weaponType) != nullptr; }
-	
+    
     FORCEINLINE TObjectPtr<ACommonWeapon> GetEquippedWeapon() const { return this->GetWeaponByType(equippedWeaponType); }
     FORCEINLINE TMap<EWeaponType, TObjectPtr<ACommonWeapon>> GetInventory() const { return inventoryMap; }
 };

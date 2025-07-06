@@ -22,47 +22,47 @@ class UVal_CharacterMovementComponent;
 UCLASS()
 class VALORANTMECHANICS_API AVal_PlayerController : public APlayerController
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
-	AVal_PlayerController();
-	virtual TObjectPtr<UVal_InputSystem> GetInputSystem() { return inputSystem; } 	
+    AVal_PlayerController();
+    virtual TObjectPtr<UVal_InputSystem> GetInputSystem() { return inputSystem; }     
 
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Input")
-	float Sensitivity = 1.0f;
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Input")
+    float Sensitivity = 1.0f;
 
-	
+    
 #pragma region PLAYER ACTIONS
-	void PlayerJump(const FInputActionInstance& InputActionInstance);
-	void PlayerCrouch(const FInputActionInstance& InputActionInstance);
-	void PlayerWalk(const FInputActionInstance& InputActionInstance);
-	void PlayerUse(const FInputActionInstance& InputActionInstance);
-	
-	// functions called from Val_InputComponent.h
-	void PlayerMove() const;
-	FORCEINLINE void PlayerLook(const FVector2D lookVector) const { AddLookInput(lookVector * Sensitivity); }
+    void PlayerJump(const FInputActionInstance& InputActionInstance);
+    void PlayerCrouch(const FInputActionInstance& InputActionInstance);
+    void PlayerWalk(const FInputActionInstance& InputActionInstance);
+    void PlayerUse(const FInputActionInstance& InputActionInstance);
+    
+    // functions called from Val_InputComponent.h
+    void PlayerMove() const;
+    FORCEINLINE void PlayerLook(const FVector2D lookVector) const { AddLookInput(lookVector * Sensitivity); }
 #pragma endregion PLAYER ACTIONS
 
 
 #pragma region WEAPON ACTIONS
-	FORCEINLINE void TryWeaponEquip(const EWeaponType weaponType) const { pCharacter->EquipWeapon(weaponType, EWeaponState::Equip_Default); }
-	// FORCEINLINE void TryWeaponDrop(const EWeaponType weaponType) const { pCharacter->DropWeapon(weaponType); }
+    FORCEINLINE void TryWeaponEquip(const EWeaponType weaponType) const { pCharacter->EquipWeapon(weaponType, EWeaponLogicState::Equip_Default); }
+    // FORCEINLINE void TryWeaponDrop(const EWeaponType weaponType) const { pCharacter->DropWeapon(weaponType); }
 
 #pragma endregion WEAPON ACTIONS
-	
-	
+    
+    
 protected:
-	void AddLookInput(FVector2D Look) const;
+    void AddLookInput(FVector2D Look) const;
 
-	UPROPERTY() TObjectPtr<AVal_Character> pCharacter = nullptr;
-	UPROPERTY() TObjectPtr<UVal_CharacterMovementComponent> pMovement = nullptr;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Instanced, Category="Input")
-	TObjectPtr<UVal_InputSystem> inputSystem = nullptr;
+    UPROPERTY() TObjectPtr<AVal_Character> pCharacter = nullptr;
+    UPROPERTY() TObjectPtr<UVal_CharacterMovementComponent> pMovement = nullptr;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Instanced, Category="Input")
+    TObjectPtr<UVal_InputSystem> inputSystem = nullptr;
 
 
-	virtual void OnPossess(APawn* aPawn) override;
-	virtual void OnUnPossess() override;
+    virtual void OnPossess(APawn* aPawn) override;
+    virtual void OnUnPossess() override;
 
 };
 
