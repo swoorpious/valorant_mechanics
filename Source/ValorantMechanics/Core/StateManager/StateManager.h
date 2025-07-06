@@ -430,16 +430,12 @@ void StateManager<TStateEnum>::InternalUnstackState(TStateEnum stateToUnstack)
 template<typename TStateEnum>
 void StateManager<TStateEnum>::HandleTimedStateCompletion(TStateEnum completedState)
 {
-    // Only handle automatic transitions for the main state
-    if (completedState != currentState)
-    {
-        return;
-    }
+    if (completedState != currentState) return;
     
-    TStateEnum nextState = NULL;
+    TStateEnum nextState = static_cast<TStateEnum>(0);
     bool shouldTransition = false;
+
     
-    // Check if we have a queued state to transition to
     if (hasQueuedState)
     {
         nextState = queuedState;
