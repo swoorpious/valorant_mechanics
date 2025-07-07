@@ -19,6 +19,11 @@ AVal_PlayerController::AVal_PlayerController()
     
 }
 
+TObjectPtr<UVal_InputSystem> AVal_PlayerController::GetInputSystem()
+{
+    return inputSystem;
+}
+
 void AVal_PlayerController::OnPossess(APawn* aPawn)
 {
     Super::OnPossess(aPawn);
@@ -110,6 +115,10 @@ void AVal_PlayerController::PlayerMove() const
     
 }
 
+void AVal_PlayerController::PlayerLook(const FVector2D lookVector) const
+{
+    AddLookInput(lookVector * Sensitivity);
+}
 
 
 /*
@@ -133,18 +142,20 @@ void AVal_PlayerController::PlayerCrouch(const FInputActionInstance& inputInstan
 
 void AVal_PlayerController::PlayerWalk(const FInputActionInstance& inputInstance)
 {
+    auto* e = pMovement->GetPrimaryStateManager();
+    
     switch (inputInstance.GetTriggerEvent()) {
         case ETriggerEvent::Started:
         case ETriggerEvent::Triggered:
         case ETriggerEvent::Ongoing:
-            pMovement->TryTransitionToState(EMovementState::Walking);
+            e->TryTransitionToState(EMovementState::Walking);
             break;
         
         case ETriggerEvent::Canceled:
         case ETriggerEvent::Completed:
             inputSystem->HasMovementInput() ? 
-                pMovement->TryTransitionToState(EMovementState::Running) :
-                pMovement->TryTransitionToState(EMovementState::Idle);
+                e->TryTransitionToState(EMovementState::Running) :
+                e->TryTransitionToState(EMovementState::Idle);
             break;
 
         default: break;
@@ -155,6 +166,11 @@ void AVal_PlayerController::PlayerUse(const FInputActionInstance& inputInstance)
 {
 }
 
+
+void AVal_PlayerController::TryWeaponEquip(const EWeaponType weaponType) const
+{
+    pCharacter->EquipWeapon(weaponType, EWeaponLogicState::Equip_Default);
+}
 
 
 

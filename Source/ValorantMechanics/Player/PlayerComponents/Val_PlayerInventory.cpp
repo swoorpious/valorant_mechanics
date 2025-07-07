@@ -37,7 +37,7 @@ void UVal_PlayerInventory::UpdateEquippedWeapon(EWeaponType weaponType)
 }
 
 
-TObjectPtr<ACommonWeapon> UVal_PlayerInventory::GetWeaponByType(EWeaponType weaponType) const
+const TObjectPtr<ACommonWeapon>& UVal_PlayerInventory::GetWeaponByType(EWeaponType weaponType) const
 {
     if (weaponType == EWeaponType::Empty || !this->HasWeapon(weaponType)) return nullptr;
     return inventoryMap[weaponType];
@@ -58,4 +58,19 @@ void UVal_PlayerInventory::DeleteWeaponByType(EWeaponType weaponType)
 {
     if (weaponType == EWeaponType::Empty || !this->HasWeapon(weaponType)) return;
     inventoryMap[weaponType] = nullptr;
+}
+
+bool UVal_PlayerInventory::HasWeapon(const EWeaponType weaponType) const
+{
+    return inventoryMap.FindRef(weaponType) != nullptr;
+}
+
+const TObjectPtr<ACommonWeapon>& UVal_PlayerInventory::GetEquippedWeapon() const
+{
+    return this->GetWeaponByType(equippedWeaponType);
+}
+
+const TMap<EWeaponType, TObjectPtr<ACommonWeapon>>& UVal_PlayerInventory::GetInventory() const
+{
+    return inventoryMap;
 }

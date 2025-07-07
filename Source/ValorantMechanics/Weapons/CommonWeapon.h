@@ -9,7 +9,9 @@
 #include "ValorantMechanics/Core/Shared/SocketData.h"
 #include "ValorantMechanics/Core/Shared/WeaponProperties.h"
 #include "ValorantMechanics/Core/Shared/WeaponAnimDataAsset.h"
-
+#include "ValorantMechanics/Core/StateManager/StateManagerOwner.h"
+#include "WeaponLogicStateManager.h"
+#include "WeaponAnimStateManager.h"
 
 #include "CommonWeapon.generated.h"
 
@@ -21,7 +23,7 @@ class UBoxComponent;
 
 
 UCLASS()
-class VALORANTMECHANICS_API ACommonWeapon : public AActor
+class VALORANTMECHANICS_API ACommonWeapon : public AActor, public PrimaryStateManagerOwner<UWeaponLogicStateManager>, public SecondaryStateManagerOwner<UWeaponAnimStateManager>
 {
     GENERATED_BODY()
 
@@ -31,10 +33,10 @@ public:
     virtual void Fire() {}
     virtual void Reload() {}
     virtual void Equip(EEquipType EquipType) {}
-    FORCEINLINE virtual EWeaponType GetWeaponType() { return weaponType; }
-    // FORCEINLINE virtual EWeaponLogicState GetWeaponState() { return weaponState; }
-    FORCEINLINE virtual EWeaponPickupType GetWeaponPickupType() { return weaponPickupType; }
-    virtual TObjectPtr<UWeaponAnimDataAsset> GetAnimAsset() { return animAsset; }
+    virtual EWeaponType GetWeaponType();
+    virtual EWeaponLogicState GetWeaponState();
+    virtual EWeaponPickupType GetWeaponPickupType();
+    virtual TObjectPtr<UWeaponAnimDataAsset>& GetAnimAsset();
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Body")
     TObjectPtr<USkeletalMeshComponent> weaponMesh;
@@ -47,7 +49,6 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Body")
     TObjectPtr<UBoxComponent> collisionBox;
-
     
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon") FDefaultWeaponProperties defaultProperties;
@@ -68,4 +69,14 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "WAnimDataAsseteapon|Mesh|Sockets")
     TObjectPtr<UWeaponSocketData> socketData;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|State Managers")
+    TObjectPtr<UWeaponLogicStateManager> weaponLogicSM = nullptr;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|State Managers")
+    TObjectPtr<UWeaponAnimStateManager> weaponAnimSM = nullptr;
+
+    
+    
+    
 };

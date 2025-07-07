@@ -46,6 +46,35 @@ ACommonWeapon::ACommonWeapon()
     collisionBox->SetupAttachment(weaponMesh);
     collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+
+    weaponLogicSM = CreateDefaultSubobject<UWeaponLogicStateManager>(TEXT("Weapon Logic State Manager"));
+    InitializePrimaryStateManager(weaponLogicSM);
+
+    
+    weaponAnimSM = CreateDefaultSubobject<UWeaponAnimStateManager>(TEXT("Weapon Anim State Manager"));
+    InitializeSecondaryStateManager(weaponAnimSM);
+}
+
+
+
+EWeaponType ACommonWeapon::GetWeaponType()
+{
+    return weaponType;
+}
+
+EWeaponLogicState ACommonWeapon::GetWeaponState()
+{
+    return weaponLogicSM->GetCurrentState();
+}
+
+EWeaponPickupType ACommonWeapon::GetWeaponPickupType()
+{
+    return weaponPickupType;
+}
+
+TObjectPtr<UWeaponAnimDataAsset>& ACommonWeapon::GetAnimAsset()
+{
+    return animAsset;
 }
 
 
@@ -53,6 +82,9 @@ ACommonWeapon::ACommonWeapon()
 void ACommonWeapon::BeginPlay()
 {
     Super::BeginPlay();
+    
+    weaponLogicSM->InitializeWeaponStateManager(&defaultProperties, &altProperties);
+    
 }
 
 

@@ -54,13 +54,14 @@ public:
 
 
 #pragma region ANIM DATA
+    
     void UpdateAnimDataAsset(ACommonWeapon* equippedWeapon);
     void UpdateCurrentWeapon(EWeaponType weaponType);
     void RemoveAnimDataAsset(EWeaponType weaponType);
-    TObjectPtr<UWeaponAnimDataAsset> GetAnimDataAsset(EWeaponType weaponType);
+    const TObjectPtr<UWeaponAnimDataAsset>& GetAnimDataAsset(EWeaponType weaponType);
+	bool HasAnimDataForType(EWeaponType weaponType) const;
 
     
-	FORCEINLINE bool HasAnimDataForType(EWeaponType weaponType) const { return animAssets.animDataMap.FindRef(weaponType) != nullptr; }
    
     UFUNCTION(BlueprintType, BlueprintPure, Category = "Valorant Animations|Animation Data assets")
     UWeaponAnimDataAsset* GetCurrentAnimDataAsset();
@@ -83,8 +84,8 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Animations|Player States", meta = (DisplayName = "Weapon State Machine Name"))
     FName wStateMachineName;
     
-    FORCEINLINE void UpdateWeaponLogicState(EWeaponLogicState oldState, EWeaponLogicState newState) { wState = newState; }
-    FORCEINLINE void UpdateMovementState(EMovementState oldState, EMovementState newState) { mState = newState; }
+    void UpdateWeaponLogicState(EWeaponLogicState oldState, EWeaponLogicState newState) { wState = newState; }
+    void UpdateMovementState(EMovementState oldState, EMovementState newState) { mState = newState; }
     
 protected:
     

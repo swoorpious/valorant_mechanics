@@ -42,7 +42,7 @@ public:
      * use UpdateInventoryWeapon to add/update inventory slots
      */
     void UpdateEquippedWeapon(EWeaponType weaponType);
-    TObjectPtr<ACommonWeapon> GetWeaponByType(EWeaponType weaponType) const;
+    const TObjectPtr<ACommonWeapon>& GetWeaponByType(EWeaponType weaponType) const;
 
     /*
      * performs drop logic on the weapon then attempts to delete the weapon
@@ -50,10 +50,10 @@ public:
     void DropWeaponByType(EWeaponType weaponType);
     void DeleteWeaponByType(EWeaponType weaponType);
     
-    bool HasWeapon(const EWeaponType weaponType) const { return inventoryMap.FindRef(weaponType) != nullptr; }
+    bool HasWeapon(const EWeaponType weaponType) const;
     
-    FORCEINLINE TObjectPtr<ACommonWeapon> GetEquippedWeapon() const { return this->GetWeaponByType(equippedWeaponType); }
-    FORCEINLINE TMap<EWeaponType, TObjectPtr<ACommonWeapon>> GetInventory() const { return inventoryMap; }
+    const TObjectPtr<ACommonWeapon>& GetEquippedWeapon() const;
+    const TMap<EWeaponType, TObjectPtr<ACommonWeapon>>& GetInventory() const;
 };
 
 

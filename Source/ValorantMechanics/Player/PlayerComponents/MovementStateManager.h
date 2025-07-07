@@ -9,7 +9,7 @@
 #include "ValorantMechanics/Core/StateManager/StateManager.h"
 #include "ValorantMechanics/Core/Shared/PlayerStates.h"
 
-#include "MovementSM.generated.h"
+#include "MovementStateManager.generated.h"
 
 
 class UVal_CharacterMovementComponent;
@@ -18,7 +18,7 @@ class UVal_CharacterMovementComponent;
 /**
  * 
  */
-UCLASS()
+UCLASS(ClassGroup=(StateManagerComponent))
 class VALORANTMECHANICS_API UMovementStateManager : public UObject, public StateManager<EMovementState>
 {
     GENERATED_BODY()

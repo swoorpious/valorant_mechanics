@@ -59,6 +59,8 @@ struct VALORANTMECHANICS_API FAltWeaponProperties
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire Properties|Alternate Fire", meta = (EditCondition = "canAltFire", EditConditionHides, DisplayName = "Can ADS"))
     bool canADS = false;
+
+    // TODO: add time to ADS/scopein
     
     // zoom FOV for the weapon when ADS. this is used for FOV scaling 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire Properties|Alternate Fire", meta = (EditCondition = "canADS", EditConditionHides, DisplayName = "FOV when ADS"))
@@ -90,7 +92,10 @@ struct VALORANTMECHANICS_API FDefaultWeaponProperties
     float runSpeed = 0.0f; // cm/s
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire Properties")
-    float equipTime = 0.0f;
+    float equipTimeDefault = 0.0f;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire Properties")
+    float equipTimeFast = 0.0f;
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire Properties")
     bool hasCollisionBox = false;

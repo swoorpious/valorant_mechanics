@@ -76,10 +76,15 @@ void UVal_PlayerAnimInstance::RemoveAnimDataAsset(EWeaponType weaponType)
 }
 
 
-TObjectPtr<UWeaponAnimDataAsset> UVal_PlayerAnimInstance::GetAnimDataAsset(EWeaponType weaponType)
+const TObjectPtr<UWeaponAnimDataAsset>& UVal_PlayerAnimInstance::GetAnimDataAsset(EWeaponType weaponType)
 {
 	if (weaponType == EWeaponType::Empty || !HasAnimDataForType(weaponType)) return nullptr;
     return animAssets.animDataMap[weaponType];
+}
+
+bool UVal_PlayerAnimInstance::HasAnimDataForType(EWeaponType weaponType) const
+{
+    return animAssets.animDataMap.FindRef(weaponType) != nullptr;
 }
 
 

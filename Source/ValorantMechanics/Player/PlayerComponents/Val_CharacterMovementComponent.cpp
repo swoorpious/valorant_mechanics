@@ -9,6 +9,7 @@
 #include "../Controller/Val_InputSystem.h"
 #include "ValorantMechanics/Core/Val_LocalPlayerSubsystem.h"
 
+
 #include "ValorantMechanics/ValorantMechanics.h"
 
 
@@ -18,22 +19,20 @@ UVal_CharacterMovementComponent::UVal_CharacterMovementComponent()
 {
     PrimaryComponentTick.bCanEverTick = true;
     bOrientRotationToMovement = false;
-
-
-    movementManager = CreateDefaultSubobject<UMovementStateManager>(TEXT("Movement State Manager"));
-    InitializeStateManager();
     
-    // UnallowStateTransition(EMovement);
+    movementSM = CreateDefaultSubobject<UMovementStateManager>(TEXT("Movement State Manager"));
+    InitializePrimaryStateManager(movementSM);
+
 }
 
 
 void UVal_CharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-    
+
+    movementSM->TickState(DeltaTime);
 
     HandleAirMovement(DeltaTime);
-
 }
 
 
@@ -51,7 +50,7 @@ void UVal_CharacterMovementComponent::BeginPlay()
         
     }
 
-    movementManager = NewObject<UMovementStateManager>(this);
+    // movementManager = NewObject<UMovementStateManager>(this);
     
 }
 
@@ -178,7 +177,7 @@ void UVal_CharacterMovementComponent::HandleAirMovement(float DeltaTime)
 
 UMovementStateManager* UVal_CharacterMovementComponent::GetStateManager() const
 {
-    return movementManager;
+    return movementSM;
 }
 
 

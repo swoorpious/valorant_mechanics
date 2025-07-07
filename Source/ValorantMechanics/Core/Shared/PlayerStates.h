@@ -69,14 +69,31 @@ enum class EWeaponAnimState : uint8
     None, // when the weapon is dropped or not picked up yet
     Equip_Default,
     Equip_Fast,
-    Blocked,
     Idle, // equipped -> idle
     Reloading,
     Firing,
     Inspecting,
 
     // stackable states
+    Blocked,
     ScopedIn, // scope/ADS
+};
+
+
+
+const TMap<EWeaponLogicState, EWeaponAnimState> weaponLogicToAnimStatesMap = {
+    
+    { EWeaponLogicState::None, EWeaponAnimState::None },
+    { EWeaponLogicState::Equip_Default, EWeaponAnimState::Equip_Default },
+    { EWeaponLogicState::Equip_Fast, EWeaponAnimState::Equip_Fast },
+    { EWeaponLogicState::Idle, EWeaponAnimState::Idle },
+    { EWeaponLogicState::Reloading, EWeaponAnimState::Reloading },
+    { EWeaponLogicState::FireCooldown, EWeaponAnimState::Firing },
+    { EWeaponLogicState::Inspecting, EWeaponAnimState::Inspecting },
+
+    // stacked states
+    { EWeaponLogicState::Blocked, EWeaponAnimState::Blocked },
+    { EWeaponLogicState::ScopedIn, EWeaponAnimState::ScopedIn },
 };
 
 

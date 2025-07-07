@@ -126,10 +126,13 @@ void AVal_Character::SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn
 void AVal_Character::EquipWeapon(const EWeaponType weaponType, const EWeaponLogicState equipType = EWeaponLogicState::Equip_Default)
 {
     if (equipType != EWeaponLogicState::Equip_Default && equipType != EWeaponLogicState::Equip_Fast) return;
+    if (pInventory->GetEquippedWeapon()->GetWeaponType() == weaponType) return;
 
-    TObjectPtr<ACommonWeapon> invWeapon = pInventory->GetWeaponByType(weaponType);
-    TObjectPtr<UDataAsset> animDataInstance = pAnimInstance->GetAnimDataAsset(weaponType);
-    TObjectPtr<UDataAsset> animDataWeapon = invWeapon ? invWeapon->GetAnimAsset() : nullptr;
+    UnequipWeapon(weaponType);
+    
+    const TObjectPtr<ACommonWeapon>* invWeapon = &pInventory->GetWeaponByType(weaponType);
+    const TObjectPtr<UWeaponAnimDataAsset>* animDataInstance = &pAnimInstance->GetAnimDataAsset(weaponType);
+    const TObjectPtr<UWeaponAnimDataAsset>* animDataWeapon = invWeapon ? &invWeapon->GetAnimAsset() : nullptr;
 
     bool const validAnim = pAnimInstance && animDataWeapon == animDataInstance;
 
@@ -138,11 +141,14 @@ void AVal_Character::EquipWeapon(const EWeaponType weaponType, const EWeaponLogi
     for (const auto& pair : pInventory->GetInventory())
         if (ACommonWeapon* e = pair.Value) e->SetActorHiddenInGame(true);
 
-    // TryTransitionToState(EWeaponAnimState::None);
+
+    auto* weaponLSM = invWeapon->GetPrimaryStateManager();
+    weaponLSM->TryTransitionToState(EWeaponLogicState::None);
+    
 
     pInventory->UpdateEquippedWeapon(weaponType);
     pAnimInstance->UpdateCurrentWeapon(weaponType);
-    // TryTransitionToState(equipType == EWeaponLogicState::Equip_Default ? EWeaponAnimState::Equip_Default : EWeaponAnimState::Equip_Fast);
+    weaponLSM->TryTransitionToState(equipType);
 
     for (const auto& pair : pInventory->GetInventory())
         if (ACommonWeapon* e = pair.Value) e->SetActorHiddenInGame(pair.Key != weaponType);
@@ -150,6 +156,10 @@ void AVal_Character::EquipWeapon(const EWeaponType weaponType, const EWeaponLogi
 }
 
 
+
+void AVal_Character::UnequipWeapon(const EWeaponType weaponType)
+{
+}
 
 void AVal_Character::DropWeapon(EWeaponType weaponType)
 {

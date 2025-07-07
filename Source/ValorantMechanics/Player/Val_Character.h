@@ -55,7 +55,7 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Valorant Character|Character Setup|Scene|Mesh|Camera", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UCameraComponent> characterMeshCamera;
 
-        
+    
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Valorant Character|Mesh|Sockets")
     TObjectPtr<UPlayerSocketNames> socketData;
 
@@ -65,6 +65,7 @@ public:
     // TODO: move these functions to protected scope and add try<action>weapon type functions
     void SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn, bool shouldAutoEquip);
     void EquipWeapon(const EWeaponType weaponType, const EWeaponLogicState equipType);
+    void UnequipWeapon(const EWeaponType weaponType);
     void DropWeapon(EWeaponType weaponType);
     
     

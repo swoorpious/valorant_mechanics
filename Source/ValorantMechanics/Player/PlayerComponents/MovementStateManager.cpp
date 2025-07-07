@@ -1,7 +1,7 @@
 ﻿// © 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
 
 
-#include "MovementSM.h"
+#include "MovementStateManager.h"
 #include "ValorantMechanics/Core/Val_LocalPlayerSubsystem.h"
 #include "ValorantMechanics/Player/Val_Character.h"
 #include "Val_CharacterMovementComponent.h"
