@@ -22,8 +22,8 @@ void UVal_PlayerAnimInstance::NativeBeginPlay()
         // e->onWeaponEquip.AddUObject(this, &UVal_PlayerAnimInstance::UpdateCurrentWeapon);
         // e->onWeaponDrop.AddUObject(this, &UVal_PlayerAnimInstance::RemoveAnimDataAsset);
 		UVal_LocalPlayerSubsystem* j = e->GetValPlayerController()->GetLocalPlayer()->GetSubsystem<UVal_LocalPlayerSubsystem>();
-        j->mStateChanged.AddUObject(this, &UVal_PlayerAnimInstance::UpdateMovementState);
-        j->wLogicStateChanged.AddUObject(this, &UVal_PlayerAnimInstance::UpdateWeaponLogicState);
+        j->GetMovementStateChangeDelegate().AddUObject(this, &UVal_PlayerAnimInstance::UpdateMovementState);
+        j->GetWeaponAnimStateChangeRequestDelegate().AddUObject(this, &UVal_PlayerAnimInstance::UpdateWeaponAnimState);
 
         // notifier->Init(j);
     }
@@ -34,11 +34,23 @@ void UVal_PlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
     Super::NativeUpdateAnimation(DeltaSeconds);
 
-    if (const FName currentState = GetCurrentStateNameFromStateMachine(wStateMachineName); currentState != lastPlayerStateMachineStateName)
-    {
-        notifier->NotifyWeaponStateMachineStateChange(lastPlayerStateMachineStateName, currentState);
-        lastPlayerStateMachineStateName = currentState;
-    }
+    // if (const FName currentState = GetCurrentStateNameFromStateMachine(wStateMachineName); currentState != lastPlayerStateMachineStateName)
+    // {
+    //     notifier->NotifyWeaponStateMachineStateChange(lastPlayerStateMachineStateName, currentState);
+    //     lastPlayerStateMachineStateName = currentState;
+    // }
+}
+
+
+void UVal_PlayerAnimInstance::UpdateWeaponAnimState(EWeaponType weaponType, EWeaponAnimState oldState, EWeaponAnimState newState)
+{
+    if (weaponType == EWeaponType::Empty) return;
+    if (weaponType == EWeaponType::Melee) wAnimStates.melee = newState;
+    if (weaponType == EWeaponType::Secondary) wAnimStates.secondary = newState;
+    if (weaponType == EWeaponType::Primary) wAnimStates.primary = newState;
+
+    animAssets.currentWeaponType = weaponType;
+    pSequencePlayer.SetAccumulatedTime(0.0f);
 }
 
 
@@ -76,7 +88,7 @@ void UVal_PlayerAnimInstance::RemoveAnimDataAsset(EWeaponType weaponType)
 }
 
 
-const TObjectPtr<UWeaponAnimDataAsset>& UVal_PlayerAnimInstance::GetAnimDataAsset(EWeaponType weaponType)
+const TObjectPtr<UWeaponAnimDataAsset> UVal_PlayerAnimInstance::GetAnimDataAsset(EWeaponType weaponType)
 {
 	if (weaponType == EWeaponType::Empty || !HasAnimDataForType(weaponType)) return nullptr;
     return animAssets.animDataMap[weaponType];
@@ -93,6 +105,22 @@ UWeaponAnimDataAsset* UVal_PlayerAnimInstance::GetCurrentAnimDataAsset()
     if (!HasAnimDataForType(animAssets.currentWeaponType)) return nullptr;
     
     return animAssets.animDataMap[animAssets.currentWeaponType];
+}
+
+bool UVal_PlayerAnimInstance::CanTransitionToMovementAnimState(EMovementState state) const
+{
+    return mState == state;
+}
+
+bool UVal_PlayerAnimInstance::CanTransitionToWeaponAnimState(EWeaponAnimState state) const
+{
+    const EWeaponType e = animAssets.currentWeaponType;
+    
+    if (e == EWeaponType::Melee) return wAnimStates.melee == state;
+    if (e == EWeaponType::Secondary) return wAnimStates.secondary == state;
+    if (e == EWeaponType::Primary) return wAnimStates.primary == state;
+
+    return false;
 }
 
 

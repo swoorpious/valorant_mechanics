@@ -3,6 +3,16 @@
 
 #include "Val_LocalPlayerSubsystem.h"
 
+OnRequestedWeaponAnimStateChange& UVal_LocalPlayerSubsystem::GetWeaponAnimStateChangeRequestDelegate()
+{
+    return reqWeaponAnimStateChange;
+}
+
+OnMovementStateChanged& UVal_LocalPlayerSubsystem::GetMovementStateChangeDelegate()
+{
+    return mStateChanged;
+}
+
 void UVal_LocalPlayerSubsystem::UpdateMovementState(EMovementState oldState, EMovementState newState) const
 {
     mStateChanged.Broadcast(oldState, newState);

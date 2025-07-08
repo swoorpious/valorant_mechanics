@@ -19,6 +19,8 @@
 class USkeletalMeshComponent;
 class UStaticMeshComponent;
 class UBoxComponent;
+class AVal_Character;
+class UVal_LocalPlayerSubsystem;
 
 
 
@@ -37,6 +39,7 @@ public:
     virtual EWeaponLogicState GetWeaponState();
     virtual EWeaponPickupType GetWeaponPickupType();
     virtual TObjectPtr<UWeaponAnimDataAsset>& GetAnimAsset();
+    bool CanBeDropped() const;
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Body")
     TObjectPtr<USkeletalMeshComponent> weaponMesh;
@@ -55,14 +58,24 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon") FAltWeaponProperties altProperties;
 
 
-
+    void ExternWeaponPickUp(AVal_Character* ownerCharacter);
+    void ExternWeaponEquip();
+    void ExternWeaponUnequip();
+    void ExternWeaponDrop();
+    
 protected:
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaTime) override;
 
+    void InternalPickedUp(AVal_Character* ownerCharacter);
+    void InternalEquipped();
+    void InternalUnequipped();
+    void InternalDropped();
+    
+
     EWeaponType weaponType; // variables initialized in derived class constructors
-    // EWeaponLogicState weaponState;
     EWeaponPickupType weaponPickupType;
+    
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Animations", meta = (DisplayName = "Animation Data Asset"))
     TObjectPtr<UWeaponAnimDataAsset> animAsset;
@@ -73,10 +86,17 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|State Managers")
     TObjectPtr<UWeaponLogicStateManager> weaponLogicSM = nullptr;
 
+    //
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|State Managers")
     TObjectPtr<UWeaponAnimStateManager> weaponAnimSM = nullptr;
 
+
+private:
+
+    UPROPERTY() TObjectPtr<AVal_Character> pOwnerCharacter = nullptr;
+    UPROPERTY() TObjectPtr<UVal_LocalPlayerSubsystem> pSubsystem = nullptr;
     
-    
+    friend UWeaponLogicStateManager;
+    friend UWeaponAnimStateManager;
     
 };

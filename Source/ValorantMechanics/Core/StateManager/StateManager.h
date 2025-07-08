@@ -31,6 +31,7 @@ public:
     virtual bool IsStateActive(TStateEnum state) const;
     virtual bool CanTransitionToState(TStateEnum state) const;
     virtual void TryTransitionToState(TStateEnum updateToState);
+    virtual void ForceTransitionToState(TStateEnum updateToState);
     virtual void TryStackState(TStateEnum stateToStack);
     virtual void TryUnstackState(TStateEnum stateToUnstack);
 
@@ -214,6 +215,12 @@ void StateManager<TStateEnum>::TryTransitionToState(TStateEnum updateToState)
     InternalUpdateState(GetCurrentState(), updateToState);
 }
 
+template <typename TStateEnum>
+void StateManager<TStateEnum>::ForceTransitionToState(TStateEnum updateToState)
+{
+    InternalUpdateState(GetCurrentState(), updateToState);
+}
+
 
 template<typename TStateEnum>
 void StateManager<TStateEnum>::TryStackState(TStateEnum stateToStack)
@@ -382,6 +389,7 @@ void StateManager<TStateEnum>::InternalUpdateState(TStateEnum stateToExit, TStat
     lastState = currentState;
     currentState = stateToEnter;
     timeSinceLastStateTransition = 0.0f;
+    stateTimers.Remove(stateToExit);
     
     if (tickingStates.Contains(stateToEnter))
     {

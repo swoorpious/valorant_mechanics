@@ -7,6 +7,9 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/BoxComponent.h"
 
+#include "ValorantMechanics/Player/Val_Character.h"
+#include "ValorantMechanics/Core/Val_LocalPlayerSubsystem.h"
+#include "ValorantMechanics/Player/Controller/Val_PlayerController.h"
 
 
 
@@ -56,6 +59,21 @@ ACommonWeapon::ACommonWeapon()
 }
 
 
+// Called when the game starts or when spawned
+void ACommonWeapon::BeginPlay()
+{
+    Super::BeginPlay();
+    
+    weaponLogicSM->InitializeWeaponStateManager(&defaultProperties, &altProperties);
+}
+
+
+// Called every frame
+void ACommonWeapon::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+}
+
 
 EWeaponType ACommonWeapon::GetWeaponType()
 {
@@ -77,20 +95,83 @@ TObjectPtr<UWeaponAnimDataAsset>& ACommonWeapon::GetAnimAsset()
     return animAsset;
 }
 
-
-// Called when the game starts or when spawned
-void ACommonWeapon::BeginPlay()
+bool ACommonWeapon::CanBeDropped() const
 {
-    Super::BeginPlay();
-    
-    weaponLogicSM->InitializeWeaponStateManager(&defaultProperties, &altProperties);
-    
+    if (weaponPickupType == EWeaponPickupType::NonPickupable) return false;
+    return true;
 }
 
 
-// Called every frame
-void ACommonWeapon::Tick(float DeltaTime)
+void ACommonWeapon::ExternWeaponPickUp(AVal_Character* ownerCharacter)
 {
-    Super::Tick(DeltaTime);
+    if (weaponType == EWeaponType::Empty) return;
+
+    InternalPickedUp(ownerCharacter);
+}
+
+void ACommonWeapon::ExternWeaponEquip()
+{
+    if (!pOwnerCharacter) return;
+    InternalEquipped();
+}
+
+void ACommonWeapon::ExternWeaponUnequip()
+{
+    if (!pOwnerCharacter) return;
+    InternalUnequipped();
+}
+
+void ACommonWeapon::ExternWeaponDrop()
+{
+    if (!pOwnerCharacter || CanBeDropped()) return;
+    InternalDropped();
+}
+
+
+
+void ACommonWeapon::InternalPickedUp(AVal_Character* ownerCharacter)
+{
+    if (!ownerCharacter) return;
+    
+    PrimaryActorTick.bCanEverTick = true;
+    weaponLogicSM->PrimaryComponentTick.bCanEverTick = true;
+    
+    pOwnerCharacter = Cast<AVal_Character>(ownerCharacter);
+    if (pOwnerCharacter; const auto* e = pOwnerCharacter->GetValPlayerController()->GetLocalPlayer())
+    {
+        pSubsystem = e->GetSubsystem<UVal_LocalPlayerSubsystem>();
+    }
+
+    // the player could just pick up the weapon but might still have another weapon equipped
+    SetActorHiddenInGame(true);
+    
+}
+
+void ACommonWeapon::InternalEquipped()
+{
+    PrimaryActorTick.bCanEverTick = true;
+    weaponLogicSM->PrimaryComponentTick.bCanEverTick = true;
+    weaponLogicSM->TryTransitionToState(EWeaponLogicState::Equip_Default);
+
+    this->SetActorHiddenInGame(false);
+}
+
+void ACommonWeapon::InternalUnequipped()
+{
+    weaponLogicSM->ForceTransitionToState(EWeaponLogicState::None);
+    PrimaryActorTick.bCanEverTick = false;
+    weaponLogicSM->PrimaryComponentTick.bCanEverTick = false;
+
+    SetActorHiddenInGame(true);
+}
+
+void ACommonWeapon::InternalDropped()
+{
+    PrimaryActorTick.bCanEverTick = false;
+    weaponLogicSM->PrimaryComponentTick.bCanEverTick = false;
+    SetActorHiddenInGame(false);
+    
+    pOwnerCharacter = nullptr;
+    pSubsystem = nullptr;
 }
 

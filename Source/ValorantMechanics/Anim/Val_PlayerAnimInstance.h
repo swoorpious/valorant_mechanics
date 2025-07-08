@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "Animation/AnimNode_SequencePlayer.h"
 #include "Delegates/DelegateCombinations.h"
 #include "ValorantMechanics/Core/Shared/PlayerStates.h"
 #include "ValorantMechanics/Core/Shared/WeaponProperties.h"
@@ -15,6 +16,22 @@ class ACommonWeapon;
 class UWeaponAnimDataAsset;
 class UAnimNotifier;
 
+
+USTRUCT(BlueprintType)
+struct FWeaponAnimStates
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Animations|Player States", meta = (DisplayName = "Melee Weapon State"))
+    EWeaponAnimState melee;
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Animations|Player States", meta = (DisplayName = "Secondary Weapon State"))
+    EWeaponAnimState secondary;
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Animations|Player States", meta = (DisplayName = "Primary Weapon State"))
+    EWeaponAnimState primary;
+    
+};
 
 
 USTRUCT(BlueprintType)
@@ -58,22 +75,24 @@ public:
     void UpdateAnimDataAsset(ACommonWeapon* equippedWeapon);
     void UpdateCurrentWeapon(EWeaponType weaponType);
     void RemoveAnimDataAsset(EWeaponType weaponType);
-    const TObjectPtr<UWeaponAnimDataAsset>& GetAnimDataAsset(EWeaponType weaponType);
+    const TObjectPtr<UWeaponAnimDataAsset> GetAnimDataAsset(EWeaponType weaponType);
 	bool HasAnimDataForType(EWeaponType weaponType) const;
 
     
-   
     UFUNCTION(BlueprintType, BlueprintPure, Category = "Valorant Animations|Animation Data assets")
     UWeaponAnimDataAsset* GetCurrentAnimDataAsset();
 
 #pragma endregion ANIM DATA
-    
 
-    UFUNCTION(BlueprintType, BlueprintPure, Category = "Valorant Animations|Animation Data assets", meta = (BlueprintThreadSafe))
-    bool CanTransitionToMovementAnimState(EMovementState state) const { return mState == state; }
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valorant Animations|Anim Sequence Player Node", meta = (DisplayName = "Animation Sequence Player", AllowPrivateAccess = true))
+    FAnimNode_SequencePlayer pSequencePlayer;
     
     UFUNCTION(BlueprintType, BlueprintPure, Category = "Valorant Animations|Animation Data assets", meta = (BlueprintThreadSafe))
-    bool CanTransitionToWeaponAnimState(EWeaponAnimState state) const { return false; }
+    bool CanTransitionToMovementAnimState(EMovementState state) const;
+    
+    UFUNCTION(BlueprintType, BlueprintPure, Category = "Valorant Animations|Animation Data assets", meta = (BlueprintThreadSafe))
+    bool CanTransitionToWeaponAnimState(EWeaponAnimState state) const;
     
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Instanced, Category = "Valorant Animations|Notifier")
     TObjectPtr<UAnimNotifier> notifier;
@@ -84,7 +103,7 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Animations|Player States", meta = (DisplayName = "Weapon State Machine Name"))
     FName wStateMachineName;
     
-    void UpdateWeaponLogicState(EWeaponLogicState oldState, EWeaponLogicState newState) { wState = newState; }
+    void UpdateWeaponAnimState(EWeaponType weaponType, EWeaponAnimState oldState, EWeaponAnimState newState);
     void UpdateMovementState(EMovementState oldState, EMovementState newState) { mState = newState; }
     
 protected:
@@ -92,8 +111,8 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Animations")
     FAnimAssets animAssets;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Animations|Player States", meta = (DisplayName = "Weapon State"))
-    EWeaponLogicState wState;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Animations|Player States", meta=(DisplayName = "Weapon States"))
+    FWeaponAnimStates wAnimStates;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Animations|Player States", meta = (DisplayName = "Movement State"))
     EMovementState mState;

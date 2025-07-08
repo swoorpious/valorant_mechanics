@@ -2,6 +2,8 @@
 
 
 #include "WeaponLogicStateManager.h"
+
+#include "ValorantMechanics/Core/Val_LocalPlayerSubsystem.h"
 #include "CommonWeapon.h"
 
 
@@ -59,7 +61,12 @@ void UWeaponLogicStateManager::InitializeWeaponStateManager(FDefaultWeaponProper
         (def->fireRate > 0.0f) ?
         (1.0f / def->fireRate) :
         0.0f);
+
     
+    owner = Cast<ACommonWeapon>(GetOwner());
+
+    // set initial state
+    currentState = states::None;
 }
 
 
@@ -75,10 +82,12 @@ void UWeaponLogicStateManager::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 void UWeaponLogicStateManager::OnUpdateState(EWeaponLogicState previousState, EWeaponLogicState enteredState)
 {
-    UE_LOG(LogTemp, Display, TEXT("OnStateUpdated on class - %s"), *GetOwner()->GetName());
+    UE_LOG(LogTemp, Display, TEXT("OnStateUpdated on class - %s"), *owner->GetName());
 
+    const EWeaponAnimState prevAnimState = weaponLogicToAnimStatesMap[previousState];
+    const EWeaponAnimState newAnimState = weaponLogicToAnimStatesMap[enteredState];
+    owner->pSubsystem->GetWeaponAnimStateChangeRequestDelegate().Broadcast(owner->GetWeaponType(), prevAnimState, newAnimState);
     
-    // OnUpdateState(previousState, enteredState);
 }
 
 void UWeaponLogicStateManager::OnStackState(EWeaponLogicState stackedState)

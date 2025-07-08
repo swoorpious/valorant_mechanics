@@ -54,9 +54,11 @@ DECLARE_MULTICAST_DELEGATE_OneParam(OnWeaponDropped, EWeaponType)
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(OnMovementStateChanged, EMovementState /* old state */, EMovementState /* new state */);
 DECLARE_MULTICAST_DELEGATE_TwoParams(OnWeaponLogicStateChanged, EWeaponLogicState /* old state */, EWeaponLogicState /* new state */);
+DECLARE_MULTICAST_DELEGATE_ThreeParams(OnRequestedWeaponAnimStateChange, EWeaponType /* type of weapon duh */, EWeaponAnimState /* old state */, EWeaponAnimState /* new state */);
 
-DECLARE_MULTICAST_DELEGATE_TwoParams(OnMovementAnimStateChanged, EMovementState /* old state */, EMovementState /* new state */);
+// TODO: find a usecase for these lol
 DECLARE_MULTICAST_DELEGATE_TwoParams(OnWeaponAnimStateChanged, EWeaponAnimState /* old state */, EWeaponAnimState /* new state */);
+DECLARE_MULTICAST_DELEGATE_TwoParams(OnMovementAnimStateChanged, EMovementState /* old state */, EMovementState /* new state */);
 
 
 

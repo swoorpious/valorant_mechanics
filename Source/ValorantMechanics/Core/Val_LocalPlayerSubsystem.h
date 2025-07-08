@@ -27,10 +27,9 @@ public:
      * m -> movement
      * w -> weapon
      */
-    OnMovementStateChanged mStateChanged;
-    OnWeaponLogicStateChanged wLogicStateChanged;
-    OnMovementAnimStateChanged mAnimStateChanged;
-    OnWeaponAnimStateChanged wAnimStateChanged;
+
+    OnRequestedWeaponAnimStateChange& GetWeaponAnimStateChangeRequestDelegate();
+    OnMovementStateChanged& GetMovementStateChangeDelegate();
 
 
     void UpdateMovementState(EMovementState oldState, EMovementState newState) const;
@@ -41,5 +40,16 @@ public:
     void UpdateMovementAnimState(EMovementState oldState, EMovementState newState) const;
     void UpdateWeaponAnimState(EWeaponAnimState oldState, EWeaponAnimState newState) const;
 
+    
 #pragma endregion STATE MACHINE
+
+protected:
+    // may or may not be implemented
+    OnWeaponLogicStateChanged wLogicStateChanged;
+    OnMovementAnimStateChanged mAnimStateChanged;
+    OnWeaponAnimStateChanged wAnimStateChanged;
+
+    // currently implemented
+    OnMovementStateChanged mStateChanged;
+    OnRequestedWeaponAnimStateChange reqWeaponAnimStateChange;
 };

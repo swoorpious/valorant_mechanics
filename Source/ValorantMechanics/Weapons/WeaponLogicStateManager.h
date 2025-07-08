@@ -38,6 +38,8 @@ protected:
     virtual void OnUnstackState(EWeaponLogicState unstackedState) override;
 
 private:
+    UPROPERTY() TObjectPtr<ACommonWeapon> owner = nullptr;
+    
     using states = EWeaponLogicState;
     using fsm = StateManager<states>;
 };

@@ -112,8 +112,9 @@ void AVal_Character::SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn
         spawnedWeapon->SetOwner(this);
         spawnedWeapon->AttachToComponent(characterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, socketData->rightWeaponMasterSocket);
         spawnedWeapon->SetActorHiddenInGame(true); // hidden by default, EquipWeapon(...) will unhide
-        pInventory->UpdateInventoryWeapon(spawnedWeapon);
+        spawnedWeapon->ExternWeaponPickUp(this);
 
+        pInventory->UpdateInventoryWeapon(spawnedWeapon);
         pAnimInstance->UpdateAnimDataAsset(spawnedWeapon);
 
         if (shouldAutoEquip) this->EquipWeapon(spawnedWeapon->GetWeaponType(), EWeaponLogicState::Equip_Default);
@@ -126,40 +127,32 @@ void AVal_Character::SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn
 void AVal_Character::EquipWeapon(const EWeaponType weaponType, const EWeaponLogicState equipType = EWeaponLogicState::Equip_Default)
 {
     if (equipType != EWeaponLogicState::Equip_Default && equipType != EWeaponLogicState::Equip_Fast) return;
-    if (pInventory->GetEquippedWeapon()->GetWeaponType() == weaponType) return;
+    if (const auto& e = pInventory->GetEquippedWeapon())
+    {
+        if (e->GetWeaponType() == weaponType) return;
+        UnequipWeapon(e->GetWeaponType());
+    }
 
-    UnequipWeapon(weaponType);
+    const TObjectPtr<ACommonWeapon>& invWeapon = pInventory->GetWeaponByType(weaponType);
+    const TObjectPtr<UWeaponAnimDataAsset>& animDataInstance = pAnimInstance->GetAnimDataAsset(weaponType);
+    const TObjectPtr<UWeaponAnimDataAsset>& animDataWeapon = invWeapon ? invWeapon->GetAnimAsset() : nullptr;
     
-    const TObjectPtr<ACommonWeapon>* invWeapon = &pInventory->GetWeaponByType(weaponType);
-    const TObjectPtr<UWeaponAnimDataAsset>* animDataInstance = &pAnimInstance->GetAnimDataAsset(weaponType);
-    const TObjectPtr<UWeaponAnimDataAsset>* animDataWeapon = invWeapon ? &invWeapon->GetAnimAsset() : nullptr;
-
     bool const validAnim = pAnimInstance && animDataWeapon == animDataInstance;
-
     if (!validAnim || !pInventory->HasWeapon(weaponType)) return;
-
-    for (const auto& pair : pInventory->GetInventory())
-        if (ACommonWeapon* e = pair.Value) e->SetActorHiddenInGame(true);
-
-
-    auto* weaponLSM = invWeapon->GetPrimaryStateManager();
-    weaponLSM->TryTransitionToState(EWeaponLogicState::None);
     
-
+  
+    invWeapon->ExternWeaponEquip();
     pInventory->UpdateEquippedWeapon(weaponType);
     pAnimInstance->UpdateCurrentWeapon(weaponType);
-    weaponLSM->TryTransitionToState(equipType);
-
-    for (const auto& pair : pInventory->GetInventory())
-        if (ACommonWeapon* e = pair.Value) e->SetActorHiddenInGame(pair.Key != weaponType);
     
 }
-
 
 
 void AVal_Character::UnequipWeapon(const EWeaponType weaponType)
 {
+    pInventory->GetWeaponByType(weaponType)->ExternWeaponUnequip();
 }
+
 
 void AVal_Character::DropWeapon(EWeaponType weaponType)
 {
