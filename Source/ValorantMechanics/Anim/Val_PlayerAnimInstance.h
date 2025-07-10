@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
-#include "Animation/AnimNode_SequencePlayer.h"
+// #include "AnimGraphNodes/AnimNode_CustomSequencePlayer.h"
 #include "Delegates/DelegateCombinations.h"
 #include "ValorantMechanics/Core/Shared/PlayerStates.h"
 #include "ValorantMechanics/Core/Shared/WeaponProperties.h"
@@ -30,7 +30,10 @@ struct FWeaponAnimStates
     
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Animations|Player States", meta = (DisplayName = "Primary Weapon State"))
     EWeaponAnimState primary;
-    
+
+    UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Valorant Animations|Player States")
+    EWeaponType currentWeaponType;
+
 };
 
 
@@ -51,10 +54,11 @@ struct FAnimAssets
     UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Valorant Animations|Animation Data Assets", meta=(DisplayName = "Current Animation Data Asset"))
     TObjectPtr<UWeaponAnimDataAsset> currentAnimDataAsset;
     
-    UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Valorant Animations|Weapon")
-    EWeaponType currentWeaponType;
-    
 };
+
+
+
+
 
 
 /**
@@ -84,18 +88,17 @@ public:
 
 #pragma endregion ANIM DATA
 
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valorant Animations|Anim Sequence Player Node", meta = (DisplayName = "Animation Sequence Player", AllowPrivateAccess = true))
-    FAnimNode_SequencePlayer pSequencePlayer;
+    // UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Valorant Animations|Custom Sequence Player")
+    // FAnimNode_CustomSequencePlayer pSequence;
     
+       
     UFUNCTION(BlueprintType, BlueprintPure, Category = "Valorant Animations|Animation Data assets", meta = (BlueprintThreadSafe))
     bool CanTransitionToMovementAnimState(EMovementState state) const;
     
     UFUNCTION(BlueprintType, BlueprintPure, Category = "Valorant Animations|Animation Data assets", meta = (BlueprintThreadSafe))
     bool CanTransitionToWeaponAnimState(EWeaponAnimState state) const;
+
     
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Instanced, Category = "Valorant Animations|Notifier")
-    TObjectPtr<UAnimNotifier> notifier;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Animations|Player States", meta = (DisplayName = "Player State Machine Name"))
     FName pStateMachineName;

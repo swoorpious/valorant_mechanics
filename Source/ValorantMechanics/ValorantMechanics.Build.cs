@@ -13,7 +13,23 @@ public class ValorantMechanics : ModuleRules
 			"CoreUObject",
 			"Engine",
 			"InputCore",
-			"EnhancedInput"
+			"EnhancedInput",
+			"AnimGraphRuntime",
+			"BlueprintGraph",
+			"AnimationBlueprintLibrary"
+		});
+
+		PrivateDependencyModuleNames.AddRange(new string[]
+		{
+			"AnimGraph",
+			"AnimGraphRuntime",
+			"BlueprintGraph",
+			"UnrealEd", // for editor classes
+			"Slate",
+			"SlateCore",
+			"ToolMenus",
+			"EditorStyle",
+			"AnimGraphRuntime"
 		});
 		
 		OptimizeCode = CodeOptimization.InNonDebugBuilds;

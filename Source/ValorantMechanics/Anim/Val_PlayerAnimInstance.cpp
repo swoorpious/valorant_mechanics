@@ -2,7 +2,7 @@
 
 
 #include "Val_PlayerAnimInstance.h"
-#include "AnimNotifier.h"
+
 #include "ValorantMechanics/Weapons/CommonWeapon.h"
 #include "ValorantMechanics/Core/Val_LocalPlayerSubsystem.h"
 #include "ValorantMechanics/Player/Controller/Val_PlayerController.h"
@@ -33,12 +33,7 @@ void UVal_PlayerAnimInstance::NativeBeginPlay()
 void UVal_PlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
     Super::NativeUpdateAnimation(DeltaSeconds);
-
-    // if (const FName currentState = GetCurrentStateNameFromStateMachine(wStateMachineName); currentState != lastPlayerStateMachineStateName)
-    // {
-    //     notifier->NotifyWeaponStateMachineStateChange(lastPlayerStateMachineStateName, currentState);
-    //     lastPlayerStateMachineStateName = currentState;
-    // }
+    
 }
 
 
@@ -49,8 +44,10 @@ void UVal_PlayerAnimInstance::UpdateWeaponAnimState(EWeaponType weaponType, EWea
     if (weaponType == EWeaponType::Secondary) wAnimStates.secondary = newState;
     if (weaponType == EWeaponType::Primary) wAnimStates.primary = newState;
 
-    animAssets.currentWeaponType = weaponType;
-    pSequencePlayer.SetAccumulatedTime(0.0f);
+    
+    if (newState == EWeaponAnimState::Equip_Default || newState == EWeaponAnimState::Equip_Fast)
+        wAnimStates.currentWeaponType = weaponType;
+   
 }
 
 
@@ -76,7 +73,7 @@ void UVal_PlayerAnimInstance::UpdateAnimDataAsset(ACommonWeapon* equippedWeapon)
 void UVal_PlayerAnimInstance::UpdateCurrentWeapon(EWeaponType weaponType)
 {
     if (!HasAnimDataForType(weaponType)) return;
-    animAssets.currentWeaponType = weaponType;
+    wAnimStates.currentWeaponType = weaponType;
     animAssets.currentAnimDataAsset = GetAnimDataAsset(weaponType);
 }
 
@@ -102,9 +99,9 @@ bool UVal_PlayerAnimInstance::HasAnimDataForType(EWeaponType weaponType) const
 
 UWeaponAnimDataAsset* UVal_PlayerAnimInstance::GetCurrentAnimDataAsset()
 {
-    if (!HasAnimDataForType(animAssets.currentWeaponType)) return nullptr;
+    if (!HasAnimDataForType(wAnimStates.currentWeaponType)) return nullptr;
     
-    return animAssets.animDataMap[animAssets.currentWeaponType];
+    return animAssets.animDataMap[wAnimStates.currentWeaponType];
 }
 
 bool UVal_PlayerAnimInstance::CanTransitionToMovementAnimState(EMovementState state) const
@@ -114,11 +111,12 @@ bool UVal_PlayerAnimInstance::CanTransitionToMovementAnimState(EMovementState st
 
 bool UVal_PlayerAnimInstance::CanTransitionToWeaponAnimState(EWeaponAnimState state) const
 {
-    const EWeaponType e = animAssets.currentWeaponType;
-    
+    const EWeaponType e = wAnimStates.currentWeaponType;
+
     if (e == EWeaponType::Melee) return wAnimStates.melee == state;
     if (e == EWeaponType::Secondary) return wAnimStates.secondary == state;
     if (e == EWeaponType::Primary) return wAnimStates.primary == state;
+
 
     return false;
 }
