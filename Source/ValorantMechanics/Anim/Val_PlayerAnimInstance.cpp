@@ -6,6 +6,7 @@
 #include "ValorantMechanics/Weapons/CommonWeapon.h"
 #include "ValorantMechanics/Core/Val_LocalPlayerSubsystem.h"
 #include "ValorantMechanics/Player/Controller/Val_PlayerController.h"
+#include "ValorantMechanics/Player/PlayerComponents/Val_CharacterMovementComponent.h"
 #include "ValorantMechanics/ValorantMechanics.h"
 #include "ValorantMechanics/Player/Val_Character.h"
 
@@ -14,18 +15,15 @@ void UVal_PlayerAnimInstance::NativeBeginPlay()
 {
     Super::NativeBeginPlay();
 
-    // notifier = CreateDefaultSubobject<UAnimNotifier>(TEXT("Animation Notifier"));
 
     if (AVal_Character* e = Cast<AVal_Character>(TryGetPawnOwner()))
     {
-        // e->onWeaponSpawn.AddUObject(this, &UVal_PlayerAnimInstance::UpdateAnimDataAsset);
-        // e->onWeaponEquip.AddUObject(this, &UVal_PlayerAnimInstance::UpdateCurrentWeapon);
-        // e->onWeaponDrop.AddUObject(this, &UVal_PlayerAnimInstance::RemoveAnimDataAsset);
 		UVal_LocalPlayerSubsystem* j = e->GetValPlayerController()->GetLocalPlayer()->GetSubsystem<UVal_LocalPlayerSubsystem>();
         j->GetMovementStateChangeDelegate().AddUObject(this, &UVal_PlayerAnimInstance::UpdateMovementState);
         j->GetWeaponAnimStateChangeRequestDelegate().AddUObject(this, &UVal_PlayerAnimInstance::UpdateWeaponAnimState);
-
-        // notifier->Init(j);
+        
+        valInput = e->GetValPlayerController()->GetInputSystem();
+        pMovement = e->GetValMovementComponent();
     }
 
 }
@@ -33,7 +31,12 @@ void UVal_PlayerAnimInstance::NativeBeginPlay()
 void UVal_PlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
     Super::NativeUpdateAnimation(DeltaSeconds);
-    
+
+    if (valInput)
+        lastLookVector = valInput->GetLastLookVector();
+
+    if (pMovement)
+        pVelocity = pMovement->Velocity;
 }
 
 
@@ -48,13 +51,6 @@ void UVal_PlayerAnimInstance::UpdateWeaponAnimState(EWeaponType weaponType, EWea
     if (newState == EWeaponAnimState::Equip_Default || newState == EWeaponAnimState::Equip_Fast)
         wAnimStates.currentWeaponType = weaponType;
    
-}
-
-
-FName UVal_PlayerAnimInstance::GetCurrentStateNameFromStateMachine(FName stateMachineName)
-{
-    const int8 machineIndex = GetStateMachineIndex(stateMachineName);
-    return GetCurrentStateName(machineIndex);
 }
 
 

@@ -32,6 +32,8 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Input")
     float Sensitivity = 1.0f;
 
+    FVector2D GetLastLookVector() const;
+
 
     
 protected:

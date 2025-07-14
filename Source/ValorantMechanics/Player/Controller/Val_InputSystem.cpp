@@ -79,12 +79,25 @@ void UVal_InputSystem::SetInputActions()
 }
 
 
+FVector2D UVal_InputSystem::GetLastLookVector() const
+{
+    if (lastLookVector.Size() > 0) return lastLookVector;
+    return FVector2D::ZeroVector;
+}
+
 void UVal_InputSystem::HandleLookInput(const FInputActionInstance& InputActionInstance)
 {
-    const FVector2D LookAxisVector = InputActionInstance.GetValue().Get<FVector2D>();
-    lastLookVector = LookAxisVector;
+    
 
-    pController->PlayerLook(LookAxisVector);
+    if (const ETriggerEvent actionTrigger = InputActionInstance.GetTriggerEvent(); actionTrigger == ETriggerEvent::Triggered)
+    {
+        const FVector2D LookAxisVector = InputActionInstance.GetValue().Get<FVector2D>();
+        lastLookVector = LookAxisVector;
+        pController->PlayerLook(LookAxisVector);
+    }
+    else if (actionTrigger == ETriggerEvent::Canceled || actionTrigger == ETriggerEvent::Completed)
+        lastLookVector = FVector2d::ZeroVector;
+        
 }
 
 

@@ -46,7 +46,7 @@ public:
    
 
     // returns look vector (mouse movement) in previous tick
-    FVector2d GetLastLookVector() const { return lastLookVector; }
+    virtual FVector2D GetLastLookVector() const;
 
     // returns true if there is any movement that is not cancelled by the opposite direction
     FORCEINLINE bool HasMovementInput() const { return inputMap.W ^ inputMap.S || inputMap.A ^ inputMap.D; }
@@ -73,7 +73,9 @@ protected:
 
     FVector2D lastLookVector;
     InputMap inputMap;
-    
+
+
+    friend AVal_PlayerController;
 };
 
 

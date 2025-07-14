@@ -74,12 +74,7 @@ void AVal_Character::BeginPlay()
         if (e->secondaryToSpawn) SpawnWeapon(e->secondaryToSpawn, !e->primaryToSpawn);
         if (e->primaryToSpawn) SpawnWeapon(e->primaryToSpawn, true);
     }
-    
-
-    // tryWeaponEquip.AddUObject(this, &AVal_Character::EquipWeapon);
-    // tryWeaponSpawn.AddUObject(this, &AVal_Character::SpawnWeapon);
-    // tryWeaponDrop.AddUObject(this, &AVal_Character::DropWeapon);
-    
+        
 }
 
 
@@ -90,8 +85,6 @@ void AVal_Character::Tick(float DeltaTime)
     Super::Tick(DeltaTime);
 
 }
-
-
 
 
 void AVal_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -130,7 +123,7 @@ void AVal_Character::EquipWeapon(const EWeaponType weaponType, const EWeaponLogi
     if (const auto& e = pInventory->GetEquippedWeapon())
     {
         if (e->GetWeaponType() == weaponType) return;
-        UnequipWeapon(e->GetWeaponType());
+        if (pInventory->HasWeapon(weaponType)) UnequipWeapon(e->GetWeaponType());
     }
 
     const TObjectPtr<ACommonWeapon>& invWeapon = pInventory->GetWeaponByType(weaponType);
@@ -150,6 +143,7 @@ void AVal_Character::EquipWeapon(const EWeaponType weaponType, const EWeaponLogi
 
 void AVal_Character::UnequipWeapon(const EWeaponType weaponType)
 {
+    
     pInventory->GetWeaponByType(weaponType)->ExternWeaponUnequip();
 }
 

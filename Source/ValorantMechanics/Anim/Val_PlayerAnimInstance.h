@@ -12,6 +12,9 @@
 #include "Val_PlayerAnimInstance.generated.h"
 
 
+class UVal_CharacterMovementComponent;
+class UVal_InputSystem;
+class AVal_PlayerController;
 class ACommonWeapon;
 class UWeaponAnimDataAsset;
 class UAnimNotifier;
@@ -60,7 +63,6 @@ struct FAnimAssets
 
 
 
-
 /**
  * 
  */
@@ -87,9 +89,6 @@ public:
     UWeaponAnimDataAsset* GetCurrentAnimDataAsset();
 
 #pragma endregion ANIM DATA
-
-    // UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Valorant Animations|Custom Sequence Player")
-    // FAnimNode_CustomSequencePlayer pSequence;
     
        
     UFUNCTION(BlueprintType, BlueprintPure, Category = "Valorant Animations|Animation Data assets", meta = (BlueprintThreadSafe))
@@ -97,7 +96,6 @@ public:
     
     UFUNCTION(BlueprintType, BlueprintPure, Category = "Valorant Animations|Animation Data assets", meta = (BlueprintThreadSafe))
     bool CanTransitionToWeaponAnimState(EWeaponAnimState state) const;
-
     
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Animations|Player States", meta = (DisplayName = "Player State Machine Name"))
@@ -119,10 +117,20 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Animations|Player States", meta = (DisplayName = "Movement State"))
     EMovementState mState;
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly , Category = "Valorant Input")
+    FVector2D lastLookVector = FVector2D::ZeroVector;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly , Category = "Valorant Input", meta = (DisplayName = "Player Velocity Vector"))
+    FVector pVelocity = FVector::ZeroVector;
 
 
 private:
+    UPROPERTY() TObjectPtr<UVal_InputSystem> valInput = nullptr;
+    UPROPERTY() TObjectPtr<UVal_CharacterMovementComponent> pMovement= nullptr;
 
-    FName GetCurrentStateNameFromStateMachine(FName stateMachineName);
     FName lastPlayerStateMachineStateName;
+
+
+    
 };

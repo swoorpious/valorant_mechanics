@@ -49,7 +49,13 @@ void AVal_PlayerController::OnUnPossess()
 }
 
 
-
+FVector2D AVal_PlayerController::GetLastLookVector() const
+{
+    if (&inputSystem)
+        return inputSystem->GetLastLookVector();
+        
+    return FVector2d(0.0f, 0.0f);
+}
 
 void AVal_PlayerController::AddLookInput(FVector2D Look) const
 {
