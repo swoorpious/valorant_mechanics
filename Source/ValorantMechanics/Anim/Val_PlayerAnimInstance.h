@@ -131,6 +131,4 @@ private:
 
     FName lastPlayerStateMachineStateName;
 
-
-    
 };
