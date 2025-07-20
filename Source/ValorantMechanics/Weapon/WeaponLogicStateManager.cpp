@@ -25,7 +25,7 @@ void UWeaponLogicStateManager::InitializeWeaponStateManager(FDefaultWeaponProper
         states::None,
         states::Equip_Fast,
         states::Reloading, 
-        states::Fired, 
+        states::FireShot, 
         states::FireCooldown, 
         states::Inspecting
     });
@@ -34,12 +34,12 @@ void UWeaponLogicStateManager::InitializeWeaponStateManager(FDefaultWeaponProper
         states::None,
         states::Equip_Fast,
         states::Reloading, 
-        states::Fired, 
+        states::FireShot, 
         states::FireCooldown, 
         states::Inspecting
     });
 
-    UnallowStateTransition(states::Fired, {
+    UnallowStateTransition(states::FireShot, {
         states::Equip_Default,
         states::Equip_Fast,
         states::Reloading,
@@ -54,9 +54,11 @@ void UWeaponLogicStateManager::InitializeWeaponStateManager(FDefaultWeaponProper
     SetStateTickingEnabled(states::FireCooldown, true);
     SetStateTickingEnabled(states::Inspecting, true);
 
+    /*  */
     SetStateNotificationTime(states::Equip_Default, def->equipTimeDefault); // convert to milliseconds
     SetStateNotificationTime(states::Equip_Fast, def->equipTimeFast);
-    SetStateNotificationTime(states::Reloading, def->reloadTime > 0.0f);
+    SetStateNotificationTime(states::Reloading, def->reloadTime > 0.0f ? def->reloadTime : 0.0f);
+    SetStateNotificationTime(states::FireShot, 0.001f);
     SetStateNotificationTime(states::FireCooldown,
         (def->fireRate > 0.0f) ?
         (1.0f / def->fireRate) :
@@ -67,6 +69,13 @@ void UWeaponLogicStateManager::InitializeWeaponStateManager(FDefaultWeaponProper
 
     // set initial state
     currentState = states::None;
+
+    
+    SetStateQueueWindow(EWeaponLogicState::Equip_Default, 0.1f);
+    SetStateQueueWindow(EWeaponLogicState::Equip_Fast, 0.1f);
+    SetStateQueueWindow(EWeaponLogicState::Blocked, 0.1f);
+    SetStateQueueWindow(EWeaponLogicState::Reloading, 0.1f);
+    SetStateQueueWindow(EWeaponLogicState::FireCooldown, 0.1f);
 }
 
 
@@ -82,6 +91,8 @@ void UWeaponLogicStateManager::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 void UWeaponLogicStateManager::OnUpdateState(EWeaponLogicState previousState, EWeaponLogicState enteredState)
 {
+    StateManager::OnUpdateState(previousState, enteredState);
+    
     UE_LOG(LogTemp, Display, TEXT("OnStateUpdated on class - %s"), *owner->GetName());
 
     const EWeaponAnimState prevAnimState = weaponLogicToAnimStatesMap[previousState];

@@ -22,17 +22,17 @@ public:
     
 
     // delegate access
-    virtual typename FSMClass::OnStateUpdatedCallback& GetStateUpdateCallbackDelegate()
+    virtual typename FSMClass::OnStateUpdatedCallback* GetStateUpdateCallbackDelegate()
     {
         return localFSM->GetStateUpdateCallbackDelegate();
     }
     
-    virtual typename FSMClass::OnTimedStateCallback& GetTimedStateCallbackDelegate()
+    virtual typename FSMClass::OnTimedStateCallback* GetTimedStateCallbackDelegate()
     {
         return localFSM->GetTimedStateCallbackDelegate();
     }
     
-    virtual typename FSMClass::OnStateStackUpdatedCallback& GetStateStackUpdateCallbackDelegate()
+    virtual typename FSMClass::OnStateStackUpdatedCallback* GetStateStackUpdateCallbackDelegate()
     {
         return localFSM->GetStateStackUpdateCallbackDelegate();
     }
@@ -59,19 +59,19 @@ public:
         return this->GetStateManager();
     }
 
-    virtual typename FSMClass::OnStateUpdatedCallback& GetPrimaryStateUpdateCallbackDelegate()
+    virtual typename FSMClass::OnStateUpdatedCallback* GetPrimaryStateUpdateCallbackDelegate()
     {
         checkf(this->localFSM, TEXT("Primary State Manager is null."));
         return this->GetStateUpdateCallbackDelegate();
     }
     
-    virtual typename FSMClass::OnTimedStateCallback& GetPrimaryTimedStateCallbackDelegate()
+    virtual typename FSMClass::OnTimedStateCallback* GetPrimaryTimedStateCallbackDelegate()
     {
         checkf(this->localFSM, TEXT("Primary State Manager is null."));
         return this->GetTimedStateCallbackDelegate();
     }
     
-    virtual typename FSMClass::OnStateStackUpdatedCallback& GetPrimaryStateStackUpdateCallbackDelegate()
+    virtual typename FSMClass::OnStateStackUpdatedCallback* GetPrimaryStateStackUpdateCallbackDelegate()
     {
         checkf(this->localFSM, TEXT("Primary State Manager is null."));
         return this->GetStateStackUpdateCallbackDelegate();
@@ -94,19 +94,19 @@ public:
         return this->GetStateManager();
     }
 
-    virtual typename FSMClass::OnStateUpdatedCallback& GetSecondaryStateUpdateCallbackDelegate()
+    virtual typename FSMClass::OnStateUpdatedCallback* GetSecondaryStateUpdateCallbackDelegate()
     {
         checkf(this->localFSM, TEXT("Secondary State Manager is null."));
         return this->GetStateUpdateCallbackDelegate();
     }
     
-    virtual typename FSMClass::OnTimedStateCallback& GetSecondaryTimedStateCallbackDelegate()
+    virtual typename FSMClass::OnTimedStateCallback* GetSecondaryTimedStateCallbackDelegate()
     {
         checkf(this->localFSM, TEXT("Secondary State Manager is null."));
         return this->GetTimedStateCallbackDelegate();
     }
     
-    virtual typename FSMClass::OnStateStackUpdatedCallback& GetSecondaryStateStackUpdateCallbackDelegate()
+    virtual typename FSMClass::OnStateStackUpdatedCallback* GetSecondaryStateStackUpdateCallbackDelegate()
     {
         checkf(this->localFSM, TEXT("Secondary State Manager is null."));
         return this->GetStateStackUpdateCallbackDelegate();

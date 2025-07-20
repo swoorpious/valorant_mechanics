@@ -53,7 +53,7 @@ enum class EWeaponLogicState : uint8
     Equip_Fast,
     Idle, // equipped -> idle
     Reloading,
-    Fired, // state for single tick
+    FireShot, // state for single tick
     FireCooldown, // firing -> fire cooldown -> idle/firing
     Inspecting,
 
@@ -63,6 +63,10 @@ enum class EWeaponLogicState : uint8
     ScopedIn, // scope/ADS
 };
 
+
+/*
+ * redundant
+ */
 UENUM(BlueprintType)
 enum class EWeaponAnimState : uint8
 {
@@ -88,6 +92,7 @@ const TMap<EWeaponLogicState, EWeaponAnimState> weaponLogicToAnimStatesMap = {
     { EWeaponLogicState::Equip_Fast, EWeaponAnimState::Equip_Fast },
     { EWeaponLogicState::Idle, EWeaponAnimState::Idle },
     { EWeaponLogicState::Reloading, EWeaponAnimState::Reloading },
+    { EWeaponLogicState::FireShot, EWeaponAnimState::Firing },
     { EWeaponLogicState::FireCooldown, EWeaponAnimState::Firing },
     { EWeaponLogicState::Inspecting, EWeaponAnimState::Inspecting },
 
@@ -96,11 +101,3 @@ const TMap<EWeaponLogicState, EWeaponAnimState> weaponLogicToAnimStatesMap = {
     { EWeaponLogicState::ScopedIn, EWeaponAnimState::ScopedIn },
 };
 
-
-UENUM(BlueprintType)
-enum class EMagazineState : uint8
-{
-    Empty,
-    HasLowAmmo,
-    HasAmmo,
-};

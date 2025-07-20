@@ -38,6 +38,7 @@ void UVal_InputSystem::SetMappingContexts(const TObjectPtr<UInputComponent>& inp
 void UVal_InputSystem::SetInputActions()
 {
     const TArray<ETriggerEvent> events1 = {
+        ETriggerEvent::Started,
         ETriggerEvent::Triggered, 
         ETriggerEvent::Canceled, 
         ETriggerEvent::Completed,
@@ -57,7 +58,10 @@ void UVal_InputSystem::SetInputActions()
         enhancedInputComponent->BindAction(playerActions.Action_Move_D, e, this, &UVal_InputSystem::HandleMoveInput); 
         enhancedInputComponent->BindAction(playerActions.Action_Move_S, e, this, &UVal_InputSystem::HandleMoveInput);
         
-        enhancedInputComponent->BindAction(playerActions.Action_Look, e, this, &UVal_InputSystem::HandleLookInput); 
+        enhancedInputComponent->BindAction(playerActions.Action_Look, e, this, &UVal_InputSystem::HandleLookInput);
+        
+        enhancedInputComponent->BindAction(weaponActions.Action_Attack, e, pController, &AVal_PlayerController::WeaponFire);
+        enhancedInputComponent->BindAction(weaponActions.Action_AltAttack, e, pController, &AVal_PlayerController::WeaponFire);
     }
 
     for (ETriggerEvent const e : events2)
@@ -87,8 +91,6 @@ FVector2D UVal_InputSystem::GetLastLookVector() const
 
 void UVal_InputSystem::HandleLookInput(const FInputActionInstance& InputActionInstance)
 {
-    
-
     if (const ETriggerEvent actionTrigger = InputActionInstance.GetTriggerEvent(); actionTrigger == ETriggerEvent::Triggered)
     {
         const FVector2D LookAxisVector = InputActionInstance.GetValue().Get<FVector2D>();

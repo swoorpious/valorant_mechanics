@@ -8,16 +8,11 @@
 #include "WeaponProperties.generated.h"
 
 
-#define MAGAZINE_PRIMARY_SOCKET_NAME TEXT("")
-#define MAGAZINE_SECONDARY_SOCKET_NAME TEXT("")
-#define SCOPE_PRIMARY_SOCKET_NAME TEXT("")
-
-
 
 UENUM(BlueprintType)
 enum class EEquipType : uint8
 {
-    EquipFull,
+    EquipDefault,
     EquipFast
 };
 
@@ -40,6 +35,13 @@ enum class EWeaponType : uint8
 
 
 
+UENUM(BlueprintType)
+enum class EMagazineState : uint8
+{
+    Empty,
+    HasLowAmmo,
+    HasAmmo,
+};
 
 
 // definition for alternate weapon actions 
@@ -88,13 +90,13 @@ struct VALORANTMECHANICS_API FDefaultWeaponProperties
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Range")
     float maxRange = 0.0f;
     
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire Properties",meta = (Unit = "cm/s"))
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire Properties", meta = (Unit = "cm/s"))
     float runSpeed = 0.0f; // cm/s
     
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire Properties")
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire Properties", meta = (ToolTip = "Time to equip the weapon normally. Time in seconds"))
     float equipTimeDefault = 0.0f;
     
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire Properties")
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire Properties", meta = (ToolTip = "Time to equip the weapon quickly. Time in seconds"))
     float equipTimeFast = 0.0f;
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire Properties")
@@ -107,7 +109,10 @@ struct VALORANTMECHANICS_API FDefaultWeaponProperties
     float reloadTime = 0.0f; // ms
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire Properties", meta = (EditCondition = "hasMagazine", EditConditionHides, Description = "Number of rounds per mag", ClampMin = 0, ClampMax = 128))
-    int32 magazineSize = 0;
+    int32 magazineCapacity = 0;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire Properties", meta = (EditCondition = "hasMagazine", EditConditionHides, Description = "Number of mags", ClampMin = 0, ClampMax = 128))
+    int32 magazineCount = 0;
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire Properties")
     float fireRate = 0.0f; // bullets/s

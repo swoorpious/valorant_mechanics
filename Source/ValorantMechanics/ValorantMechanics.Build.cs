@@ -16,7 +16,9 @@ public class ValorantMechanics : ModuleRules
 			"EnhancedInput",
 			"AnimGraphRuntime",
 			"BlueprintGraph",
-			"AnimationBlueprintLibrary"
+			"AnimationBlueprintLibrary",
+			"UMG",
+			"Niagara",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]
@@ -29,7 +31,8 @@ public class ValorantMechanics : ModuleRules
 			"SlateCore",
 			"ToolMenus",
 			"EditorStyle",
-			"AnimGraphRuntime"
+			"AnimGraphRuntime", 
+			"Niagara"
 		});
 		
 		OptimizeCode = CodeOptimization.InNonDebugBuilds;

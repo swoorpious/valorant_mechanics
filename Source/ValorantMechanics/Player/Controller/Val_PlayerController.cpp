@@ -8,9 +8,11 @@
 #include "Val_InputSystem.h"
 #include "ValorantMechanics/ValorantMechanics.h"
 #include "ValorantMechanics/Player/PlayerComponents/Val_CharacterMovementComponent.h"
+#include "ValorantMechanics/Weapon/CommonWeapon.h"
 
 #include "Camera/CameraComponent.h"
 #include "GameFramework/InputSettings.h"
+#include "ValorantMechanics/Player/PlayerComponents/Val_PlayerInventory.h"
 
 
 AVal_PlayerController::AVal_PlayerController()
@@ -127,14 +129,36 @@ void AVal_PlayerController::PlayerLook(const FVector2D lookVector) const
 }
 
 
+void AVal_PlayerController::WeaponFire(const FInputActionInstance& inputInstance)
+{
+    const TObjectPtr<ACommonWeapon>& weapon = pCharacter->GetPlayerInventory()->GetEquippedWeapon();
+    const FString actionName = inputInstance.GetSourceAction()->GetName();
+
+    if (const ETriggerEvent actionTrigger = inputInstance.GetTriggerEvent(); actionTrigger == ETriggerEvent::Started)
+    {
+        if (actionName == "VIA_Attack") weapon->ExternFireStart();
+        if (actionName == "VIA_Alt_Attack") weapon->ExternAltFireStart();
+
+    } else if (actionTrigger == ETriggerEvent::Triggered)
+        weapon->ExternFireTriggered();
+
+    else if (actionTrigger == ETriggerEvent::Canceled || actionTrigger == ETriggerEvent::Completed)
+    {
+        if (actionName == "VIA_Attack") weapon->ExternFireEnd();
+        if (actionName == "VIA_Alt_Attack") weapon->ExternAltFireEnd();
+        
+    }
+}
+
+
 /*
  * TODO: implement short time period after landing to slow down the player, with an even shorter window before it activates
  */
 void AVal_PlayerController::PlayerJump(const FInputActionInstance& inputInstance)
 {
-    // TODO: implement started, ongoing, cancelled/completed
-    
-    if (pCharacter)
+    // TODO: implement jump start/held/finished on character that can be overridden on agent actors
+
+    if (const ETriggerEvent actionTrigger = inputInstance.GetTriggerEvent(); actionTrigger == ETriggerEvent::Started)
     {
         pCharacter->UnCrouch();
         pCharacter->Jump();

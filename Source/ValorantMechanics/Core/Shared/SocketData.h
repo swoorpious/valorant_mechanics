@@ -13,8 +13,8 @@
 /**
  * bones/socket names on the weapon's skeletal mesh
  */
-UCLASS()
-class VALORANTMECHANICS_API UWeaponSocketData : public UObject
+USTRUCT(BlueprintType)
+struct VALORANTMECHANICS_API FWeaponSocketData
 {
     GENERATED_BODY()
 
@@ -41,12 +41,11 @@ public:
 /**
  * bones/socket names on the player's skeletal mesh
  */
-UCLASS()
-class VALORANTMECHANICS_API UPlayerSocketNames : public UObject
+USTRUCT(BlueprintType)
+struct VALORANTMECHANICS_API FPlayerSocketNames
 {
     GENERATED_BODY()
 
-public: 
     
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Mesh|Sockets")
     FName leftHandTargetSocket = "L_Weapon_HandTargetSocket";

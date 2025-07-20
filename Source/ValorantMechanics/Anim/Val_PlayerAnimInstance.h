@@ -25,6 +25,7 @@ struct FWeaponAnimStates
 {
     GENERATED_BODY()
 
+    /*
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Animations|Player States", meta = (DisplayName = "Melee Weapon State"))
     EWeaponAnimState melee;
     
@@ -33,7 +34,12 @@ struct FWeaponAnimStates
     
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Animations|Player States", meta = (DisplayName = "Primary Weapon State"))
     EWeaponAnimState primary;
+    */
 
+    
+    UPROPERTY(BlueprintReadOnly, Category = "Valorant Animations|Player States", meta = (DisplayName = "Weapon State"))
+    EWeaponAnimState state;
+    
     UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Valorant Animations|Player States")
     EWeaponType currentWeaponType;
 
@@ -118,10 +124,10 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Animations|Player States", meta = (DisplayName = "Movement State"))
     EMovementState mState;
     
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly , Category = "Valorant Input")
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Valorant Input")
     FVector2D lastLookVector = FVector2D::ZeroVector;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly , Category = "Valorant Input", meta = (DisplayName = "Player Velocity Vector"))
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Valorant Input", meta = (DisplayName = "Player Velocity Vector"))
     FVector pVelocity = FVector::ZeroVector;
 
 

@@ -56,11 +56,13 @@ protected:
     // functions called from Val_InputComponent.h
     void PlayerMove() const;
     void PlayerLook(const FVector2D lookVector) const;
-
-
+    
     /*
      * functions for weapon actions
      */
+    void WeaponFire(const FInputActionInstance& InputActionInstance);
+
+    
     void TryWeaponEquip(const EWeaponType weaponType) const;
     // FORCEINLINE void TryWeaponDrop(const EWeaponType weaponType) const { pCharacter->DropWeapon(weaponType); }
 

@@ -4,7 +4,7 @@
 #include "Val_Character.h"
 
 #include "ValorantMechanics/Anim/Val_PlayerAnimInstance.h"
-#include "ValorantMechanics/Weapons/CommonWeapon.h"
+#include "ValorantMechanics/Weapon/CommonWeapon.h"
 #include "ValorantMechanics/ValorantMechanics.h"
 #include "ValorantMechanics/Core/Val_DefaultGameMode.h"
 
@@ -24,7 +24,6 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UVal_CharacterMovementComponent
 {
     PrimaryActorTick.bCanEverTick = true;
 
-    socketData = CreateDefaultSubobject<UPlayerSocketNames>(TEXT("Player Socket Names"));
     pInventory = CreateDefaultSubobject<UVal_PlayerInventory>(TEXT("Player Inventory"));
     
 
@@ -39,7 +38,7 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UVal_CharacterMovementComponent
     characterMesh->SetSimulatePhysics(false);
     
     characterMeshCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Character Mesh Camera"));
-    characterMeshCamera->SetupAttachment(characterMesh, socketData->cameraSocket);
+    characterMeshCamera->SetupAttachment(characterMesh, socketData.cameraSocket);
     characterMeshCamera->bUsePawnControlRotation = false;
     
 
@@ -103,7 +102,7 @@ void AVal_Character::SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn
     if (ACommonWeapon* spawnedWeapon = GetWorld()->SpawnActor<ACommonWeapon>(weaponToSpawn))
     {
         spawnedWeapon->SetOwner(this);
-        spawnedWeapon->AttachToComponent(characterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, socketData->rightWeaponMasterSocket);
+        spawnedWeapon->AttachToComponent(characterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, socketData.rightWeaponMasterSocket);
         spawnedWeapon->SetActorHiddenInGame(true); // hidden by default, EquipWeapon(...) will unhide
         spawnedWeapon->ExternWeaponPickUp(this);
 
@@ -182,4 +181,5 @@ AVal_PlayerController* AVal_Character::GetValPlayerController() const { return C
 AVal_Character* AVal_Character::GetValCharacter() { return this; }
 UVal_CharacterMovementComponent* AVal_Character::GetValMovementComponent() const { return Cast<UVal_CharacterMovementComponent>(GetCharacterMovement()); }
 UVal_PlayerAnimInstance* AVal_Character::GetValAnimInstance() const { return Cast<UVal_PlayerAnimInstance>(characterMesh->GetAnimInstance()); }
+UVal_PlayerInventory* AVal_Character::GetPlayerInventory() const { return pInventory; }
 

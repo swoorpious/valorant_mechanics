@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Swaroop. Personal Unreal engine project inspired BY VALORANT.
 
 #include "Val_PlayerInventory.h"
-#include "ValorantMechanics/Weapons/CommonWeapon.h"
+#include "ValorantMechanics/Weapon/CommonWeapon.h"
 
 
 UVal_PlayerInventory::UVal_PlayerInventory()

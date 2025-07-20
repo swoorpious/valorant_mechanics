@@ -4,24 +4,23 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ValorantMechanics/Weapons/CommonWeapon.h"
+#include "ValorantMechanics/Weapon/CommonWeapon.h"
+#include "PrimaryWeapon.generated.h"
 
-#include "TacticalKnife.generated.h"
 
+class UWeaponAnimDataAsset;
 
 
 UCLASS()
-class VALORANTMECHANICS_API ATacticalKnife : public ACommonWeapon
+class VALORANTMECHANICS_API APrimaryWeapon : public ACommonWeapon
 {
     GENERATED_BODY()
 
 public:
-    ATacticalKnife();
+    APrimaryWeapon();
     virtual void Tick(float DeltaTime) override;
-
 
 protected:
     virtual void BeginPlay() override;
-    
-    
+
 };

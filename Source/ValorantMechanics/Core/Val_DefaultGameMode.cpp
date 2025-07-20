@@ -2,4 +2,4 @@
 
 
 #include "Val_DefaultGameMode.h"
-#include "ValorantMechanics/Weapons/CommonWeapon.h"
+#include "ValorantMechanics/Weapon/CommonWeapon.h"

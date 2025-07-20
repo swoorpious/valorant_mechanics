@@ -3,7 +3,7 @@
 
 #include "Val_PlayerAnimInstance.h"
 
-#include "ValorantMechanics/Weapons/CommonWeapon.h"
+#include "ValorantMechanics/Weapon/CommonWeapon.h"
 #include "ValorantMechanics/Core/Val_LocalPlayerSubsystem.h"
 #include "ValorantMechanics/Player/Controller/Val_PlayerController.h"
 #include "ValorantMechanics/Player/PlayerComponents/Val_CharacterMovementComponent.h"
@@ -42,15 +42,19 @@ void UVal_PlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 void UVal_PlayerAnimInstance::UpdateWeaponAnimState(EWeaponType weaponType, EWeaponAnimState oldState, EWeaponAnimState newState)
 {
+    /*
     if (weaponType == EWeaponType::Empty) return;
     if (weaponType == EWeaponType::Melee) wAnimStates.melee = newState;
     if (weaponType == EWeaponType::Secondary) wAnimStates.secondary = newState;
     if (weaponType == EWeaponType::Primary) wAnimStates.primary = newState;
+    */
 
+    wAnimStates.state = newState;
     
     if (newState == EWeaponAnimState::Equip_Default || newState == EWeaponAnimState::Equip_Fast)
         wAnimStates.currentWeaponType = weaponType;
-   
+
+    if (newState == EWeaponAnimState::Idle) UE_LOG(LogTemp, Display, TEXT("Idle"))
 }
 
 
@@ -107,14 +111,16 @@ bool UVal_PlayerAnimInstance::CanTransitionToMovementAnimState(EMovementState st
 
 bool UVal_PlayerAnimInstance::CanTransitionToWeaponAnimState(EWeaponAnimState state) const
 {
+    /*
     const EWeaponType e = wAnimStates.currentWeaponType;
 
     if (e == EWeaponType::Melee) return wAnimStates.melee == state;
     if (e == EWeaponType::Secondary) return wAnimStates.secondary == state;
     if (e == EWeaponType::Primary) return wAnimStates.primary == state;
+    */
 
 
-    return false;
+    return wAnimStates.state == state;
 }
 
 

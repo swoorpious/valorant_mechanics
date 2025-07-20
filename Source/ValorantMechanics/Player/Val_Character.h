@@ -43,6 +43,7 @@ public:
     AVal_Character* GetValCharacter();
     UVal_CharacterMovementComponent* GetValMovementComponent() const;
     UVal_PlayerAnimInstance* GetValAnimInstance() const;
+    UVal_PlayerInventory* GetPlayerInventory() const;
 
 
 #pragma region COMPONENT SETUP
@@ -57,7 +58,7 @@ public:
 
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Valorant Character|Mesh|Sockets")
-    TObjectPtr<UPlayerSocketNames> socketData;
+    FPlayerSocketNames socketData;
 
 #pragma endregion COMPONENT SETUP
 

@@ -25,6 +25,8 @@ public:
     
     virtual void UnallowStateTransition(TStateEnum fromState, TSet<TStateEnum> unallowedStates);
     virtual TStateEnum GetCurrentState() const;
+    virtual TStateEnum GetLastState();
+    virtual float GetTimeSinceLastState();
 
     virtual TArray<TStateEnum> GetActiveStates() const;
     virtual bool IsCurrentState(TStateEnum state) const;
@@ -49,9 +51,9 @@ public:
 
     /*
      * this allows queuing the next state during the last few milliseconds of a timed state
-     * queueWindowMs: time in milliseconds before state completion when queuing is allowed
+     * queueWindow: time in milliseconds before state completion when queuing is allowed
      */
-    virtual void SetStateQueueWindow(TStateEnum state, float queueWindowMs = 50.0f);
+    virtual void SetStateQueueWindow(TStateEnum state, float queueWindow /* seconds */ = 0.05f);
     virtual bool TryQueueState(TStateEnum stateToQueue);
     virtual void ClearQueuedState();
     virtual bool HasQueuedState() const;
@@ -60,9 +62,9 @@ public:
     /*
      * for external functions to bind
      */
-    OnStateUpdatedCallback& GetStateUpdateCallbackDelegate() { return onStateUpdatedDelegate; }
-    OnTimedStateCallback& GetTimedStateCallbackDelegate() { return onTimedStateDelegate; }
-    OnStateStackUpdatedCallback& GetStateStackUpdateCallbackDelegate() { return onStateStackUpdatedDelegate; }
+    OnStateUpdatedCallback* GetStateUpdateCallbackDelegate() { return &onStateUpdatedDelegate; }
+    OnTimedStateCallback* GetTimedStateCallbackDelegate() { return &onTimedStateDelegate; }
+    OnStateStackUpdatedCallback* GetStateStackUpdateCallbackDelegate() { return &onStateStackUpdatedDelegate; }
     
     
 protected:
@@ -70,7 +72,7 @@ protected:
     virtual void InternalUpdateState(TStateEnum stateToExit, TStateEnum stateToEnter);
     virtual void InternalStackState(TStateEnum stateToStack);
     virtual void InternalUnstackState(TStateEnum stateToUnstack);
-    virtual void OnUpdateState(TStateEnum previousState, TStateEnum enteredState) = 0;
+    virtual void OnUpdateState(TStateEnum previousState, TStateEnum enteredState);
     virtual void OnStackState(TStateEnum stackedState) = 0;
     virtual void OnUnstackState(TStateEnum unstackedState) = 0;
 
@@ -182,6 +184,18 @@ TArray<TStateEnum> StateManager<TStateEnum>::GetActiveStates() const
     return activeStates;
 }
 
+template <typename TStateEnum>
+TStateEnum StateManager<TStateEnum>::GetLastState()
+{
+    return lastState;
+}
+
+template <typename TStateEnum>
+float StateManager<TStateEnum>::GetTimeSinceLastState()
+{
+    return timeSinceLastStateTransition;
+}
+
 
 template<typename TStateEnum>
 bool StateManager<TStateEnum>::IsCurrentState(TStateEnum state) const
@@ -274,9 +288,9 @@ TStateEnum StateManager<TStateEnum>::GetDefaultState() const
 
 
 template<typename TStateEnum>
-void StateManager<TStateEnum>::SetStateQueueWindow(TStateEnum state, float queueWindowMs)
+void StateManager<TStateEnum>::SetStateQueueWindow(TStateEnum state, float queueWindow)
 {
-    stateQueueWindows.Add(state, queueWindowMs);
+    stateQueueWindows.Add(state, queueWindow);
 }
 
 
@@ -308,7 +322,10 @@ bool StateManager<TStateEnum>::TryQueueState(TStateEnum stateToQueue)
     
     queuedState = stateToQueue;
     hasQueuedState = true;
+
+    UE_LOG(LogTemp, Warning, TEXT("Queued a state"))
     return true;
+    
 }
 
 
@@ -432,6 +449,12 @@ void StateManager<TStateEnum>::InternalUnstackState(TStateEnum stateToUnstack)
     onStateStackUpdatedDelegate.Broadcast(stateToUnstack, false);
     
     OnUnstackState(stateToUnstack);
+}
+
+template <typename TStateEnum>
+void StateManager<TStateEnum>::OnUpdateState(TStateEnum previousState, TStateEnum enteredState)
+{
+    onStateUpdatedDelegate.Broadcast(previousState, enteredState);
 }
 
 
