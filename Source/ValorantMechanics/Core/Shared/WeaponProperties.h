@@ -80,6 +80,9 @@ struct VALORANTMECHANICS_API FDefaultWeaponProperties
 {
     GENERATED_BODY()
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire Properties", meta = (Unit = "cm/s"))
+    bool weaponIsAutomatic = false; // treated semi-automatic when false 
+    
     // default FOV for the weapon, unused property
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Range")
     float fov = 90.0f; // degrees

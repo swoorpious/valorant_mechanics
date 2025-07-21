@@ -139,7 +139,7 @@ void AVal_PlayerController::WeaponFire(const FInputActionInstance& inputInstance
         if (actionName == "VIA_Attack") weapon->ExternFireStart();
         if (actionName == "VIA_Alt_Attack") weapon->ExternAltFireStart();
 
-    } else if (actionTrigger == ETriggerEvent::Triggered)
+    } else if (actionTrigger == ETriggerEvent::Triggered )
         weapon->ExternFireTriggered();
 
     else if (actionTrigger == ETriggerEvent::Canceled || actionTrigger == ETriggerEvent::Completed)
