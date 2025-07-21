@@ -14,6 +14,7 @@
 
 #include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/AudioComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -40,6 +41,13 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UVal_CharacterMovementComponent
     characterMeshCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Character Mesh Camera"));
     characterMeshCamera->SetupAttachment(characterMesh, socketData.cameraSocket);
     characterMeshCamera->bUsePawnControlRotation = false;
+
+    audioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("Audio Component"));
+    audioComponent->SetupAttachment(RootComponent);
+    audioComponent->bAutoActivate = false;
+    audioComponent->bAutoRegister = true;
+    audioComponent->bIsUISound = true;
+    audioComponent->bAllowSpatialization = false;
     
 
     bUseControllerRotationYaw = false;
@@ -175,6 +183,14 @@ void AVal_Character::DropWeapon(EWeaponType weaponType)
     
 }
 
+void AVal_Character::PlayLocalSound(USoundBase* sound) const
+{
+    if (audioComponent && sound)
+    {
+        audioComponent->SetSound(sound);
+        audioComponent->Play();
+    }
+}
 
 
 AVal_PlayerController* AVal_Character::GetValPlayerController() const { return Cast<AVal_PlayerController>(GetController()); }

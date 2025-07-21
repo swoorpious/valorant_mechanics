@@ -28,7 +28,6 @@ class VALORANTMECHANICS_API ACommonWeapon : public AActor, public PrimaryStateMa
 public:
     ACommonWeapon();
 
-
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Body")
     TObjectPtr<USkeletalMeshComponent> weaponMesh = nullptr;
@@ -119,6 +118,8 @@ protected:
 private:
 
     bool isFireStarted = false;
+    bool semiAutoFireBlocked = false;
+    
     uint32 currentMagAmmoCount = 0;
     uint32 totalAmmoCount = 0;
     
@@ -127,6 +128,5 @@ private:
     UPROPERTY() TObjectPtr<UVal_LocalPlayerSubsystem> pSubsystem = nullptr;
     
     friend UWeaponLogicStateManager;
-    friend UWeaponAnimStateManager;
     
 };

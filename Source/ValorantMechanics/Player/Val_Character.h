@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 
 #include "ValorantMechanics/Core/Shared/PlayerDelegateDefinition.h"
-// #include "Shared/WeaponData/WeaponProperties.h"
 #include "ValorantMechanics/Core/Shared/SocketData.h"
 #include "ValorantMechanics/Core/Shared/PlayerStates.h"
 
@@ -56,6 +55,9 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Valorant Character|Character Setup|Scene|Mesh|Camera", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UCameraComponent> characterMeshCamera;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Valorant Character|Character Setup|Scene|Mesh|Camera", meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<class UAudioComponent> audioComponent;
+
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Valorant Character|Mesh|Sockets")
     FPlayerSocketNames socketData;
@@ -68,6 +70,8 @@ public:
     void EquipWeapon(const EWeaponType weaponType, const EWeaponLogicState equipType);
     void UnequipWeapon(const EWeaponType weaponType);
     void DropWeapon(EWeaponType weaponType);
+
+    void PlayLocalSound(USoundBase* sound) const;
     
     
 protected:

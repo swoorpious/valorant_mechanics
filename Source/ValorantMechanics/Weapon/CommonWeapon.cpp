@@ -127,14 +127,22 @@ void ACommonWeapon::ExternFireStart()
     if (CanFire())
     {
         isFireStarted = true;
-        stateManager->ForceTransitionToState(EWeaponLogicState::FireShot);
+
+        if (!defaultProperties.weaponIsAutomatic && !semiAutoFireBlocked)
+        {
+            stateManager->TryTransitionToState(EWeaponLogicState::FireShot);
+            semiAutoFireBlocked = true; // block shots until button is released 
+        }
     }
 }
 
 void ACommonWeapon::ExternFireEnd()
 {
     isFireStarted = false;
-    
+    if (!defaultProperties.weaponIsAutomatic)
+    {
+        semiAutoFireBlocked = false;
+    }
 }
 
 void ACommonWeapon::ExternAltFireStart()
@@ -160,9 +168,9 @@ void ACommonWeapon::ExternFireTriggered()
         EWeaponLogicState::Equip_Fast
     };
 
-    if (CanFire() && defaultProperties.weaponIsAutomatic)
+    if (CanFire() && defaultProperties.weaponIsAutomatic && isFireStarted)
     {
-        if (queueableStates.Contains(stateManager->GetCurrentState()) || queueableStates.Contains(stateManager->GetLastState()))
+        if (queueableStates.Contains(stateManager->GetCurrentState()))
         {
             UE_LOG(LogTemp, Display, TEXT("trying to queue shoot"));
             stateManager->TryQueueState(EWeaponLogicState::FireShot);
@@ -175,7 +183,7 @@ void ACommonWeapon::ExternFireTriggered()
 
 void ACommonWeapon::FireShoot()
 {
-    UE_LOG(LogTemp, Display, TEXT("FireShoot()"))
+    stateManager->ForceTransitionToState(EWeaponLogicState::FireCooldown);
 
     FHitResult hit;
     FCollisionQueryParams queryParams = FCollisionQueryParams(SCENE_QUERY_STAT(WeaponTrace), false, this);
@@ -199,18 +207,6 @@ void ACommonWeapon::FireShoot()
                 ENCPoolMethod::AutoRelease,
                 true);
         }
-
-//         UNiagaraComponent* tracerComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-//     GetWorld(),
-//     bulletTracerSystem,                      // Your NiagaraSystem*
-//     startLocation,                           // Bullet origin (e.g., muzzle)
-//     FRotator::ZeroRotator,
-//     FVector(1.0f),                           // Scale
-//     true,                                    // Auto destroy
-//     true,                                    // Auto activate
-//     ENCPoolMethod::AutoRelease,
-//     true
-// );
     }
 
     if (muzzleParticle)
@@ -231,6 +227,9 @@ void ACommonWeapon::FireShoot()
         spawnedSystem->Activate();
     }
 
+
+    pOwnerCharacter->PlayLocalSound(animAsset->GetRandomAttackSFX());
+    
     UE_LOG(LogTemp, Warning, TEXT("weapon trace start: %s"), *startPoint.ToString())
     UE_LOG(LogTemp, Warning, TEXT("weapon trace start: %s"), *endPoint.ToString())
 }
@@ -284,7 +283,7 @@ void ACommonWeapon::InternalPickedUp(AVal_Character* ownerCharacter)
     stateManager->PrimaryComponentTick.bCanEverTick = true;
     
     pOwnerCharacter = Cast<AVal_Character>(ownerCharacter);
-    if (pOwnerCharacter; const auto* e = pOwnerCharacter->GetValPlayerController()->GetLocalPlayer())
+    if (const auto* e = pOwnerCharacter->GetValPlayerController()->GetLocalPlayer(); pOwnerCharacter && e)
     {
         pSubsystem = e->GetSubsystem<UVal_LocalPlayerSubsystem>();
     }
@@ -300,7 +299,8 @@ void ACommonWeapon::InternalEquipped()
     stateManager->PrimaryComponentTick.bCanEverTick = true;
     stateManager->TryTransitionToState(EWeaponLogicState::Equip_Default);
 
-    this->SetActorHiddenInGame(false);
+    SetActorHiddenInGame(false);
+    pOwnerCharacter->PlayLocalSound(animAsset->equipSFX);
 }
 
 void ACommonWeapon::InternalUnequipped()
@@ -342,23 +342,23 @@ bool ACommonWeapon::CanFire() const
     
     if (defaultProperties.weaponIsAutomatic)
     {
-        const float fireRateSecs = (defaultProperties.fireRate > 0.0f) ?
-            (1.0f / defaultProperties.fireRate) - 0.1f :
+        const float fireRateSecs = defaultProperties.fireRate > 0.0f ?
+            1.0f / defaultProperties.fireRate - 0.05f :
             0.1f;
         const float timeSinceLastFire = stateManager->GetTimeSinceLastState();
 
         if (timeSinceLastFire >= fireRateSecs) return true;        
 
-        UE_LOG(LogTemp, Display, TEXT("Cannot fire: still in fire cooldown (%.3f seconds left)"), fireRateSecs - timeSinceLastFire);
+        UE_LOG(LogTemp, Display, TEXT("cannot fire: still in fire cooldown (%.3f seconds left)"), fireRateSecs - timeSinceLastFire);
         return false;
     }
 
     
     // for semi-automatic weapons
-    EWeaponLogicState lastState = stateManager->GetLastState();
+    const EWeaponLogicState lastState = stateManager->GetLastState();
     if (lastState != EWeaponLogicState::FireShot) return true;
 
-    UE_LOG(LogTemp, Display, TEXT("Cannot fire: semi-auto fire already triggered and waiting for release"));
+    UE_LOG(LogTemp, Display, TEXT("cannot fire: semi-auto fire already triggered and waiting for release"));
     return false;
 }
 
