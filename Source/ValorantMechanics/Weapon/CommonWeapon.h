@@ -11,7 +11,6 @@
 #include "ValorantMechanics/Core/Shared/WeaponAnimDataAsset.h"
 #include "ValorantMechanics/Core/StateManager/StateManagerOwner.h"
 #include "WeaponLogicStateManager.h"
-#include "WeaponAnimStateManager.h"
 
 #include "CommonWeapon.generated.h"
 
@@ -22,7 +21,7 @@ class UVal_LocalPlayerSubsystem;
 
 
 UCLASS()
-class VALORANTMECHANICS_API ACommonWeapon : public AActor, public PrimaryStateManagerOwner<UWeaponLogicStateManager>, public SecondaryStateManagerOwner<UWeaponAnimStateManager>
+class VALORANTMECHANICS_API ACommonWeapon : public AActor, public PrimaryStateManagerOwner<UWeaponLogicStateManager>
 {
     GENERATED_BODY()
 
@@ -69,6 +68,7 @@ public:
     virtual EWeaponPickupType GetWeaponPickupType();
     virtual TObjectPtr<UWeaponAnimDataAsset>& GetAnimAsset();
     bool CanBeDropped() const;
+    bool IsWeaponAutomatic() const;
     // virtual something GetWeaponAmmo();
     
     virtual void ExternFireStart();
@@ -113,16 +113,12 @@ protected:
     FWeaponSocketData socketData;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|State Managers")
-    TObjectPtr<UWeaponLogicStateManager> weaponLogicSM = nullptr;
-
-    //
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|State Managers")
-    TObjectPtr<UWeaponAnimStateManager> weaponAnimSM = nullptr;
+    TObjectPtr<UWeaponLogicStateManager> stateManager = nullptr;
 
 
 private:
 
-    bool isFireHeld = false;
+    bool isFireStarted = false;
     uint32 currentMagAmmoCount = 0;
     uint32 totalAmmoCount = 0;
     
