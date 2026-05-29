@@ -8,7 +8,6 @@
 #include "PlayerMovementProperties.h"
 #include "ValorantMechanics/Core/Shared/PlayerStates.h"
 #include "ValorantMechanics/Core/StateManager/StateManagerOwner.h"
-#include "MovementStateManager.h"
 
 #include "Val_CharacterMovementComponent.generated.h"
 
@@ -32,7 +31,7 @@ class UVal_LocalPlayerSubsystem;
 
 
 UCLASS(ClassGroup=(Valorant), meta=(BlueprintSpawnableComponent))
-class VALORANTMECHANICS_API UVal_CharacterMovementComponent : public UCharacterMovementComponent, public PrimaryStateManagerOwner<UMovementStateManager>
+class VALORANTMECHANICS_API UVal_CharacterMovementComponent : public UCharacterMovementComponent
 {
     GENERATED_BODY()
 
@@ -58,14 +57,11 @@ protected:
     
     void HandleAirMovement(float DeltaTime);
 
-    virtual UMovementStateManager* GetStateManager() const override;
-
 private:
     
     UPROPERTY() TObjectPtr<AVal_Character> pCharacter = nullptr;
-    UPROPERTY() TObjectPtr<UVal_LocalPlayerSubsystem> pSubsystem = nullptr;
+    // UPROPERTY() TObjectPtr<UVal_LocalPlayerSubsystem> pSubsystem = nullptr;
     UPROPERTY() TObjectPtr<UVal_InputSystem> valInputSystem = nullptr;
-    UPROPERTY() TObjectPtr<UMovementStateManager> movementSM = nullptr;
 
     
     float airStrafeTime = 0.0f;
@@ -74,8 +70,4 @@ private:
 
     
     FVector2d moveVector = FVector2d::ZeroVector;
-    
-
-
-    friend UMovementStateManager;
 };

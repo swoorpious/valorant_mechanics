@@ -9,7 +9,7 @@
 #include "ValorantMechanics/Core/Val_DefaultGameMode.h"
 
 #include "PlayerComponents/Val_CharacterMovementComponent.h"
-#include "PlayerComponents/Val_PlayerInventory.h"
+#include "ValorantMechanics/Core/systems/Val_PlayerInventory.h"
 #include "Controller/Val_PlayerController.h"
 
 #include "Components/CapsuleComponent.h"
@@ -18,6 +18,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "ValorantMechanics/Weapon/Val_WeaponAnimConfig.h"
 
 
 AVal_Character::AVal_Character(const FObjectInitializer& ObjectInitializer) :
@@ -25,7 +26,7 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UVal_CharacterMovementComponent
 {
     PrimaryActorTick.bCanEverTick = true;
 
-    pInventory = CreateDefaultSubobject<UVal_PlayerInventory>(TEXT("Player Inventory"));
+    _inventory = CreateDefaultSubobject<UVal_PlayerInventory>(TEXT("Player Inventory"));
     
 
     RootComponent = GetCapsuleComponent();
@@ -70,16 +71,16 @@ void AVal_Character::BeginPlay()
 {
     Super::BeginPlay();
     
-    pMovement = Cast<UVal_CharacterMovementComponent>(GetCharacterMovement());
-    pAnimInstance = Cast<UVal_PlayerAnimInstance>(characterMesh->GetAnimInstance());
-    if (!pMovement) LOG(Val_Player, Error, "pMovement is likely a nullptr.");
-    if (!pAnimInstance) LOG(Val_Player, Error, "pAnimInstance is likely a nullptr.");
+    _charMovementComponent = Cast<UVal_CharacterMovementComponent>(GetCharacterMovement());
+    _playerAnimInstance = Cast<UVal_PlayerAnimInstance>(characterMesh->GetAnimInstance());
+    if (!_charMovementComponent) LOG(Val_Player, Error, "_charMovementComponent is likely a nullptr.");
+    if (!_playerAnimInstance) LOG(Val_Player, Error, "_playerAnimInstance is likely a nullptr.");
 
     if (const auto* e = GetWorld()->GetAuthGameMode<AVal_DefaultGameMode>())
     {
-        if (e->meleeToSpawn) SpawnWeapon(e->meleeToSpawn, !e->secondaryToSpawn && !e->primaryToSpawn);
+        if (e->meleeToSpawn)     SpawnWeapon(e->meleeToSpawn,     !e->secondaryToSpawn && !e->primaryToSpawn);
         if (e->secondaryToSpawn) SpawnWeapon(e->secondaryToSpawn, !e->primaryToSpawn);
-        if (e->primaryToSpawn) SpawnWeapon(e->primaryToSpawn, true);
+        if (e->primaryToSpawn)   SpawnWeapon(e->primaryToSpawn,   true);
     }
         
 }
@@ -105,81 +106,93 @@ void AVal_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 void AVal_Character::SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn, bool shouldAutoEquip)
 {
     if (!weaponToSpawn) return;
-
     
-    if (ACommonWeapon* spawnedWeapon = GetWorld()->SpawnActor<ACommonWeapon>(weaponToSpawn))
+    if (ACommonWeapon* spawned_weapon = GetWorld()->SpawnActor<ACommonWeapon>(weaponToSpawn))
     {
-        spawnedWeapon->SetOwner(this);
-        spawnedWeapon->AttachToComponent(characterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, socketData.rightWeaponMasterSocket);
-        spawnedWeapon->SetActorHiddenInGame(true); // hidden by default, EquipWeapon(...) will unhide
-        spawnedWeapon->ExternWeaponPickUp(this);
+        spawned_weapon->SetOwner(this);
+        spawned_weapon->AttachToComponent(characterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, socketData.rightWeaponMasterSocket);
+        spawned_weapon->SetActorHiddenInGame(true); // hidden by default, EquipWeapon(...) will unhide
+        spawned_weapon->tryWeaponPickUp(this);
 
-        pInventory->UpdateInventoryWeapon(spawnedWeapon);
-        pAnimInstance->UpdateAnimDataAsset(spawnedWeapon);
+        _inventory->addWeaponToInventory(spawned_weapon);
 
-        if (shouldAutoEquip) this->EquipWeapon(spawnedWeapon->GetWeaponType(), EWeaponLogicState::Equip_Default);
+        if (shouldAutoEquip) this->EquipWeapon(spawned_weapon->getWeaponType(), EEquipType::EquipDefault);
         
     }
     
 }
 
 
-void AVal_Character::EquipWeapon(const EWeaponType weaponType, const EWeaponLogicState equipType = EWeaponLogicState::Equip_Default)
+void AVal_Character::EquipWeapon(const EWeaponType weaponType, const EEquipType equipType = EEquipType::EquipDefault)
 {
-    if (equipType != EWeaponLogicState::Equip_Default && equipType != EWeaponLogicState::Equip_Fast) return;
-    if (const auto& e = pInventory->GetEquippedWeapon())
+    if (const auto& e = _inventory->getEquippedWeapon())
     {
-        if (e->GetWeaponType() == weaponType) return;
-        if (pInventory->HasWeapon(weaponType)) UnequipWeapon(e->GetWeaponType());
+    	// return if trying to switch to the already equipped weapon
+        if (e->getWeaponType() == weaponType) return;
+        if (_inventory->hasWeapon(weaponType)) UnequipWeapon(e->getWeaponType());
     }
-
-    const TObjectPtr<ACommonWeapon>& invWeapon = pInventory->GetWeaponByType(weaponType);
-    const TObjectPtr<UWeaponAnimDataAsset>& animDataInstance = pAnimInstance->GetAnimDataAsset(weaponType);
-    const TObjectPtr<UWeaponAnimDataAsset>& animDataWeapon = invWeapon ? invWeapon->GetAnimAsset() : nullptr;
-    
-    bool const validAnim = pAnimInstance && animDataWeapon == animDataInstance;
-    if (!validAnim || !pInventory->HasWeapon(weaponType)) return;
-    
+	
+    ACommonWeapon* inv_weapon = _inventory->getWeaponByType(weaponType);
+    if (!inv_weapon)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("EquipWeapon: no weapon of type %d in inventory"), static_cast<int32>(weaponType));
+        return;
+    }
   
-    invWeapon->ExternWeaponEquip();
-    pInventory->UpdateEquippedWeapon(weaponType);
-    pAnimInstance->UpdateCurrentWeapon(weaponType);
+    inv_weapon->weaponEquip(equipType);
+    _inventory->switchEquippedWeapon(weaponType);
     
 }
 
 
-void AVal_Character::UnequipWeapon(const EWeaponType weaponType)
+void AVal_Character::UnequipWeapon(const EWeaponType weaponType) const
 {
-    
-    pInventory->GetWeaponByType(weaponType)->ExternWeaponUnequip();
+    // TODO: equip next level available weapon type
+    ACommonWeapon* weapon = _inventory->getWeaponByType(weaponType);
+    if (weapon) weapon->weaponUnequip();
 }
+
+// void AVal_Character::pickupWeapon(EWeaponType weaponType)
+// {
+// 	
+// }
 
 
 void AVal_Character::DropWeapon(EWeaponType weaponType)
 {
-    if (pInventory->GetEquippedWeapon()->GetWeaponType() == weaponType)
+    // FIX: null-check getEquippedWeapon() before dereferencing
+    ACommonWeapon* equipped = _inventory->getEquippedWeapon();
+    if (!equipped) return;
+
+    if (equipped->getWeaponType() == weaponType)
     {
+    	// assuming that the player has a melee weapon at all times
+    	const bool has_primary = _inventory->hasWeapon(EWeaponType::Primary);
+    	const bool has_secondary = _inventory->hasWeapon(EWeaponType::Secondary);  
+    	
         switch (weaponType)
         {
             case EWeaponType::Melee:
             case EWeaponType::Empty:
             default:
-                // cannot drop an empty, or...the melee lol
+                // cannot drop weapon of type empty or melee
                 return;
             case EWeaponType::Secondary:
                 // when secondary is dropped, equip primary if it exists, or equip melee
-                this->EquipWeapon(pInventory->HasWeapon(EWeaponType::Primary) ? EWeaponType::Primary : EWeaponType::Melee);
-                break;
+                this->EquipWeapon(has_primary ? EWeaponType::Primary : EWeaponType::Melee);
+                return;
             case EWeaponType::Primary:
                 // when primary is dropped, equip secondary if it exists, or equip melee
-                this->EquipWeapon(pInventory->HasWeapon(EWeaponType::Secondary) ? EWeaponType::Secondary : EWeaponType::Melee);
-                break;
+                this->EquipWeapon(has_secondary ? EWeaponType::Secondary : EWeaponType::Melee);
+                return;
         }
     }
 
     // TODO: change this when implementing weapon drop and physics for weapon 
-    pInventory->GetWeaponByType(weaponType)->Destroy();
-    pInventory->DropWeaponByType(weaponType);
+    ACommonWeapon* weapon_to_drop = _inventory->getWeaponByType(weaponType);
+	weapon_to_drop->tryWeaponDrop();
+    if (weapon_to_drop) weapon_to_drop->Destroy();
+    _inventory->removeWeaponFromInventory(weaponType);
     
 }
 
@@ -197,5 +210,4 @@ AVal_PlayerController* AVal_Character::GetValPlayerController() const { return C
 AVal_Character* AVal_Character::GetValCharacter() { return this; }
 UVal_CharacterMovementComponent* AVal_Character::GetValMovementComponent() const { return Cast<UVal_CharacterMovementComponent>(GetCharacterMovement()); }
 UVal_PlayerAnimInstance* AVal_Character::GetValAnimInstance() const { return Cast<UVal_PlayerAnimInstance>(characterMesh->GetAnimInstance()); }
-UVal_PlayerInventory* AVal_Character::GetPlayerInventory() const { return pInventory; }
-
+UVal_PlayerInventory* AVal_Character::GetPlayerInventory() const { return _inventory; }

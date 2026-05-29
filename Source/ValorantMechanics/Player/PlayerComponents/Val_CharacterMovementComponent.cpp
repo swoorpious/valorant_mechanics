@@ -19,19 +19,14 @@ UVal_CharacterMovementComponent::UVal_CharacterMovementComponent()
 {
     PrimaryComponentTick.bCanEverTick = true;
     bOrientRotationToMovement = false;
-    
-    movementSM = CreateDefaultSubobject<UMovementStateManager>(TEXT("Movement State Manager"));
-    InitializePrimaryStateManager(movementSM);
-
+	
 }
 
 
 void UVal_CharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-    movementSM->TickState(DeltaTime);
-
+	
     HandleAirMovement(DeltaTime);
 }
 
@@ -46,7 +41,6 @@ void UVal_CharacterMovementComponent::BeginPlay()
     if (pCharacter)
     {
         valInputSystem = pCharacter->GetValPlayerController()->GetInputSystem();
-        pSubsystem = pCharacter->GetValPlayerController()->GetLocalPlayer()->GetSubsystem<UVal_LocalPlayerSubsystem>();
         
     }
 
@@ -173,11 +167,6 @@ void UVal_CharacterMovementComponent::HandleAirMovement(float DeltaTime)
 
     lastAirInputDirection = currentAirMovementDirection;
     
-}
-
-UMovementStateManager* UVal_CharacterMovementComponent::GetStateManager() const
-{
-    return movementSM;
 }
 
 

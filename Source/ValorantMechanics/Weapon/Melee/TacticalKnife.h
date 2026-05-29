@@ -17,11 +17,5 @@ class VALORANTMECHANICS_API ATacticalKnife : public ACommonWeapon
 
 public:
     ATacticalKnife();
-    virtual void Tick(float DeltaTime) override;
 
-
-protected:
-    virtual void BeginPlay() override;
-    
-    
 };

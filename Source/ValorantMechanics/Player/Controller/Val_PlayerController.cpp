@@ -12,7 +12,7 @@
 
 #include "Camera/CameraComponent.h"
 #include "GameFramework/InputSettings.h"
-#include "ValorantMechanics/Player/PlayerComponents/Val_PlayerInventory.h"
+#include "ValorantMechanics/Core/Systems/Val_PlayerInventory.h"
 
 
 AVal_PlayerController::AVal_PlayerController()
@@ -33,7 +33,6 @@ void AVal_PlayerController::OnPossess(APawn* aPawn)
     pCharacter = Cast<AVal_Character>(aPawn);
     if (!pCharacter) LOG(Val_Player, Error, "This controller and its descendants should only possess AMySpecificCharacterClass derived pawns!");
     pMovement = pCharacter->GetValMovementComponent();
-
     
     inputSystem->Init(this, InputComponent);
     
@@ -131,21 +130,19 @@ void AVal_PlayerController::PlayerLook(const FVector2D lookVector) const
 
 void AVal_PlayerController::WeaponFire(const FInputActionInstance& inputInstance)
 {
-    const TObjectPtr<ACommonWeapon>& weapon = pCharacter->GetPlayerInventory()->GetEquippedWeapon();
+    ACommonWeapon* weapon = pCharacter->GetPlayerInventory()->getEquippedWeapon();
     const FString actionName = inputInstance.GetSourceAction()->GetName();
 
     if (const ETriggerEvent actionTrigger = inputInstance.GetTriggerEvent(); actionTrigger == ETriggerEvent::Started)
     {
-        if (actionName == "VIA_Attack") weapon->ExternFireStart();
-        if (actionName == "VIA_Alt_Attack") weapon->ExternAltFireStart();
+        if (actionName == "VIA_Attack") weapon->fireStart();
+        if (actionName == "VIA_Alt_Attack") weapon->tryAltFire();
 
-    } else if (actionTrigger == ETriggerEvent::Triggered )
-        weapon->ExternFireTriggered();
-
-    else if (actionTrigger == ETriggerEvent::Canceled || actionTrigger == ETriggerEvent::Completed)
+    }
+	else if (actionTrigger == ETriggerEvent::Canceled || actionTrigger == ETriggerEvent::Completed)
     {
-        if (actionName == "VIA_Attack") weapon->ExternFireEnd();
-        if (actionName == "VIA_Alt_Attack") weapon->ExternAltFireEnd();
+        if (actionName == "VIA_Attack") weapon->fireEnd();
+        // if (actionName == "VIA_Alt_Attack") weapon->ExternAltFireEnd();
         
     }
 }
@@ -172,24 +169,22 @@ void AVal_PlayerController::PlayerCrouch(const FInputActionInstance& inputInstan
 
 void AVal_PlayerController::PlayerWalk(const FInputActionInstance& inputInstance)
 {
-    auto* e = pMovement->GetPrimaryStateManager();
-    
-    switch (inputInstance.GetTriggerEvent()) {
-        case ETriggerEvent::Started:
-        case ETriggerEvent::Triggered:
-        case ETriggerEvent::Ongoing:
-            e->TryTransitionToState(EMovementState::Walking);
-            break;
-        
-        case ETriggerEvent::Canceled:
-        case ETriggerEvent::Completed:
-            inputSystem->HasMovementInput() ? 
-                e->TryTransitionToState(EMovementState::Running) :
-                e->TryTransitionToState(EMovementState::Idle);
-            break;
-
-        default: break;
-    }
+    // switch (inputInstance.GetTriggerEvent()) {
+    //     case ETriggerEvent::Started:
+    //     case ETriggerEvent::Triggered:
+    //     case ETriggerEvent::Ongoing:
+    //         e->TryTransitionToState(EMovementState::Walking);
+    //         break;
+    //     
+    //     case ETriggerEvent::Canceled:
+    //     case ETriggerEvent::Completed:
+    //         inputSystem->HasMovementInput() ? 
+    //             e->TryTransitionToState(EMovementState::Running) :
+    //             e->TryTransitionToState(EMovementState::Idle);
+    //         break;
+    //
+    //     default: break;
+    // }
 }
 
 void AVal_PlayerController::PlayerUse(const FInputActionInstance& inputInstance)
@@ -199,7 +194,7 @@ void AVal_PlayerController::PlayerUse(const FInputActionInstance& inputInstance)
 
 void AVal_PlayerController::TryWeaponEquip(const EWeaponType weaponType) const
 {
-    pCharacter->EquipWeapon(weaponType, EWeaponLogicState::Equip_Default);
+    pCharacter->EquipWeapon(weaponType, EEquipType::EquipDefault);
 }
 
 

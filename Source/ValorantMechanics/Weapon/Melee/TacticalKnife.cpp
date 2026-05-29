@@ -10,20 +10,7 @@ ATacticalKnife::ATacticalKnife()
 {
     PrimaryActorTick.bCanEverTick = true;
 
-    weaponType = EWeaponType::Melee;
-    weaponPickupType = EWeaponPickupType::NonPickupable;
-}
-
-
-void ATacticalKnife::BeginPlay()
-{
-    Super::BeginPlay();
-    
-}
-
-
-void ATacticalKnife::Tick(float DeltaTime)
-{
-    Super::Tick(DeltaTime);
+    _weaponType = EWeaponType::Melee;
+    _weaponPickupType = EWeaponPickupType::NonPickupable;
 }
 

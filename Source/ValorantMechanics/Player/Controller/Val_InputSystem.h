@@ -49,11 +49,11 @@ public:
     virtual FVector2D GetLastLookVector() const;
 
     // returns true if there is any movement that is not cancelled by the opposite direction
-    FORCEINLINE bool HasMovementInput() const { return inputMap.W ^ inputMap.S || inputMap.A ^ inputMap.D; }
+    bool HasMovementInput() const { return inputMap.W ^ inputMap.S || inputMap.A ^ inputMap.D; }
     
     // adds input in both axes separately
     // ActionA and ActionD cancel out each other, similarly ActionW and ActionS
-    FORCEINLINE FVector2d GetAdditiveMovementInput() const
+    FVector2d GetAdditiveMovementInput() const
     {
         const double x = inputMap.A * -1 + inputMap.D * 1;
         const double y = inputMap.W * 1 + inputMap.S * -1;

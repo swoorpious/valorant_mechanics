@@ -9,20 +9,6 @@ APrimaryWeapon::APrimaryWeapon()
 {
     PrimaryActorTick.bCanEverTick = true;
 
-    weaponType = EWeaponType::Primary;
-    weaponPickupType = EWeaponPickupType::Pickupable;
+    _weaponType = EWeaponType::Primary;
+    _weaponPickupType = EWeaponPickupType::Pickupable;
 }
-
-// Called when the game starts or when spawned
-void APrimaryWeapon::BeginPlay()
-{
-    Super::BeginPlay();
-    
-}
-
-
-void APrimaryWeapon::Tick(float DeltaTime)
-{
-    Super::Tick(DeltaTime);
-}
-

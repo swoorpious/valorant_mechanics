@@ -11,14 +11,15 @@
  * EMovementState is meant to be used by the Val_CharacterMovementComponent
  * UsingAbilityMovement indicates that the player character is now using movement altered by an ability
  */
-UENUM()
+UENUM(BlueprintType)
 enum class EMovementState : uint8
 {
     None, 
     Idle,
-    Walking,
-    Running,
-    Jumping,
+    Walk,
+    Run,
+    Jump_Up,
+	Jump_Fall,
 
     // stackable states
     Crouched,
@@ -39,29 +40,7 @@ enum class EMovementState : uint8
 };
 
 
-/*
- * these states are used by both the player and the weapon in AVal_Character and ACommonWeapon
- *
- * AVal_Character uses a pseudo implementation of these states to apply corresponding character animations according to the state
- * ACommonWeapon uses these states to apply corresponding weapon animations/effects according to the state
- */
-UENUM(BlueprintType)
-enum class EWeaponLogicState : uint8
-{
-    None, // when the weapon is dropped or not picked up yet
-    Equip_Default,
-    Equip_Fast,
-    Idle, // equipped -> idle
-    Reloading,
-    FireShot, // state for single tick
-    FireCooldown, // firing -> fire cooldown -> idle/firing
-    Inspecting,
 
-        
-    // stackable states
-    Blocked,
-    ScopedIn, // scope/ADS
-};
 
 
 /*
@@ -85,19 +64,19 @@ enum class EWeaponAnimState : uint8
 
 
 
-const TMap<EWeaponLogicState, EWeaponAnimState> weaponLogicToAnimStatesMap = {
-    
-    { EWeaponLogicState::None, EWeaponAnimState::None },
-    { EWeaponLogicState::Equip_Default, EWeaponAnimState::Equip_Default },
-    { EWeaponLogicState::Equip_Fast, EWeaponAnimState::Equip_Fast },
-    { EWeaponLogicState::Idle, EWeaponAnimState::Idle },
-    { EWeaponLogicState::Reloading, EWeaponAnimState::Reloading },
-    { EWeaponLogicState::FireShot, EWeaponAnimState::Firing },
-    { EWeaponLogicState::FireCooldown, EWeaponAnimState::Firing },
-    { EWeaponLogicState::Inspecting, EWeaponAnimState::Inspecting },
-
-    // stacked states
-    { EWeaponLogicState::Blocked, EWeaponAnimState::Blocked },
-    { EWeaponLogicState::ScopedIn, EWeaponAnimState::ScopedIn },
-};
+// const TMap<EWeaponLogicState, EWeaponAnimState> weaponLogicToAnimStatesMap = {
+//     
+//     { EWeaponLogicState::None, EWeaponAnimState::None },
+//     { EWeaponLogicState::Equip_Default, EWeaponAnimState::Equip_Default },
+//     { EWeaponLogicState::Equip_Fast, EWeaponAnimState::Equip_Fast },
+//     { EWeaponLogicState::Idle, EWeaponAnimState::Idle },
+//     { EWeaponLogicState::Reloading, EWeaponAnimState::Reloading },
+//     { EWeaponLogicState::FireShot, EWeaponAnimState::Firing },
+//     { EWeaponLogicState::FireCooldown, EWeaponAnimState::Firing },
+//     { EWeaponLogicState::Inspecting, EWeaponAnimState::Inspecting },
+//
+//     // stacked states
+//     { EWeaponLogicState::Blocked, EWeaponAnimState::Blocked },
+//     { EWeaponLogicState::ScopedIn, EWeaponAnimState::ScopedIn },
+// };
 

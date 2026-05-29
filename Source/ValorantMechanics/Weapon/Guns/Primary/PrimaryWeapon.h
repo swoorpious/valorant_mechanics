@@ -18,9 +18,5 @@ class VALORANTMECHANICS_API APrimaryWeapon : public ACommonWeapon
 
 public:
     APrimaryWeapon();
-    virtual void Tick(float DeltaTime) override;
-
-protected:
-    virtual void BeginPlay() override;
 
 };

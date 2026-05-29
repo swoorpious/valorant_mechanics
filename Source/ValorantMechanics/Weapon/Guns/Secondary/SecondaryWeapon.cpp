@@ -10,19 +10,7 @@ ASecondaryWeapon::ASecondaryWeapon()
 {
     PrimaryActorTick.bCanEverTick = true;
 
-    weaponType = EWeaponType::Secondary;
-    weaponPickupType = EWeaponPickupType::Pickupable;
-}
-
-void ASecondaryWeapon::BeginPlay()
-{
-    Super::BeginPlay();
-    
-}
-
-// Called every frame
-void ASecondaryWeapon::Tick(float DeltaTime)
-{
-    Super::Tick(DeltaTime);
+    _weaponType = EWeaponType::Secondary;
+    _weaponPickupType = EWeaponPickupType::Pickupable;
 }
 

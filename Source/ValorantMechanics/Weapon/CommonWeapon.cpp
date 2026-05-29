@@ -3,29 +3,33 @@
 
 
 #include "CommonWeapon.h"
+
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/BoxComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
+
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
-#include "NiagaraSystem.h"
+// #include "NiagaraSystem.h"
+#include "NiagaraConstants.h"
+#include "Val_WeaponFireConfig.h"
 
-
+#include "DrawDebugHelpers.h"
 
 #include "ValorantMechanics/Player/Val_Character.h"
 #include "ValorantMechanics/Core/Val_LocalPlayerSubsystem.h"
-#include "ValorantMechanics/Player/Controller/Val_PlayerController.h"
+// #include "ValorantMechanics/Player/Controller/Val_PlayerController.h"
 
 
 
 // Sets default values
 ACommonWeapon::ACommonWeapon()
 {
-    PrimaryActorTick.bCanEverTick = true;
-    
-
+    PrimaryActorTick.bCanEverTick = false;
+	
     weaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon Mesh"));
     weaponMesh->CastShadow = false;
     weaponMesh->bCastDynamicShadow = false;
@@ -34,7 +38,6 @@ ACommonWeapon::ACommonWeapon()
     weaponMesh->SetSimulatePhysics(false);
     
     magazineMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Magazine Mesh"));
-    magazineMesh->SetupAttachment(weaponMesh, socketData.magazineMainSocket);
     magazineMesh->CastShadow = false;
     magazineMesh->bCastDynamicShadow = false;
     magazineMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -42,7 +45,6 @@ ACommonWeapon::ACommonWeapon()
     magazineMesh->SetSimulatePhysics(false);
 
     scopeMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Scope Mesh"));
-    scopeMesh->SetupAttachment(weaponMesh, socketData.reflexSocket);
     scopeMesh->CastShadow = false;
     scopeMesh->bCastDynamicShadow = false;
     scopeMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -51,26 +53,135 @@ ACommonWeapon::ACommonWeapon()
 
 
     collisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("Collision Box"));
-    collisionBox->SetupAttachment(weaponMesh);
     collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-    
-    stateManager = CreateDefaultSubobject<UWeaponLogicStateManager>(TEXT("Weapon Logic State Manager"));
-    InitializePrimaryStateManager(stateManager);
-    
+	
+	this->_setupAttachments_();
 }
 
+
+void ACommonWeapon::fireStart()
+{
+	if (_isFireHeld || _currentMagAmmoCount_ == 0) return;
+	_isFireHeld = true;
+	
+	/*
+	 * override this function and implement firing logic 
+	 */
+}
+
+void ACommonWeapon::fireEnd()
+{
+	_isFireHeld = false;
+}
+
+void ACommonWeapon::tryAltFire()
+{
+}
+
+void ACommonWeapon::tryWeaponReload()
+{
+	// only reload if the mag is not already full and we have spare mags
+	if (!_weaponConfig) return;
+	if (_currentMagCount_ == 0) return;
+	if (_currentMagAmmoCount_ >= _weaponConfig->magSize) return;
+
+	const int32 magCapacity   = _weaponConfig->magSize;
+	const int32 ammoNeeded    = magCapacity - _currentMagAmmoCount_;
+	const int32 ammoAvailable = _currentMagCount_ * magCapacity; // total reserve rounds
+
+	// pull only what we need (or what's available) from the reserve
+	const int32 ammoToAdd = FMath::Min(ammoNeeded, ammoAvailable);
+	_currentMagAmmoCount_ += ammoToAdd;
+
+	// deduct full mags consumed (ceiling division so a partial mag is still charged)
+	const int32 magsUsed = FMath::DivideAndRoundUp(ammoToAdd, magCapacity);
+	_currentMagCount_ = FMath::Max(0, _currentMagCount_ - magsUsed);
+
+	// keep total in sync
+	_totalAmmoCount_ = _currentMagAmmoCount_ + _currentMagCount_ * magCapacity;
+}
+
+bool ACommonWeapon::tryWeaponPickUp(AVal_Character* ownerCharacter)
+{
+	// if cannot drop, cannot pick up
+	if (!canDrop()) return false;
+	
+	_ownerCharacter_ = ownerCharacter;
+	return true;
+}
+
+bool ACommonWeapon::tryWeaponDrop()
+{
+	if (!canDrop()) return false;
+
+	_ownerCharacter_ = nullptr;
+	return true;
+}
+
+// TODO implement
+bool ACommonWeapon::trySwitchFireMode(EFireMode newMode)
+{
+	return false;
+}
+
+void ACommonWeapon::weaponEquip(EEquipType type)
+{
+	PrimaryActorTick.bCanEverTick = true;
+	SetActorHiddenInGame(false);
+	
+	// set correct equip state BEFORE starting the timer, and don't call
+	// _onWeaponEquipped() immediately — let the timer do it.
+	if (type == EEquipType::EquipFast)
+	{
+		_broadcastStateUpdate(EWeaponState::Equip_Fast);
+		GetWorldTimerManager().SetTimer(
+			_timerHandle_handleEquip_,
+			this, 
+			&ACommonWeapon::_onWeaponEquipped, 
+			_weaponConfig ? _weaponConfig->equipTimeFast : 0.1f,
+			false
+		);
+	}
+	else
+	{
+		_broadcastStateUpdate(EWeaponState::Equip_Default);
+		GetWorldTimerManager().SetTimer(
+			_timerHandle_handleEquip_,
+			this, 
+			&ACommonWeapon::_onWeaponEquipped,
+			_weaponConfig ? _weaponConfig->equipTimeDefault : 0.1f,
+			false
+		);
+	}
+	
+	// guard against null _ownerCharacter_ and null _animConfig before broadcasting
+	if (_ownerCharacter_ && _animConfig)
+	{
+		_ownerCharacter_->getOnWeaponChangedDelegate().Broadcast(_animConfig);
+	}
+}
+
+void ACommonWeapon::weaponUnequip()
+{
+	PrimaryActorTick.bCanEverTick = false;
+	SetActorHiddenInGame(true);
+	_isFireHeld = false;
+	GetWorldTimerManager().ClearTimer(_timerHandle_handleEquip_);
+	GetWorldTimerManager().ClearTimer(_timerHandle_handleRefire_);
+	_broadcastStateUpdate(EWeaponState::None);
+}
 
 // Called when the game starts or when spawned
 void ACommonWeapon::BeginPlay()
 {
     Super::BeginPlay();
     
-    stateManager->InitializeWeaponStateManager(&defaultProperties, &altProperties);
-    currentMagAmmoCount = defaultProperties.magazineCapacity;
-    totalAmmoCount = defaultProperties.magazineCapacity * defaultProperties.magazineCount;
-
-    stateManager->GetStateUpdateCallbackDelegate()->AddUObject(this, &ACommonWeapon::StateUpdated);
+	if (_weaponConfig)
+	{
+	    _currentMagAmmoCount_ = static_cast<uint8>(FMath::Clamp(_weaponConfig->magSize,   0, 255));
+		_currentMagCount_ = static_cast<uint8>(FMath::Clamp(_weaponConfig->magCount,  0, 255));
+	    _totalAmmoCount_ = static_cast<uint8>(FMath::Clamp(_weaponConfig->magSize * _weaponConfig->magCount, 0, 255));
+	}
 }
 
 
@@ -78,120 +189,62 @@ void ACommonWeapon::BeginPlay()
 void ACommonWeapon::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
-}
-
-void ACommonWeapon::StateUpdated(EWeaponLogicState oldState, EWeaponLogicState newState)
-{
-    UE_LOG(LogTemp, Display, TEXT("previous state: %d; new state: %d"), (uint8)oldState, (uint8)newState)
-
-    if (newState == EWeaponLogicState::FireShot) FireShoot();
+	
 }
 
 
-#pragma region GETTER FUNCS
-EWeaponType ACommonWeapon::GetWeaponType()
+
+void ACommonWeapon::_onWeaponEquipped()
 {
-    return weaponType;
-}
-
-EWeaponLogicState ACommonWeapon::GetWeaponState()
-{
-    return stateManager->GetCurrentState();
-}
-
-EWeaponPickupType ACommonWeapon::GetWeaponPickupType()
-{
-    return weaponPickupType;
-}
-
-TObjectPtr<UWeaponAnimDataAsset>& ACommonWeapon::GetAnimAsset()
-{
-    return animAsset;
-}
-
-bool ACommonWeapon::CanBeDropped() const
-{
-    if (weaponPickupType == EWeaponPickupType::NonPickupable) return false;
-    return true;
-}
-
-bool ACommonWeapon::IsWeaponAutomatic() const
-{
-    return defaultProperties.weaponIsAutomatic;
-}
-#pragma endregion GETTER FUNCS
-
-
-void ACommonWeapon::ExternFireStart()
-{
-    if (CanFire())
-    {
-        isFireStarted = true;
-
-        if (!defaultProperties.weaponIsAutomatic && !semiAutoFireBlocked)
-        {
-            stateManager->TryTransitionToState(EWeaponLogicState::FireShot);
-            semiAutoFireBlocked = true; // block shots until button is released 
-        }
-    }
-}
-
-void ACommonWeapon::ExternFireEnd()
-{
-    isFireStarted = false;
-    if (!defaultProperties.weaponIsAutomatic)
-    {
-        semiAutoFireBlocked = false;
-    }
-}
-
-void ACommonWeapon::ExternAltFireStart()
-{
-}
-
-void ACommonWeapon::ExternAltFireEnd()
-{
+	_broadcastStateUpdate(EWeaponState::Idle);
+	// whatever to do further	
 }
 
 
-void ACommonWeapon::ExternReloadRequest()
+void ACommonWeapon::_broadcastStateUpdate(EWeaponState newState)
 {
+	const EWeaponState oldState = _weaponState;
+	_weaponState = newState;
+
+	// fire the weapon-level delegate (two-param: old → new)
+	_stateChangeDelegate_.Broadcast(oldState, newState);
+
+	// fire the character-level delegate (one-param consumed by AnimInstance)
+	if (_ownerCharacter_)
+	{
+		_ownerCharacter_->getOnWeaponStateChangedDelegate().Broadcast(newState);
+	}
+}
+
+// Keep _updateState as a thin wrapper so existing call-sites compile.
+void ACommonWeapon::_updateState(EWeaponState newState)
+{
+	_broadcastStateUpdate(newState);
 }
 
 
-void ACommonWeapon::ExternFireTriggered()
+/*
+ * this function does not play bullet sound effects
+ * it handled by the function that calls this function
+ */
+void ACommonWeapon::_shootBullet(
+/*
+ * TODO parameters for adjusting the error in fire, in degrees
+ */	
+)
 {
-    const TSet<EWeaponLogicState> queueableStates = {
-        EWeaponLogicState::FireCooldown,
-        EWeaponLogicState::Blocked,
-        EWeaponLogicState::Equip_Default,
-        EWeaponLogicState::Equip_Fast
-    };
-
-    if (CanFire() && defaultProperties.weaponIsAutomatic && isFireStarted)
-    {
-        if (queueableStates.Contains(stateManager->GetCurrentState()))
-        {
-            UE_LOG(LogTemp, Display, TEXT("trying to queue shoot"));
-            stateManager->TryQueueState(EWeaponLogicState::FireShot);
-        }
-        else stateManager->TryTransitionToState(EWeaponLogicState::FireShot);
-        
-    }
-
-}
-
-void ACommonWeapon::FireShoot()
-{
-    stateManager->ForceTransitionToState(EWeaponLogicState::FireCooldown);
+	// FIX: guard against null owner or config before dereferencing
+	if (!_ownerCharacter_ || !_weaponConfig) return;
 
     FHitResult hit;
-    FCollisionQueryParams queryParams = FCollisionQueryParams(SCENE_QUERY_STAT(WeaponTrace), false, this);
+    FCollisionQueryParams queryParams = FCollisionQueryParams(SCENE_QUERY_STAT(WeaponTrace), false, _ownerCharacter_);
 
     // TODO: update to gameplay camera once implemented
-    const auto& e = pOwnerCharacter->characterMeshCamera;
+    const auto& e = _ownerCharacter_->characterMeshCamera;
+    if (!e) return; // guard against null camera
+
     const FVector startPoint = e->GetComponentLocation();
-    const FVector endPoint = e->GetForwardVector() * defaultProperties.maxRange + startPoint;
+    const FVector endPoint = e->GetForwardVector() * _weaponConfig->maxRange + startPoint;
 
     if (GetWorld()->LineTraceSingleByChannel(hit, startPoint, endPoint, ECC_Visibility, queryParams))
     {
@@ -207,6 +260,19 @@ void ACommonWeapon::FireShoot()
                 ENCPoolMethod::AutoRelease,
                 true);
         }
+    	
+#if WITH_EDITOR
+    	DrawDebugLine(
+			GetWorld(),
+			startPoint,
+			endPoint,
+			FColor::Red,
+			false,
+			5.0f,
+			0,
+			5.0f
+		);
+#endif
     }
 
     if (muzzleParticle)
@@ -214,7 +280,7 @@ void ACommonWeapon::FireShoot()
         UNiagaraComponent* spawnedSystem = UNiagaraFunctionLibrary::SpawnSystemAttached(
             muzzleParticle,
             weaponMesh,
-            socketData.muzzleSocket,
+            _socketData.muzzleSocket,
             FVector::ZeroVector,
             FRotator::ZeroRotator,
             FVector(100.0f, 100.0f, 100.0f),
@@ -224,142 +290,37 @@ void ACommonWeapon::FireShoot()
             true,
             true
         );
-        spawnedSystem->Activate();
+        // SpawnSystemAttached can return null if the pool is exhausted
+        if (spawnedSystem) spawnedSystem->Activate();
     }
 
-
-    pOwnerCharacter->PlayLocalSound(animAsset->GetRandomAttackSFX());
+    // pOwnerCharacter->PlayLocalSound(animAsset->GetRandomAttackSFX());
     
     UE_LOG(LogTemp, Warning, TEXT("weapon trace start: %s"), *startPoint.ToString())
-    UE_LOG(LogTemp, Warning, TEXT("weapon trace start: %s"), *endPoint.ToString())
+    UE_LOG(LogTemp, Warning, TEXT("weapon trace end:   %s"), *endPoint.ToString())
 }
 
-void ACommonWeapon::InternalAltFireStart()
+bool ACommonWeapon::_canFire() const 
 {
+	if (!_weaponConfig) return false;
+
+	// check current mag ammo instead of total ammo available
+	// since total ammo can be non-zero but currently available is still zero
+	if (_currentMagAmmoCount_ <= 0)
+	{
+		UE_LOG(LogTemp, Display, TEXT("cannot fire: no ammo"));
+		return false;
+	}
+	
+	return !_isOnCooldown;
 }
 
-void ACommonWeapon::InternalAltFireEnd()
+
+
+void ACommonWeapon::_setupAttachments_() const
 {
+    magazineMesh->SetupAttachment(weaponMesh, _socketData.magazineMainSocket);
+    scopeMesh->SetupAttachment(weaponMesh, _socketData.reflexSocket);
+    collisionBox->SetupAttachment(weaponMesh);
+	
 }
-
-void ACommonWeapon::InternalReloadRequest()
-{
-}
-
-
-
-void ACommonWeapon::ExternWeaponPickUp(AVal_Character* ownerCharacter)
-{
-    if (weaponType == EWeaponType::Empty) return;
-
-    InternalPickedUp(ownerCharacter);
-}
-
-void ACommonWeapon::ExternWeaponEquip()
-{
-    if (!pOwnerCharacter) return;
-    InternalEquipped();
-}
-
-void ACommonWeapon::ExternWeaponUnequip()
-{
-    if (!pOwnerCharacter) return;
-    InternalUnequipped();
-}
-
-void ACommonWeapon::ExternWeaponDrop()
-{
-    if (!pOwnerCharacter || CanBeDropped()) return;
-    InternalDropped();
-}
-
-
-
-void ACommonWeapon::InternalPickedUp(AVal_Character* ownerCharacter)
-{
-    if (!ownerCharacter) return;
-    
-    PrimaryActorTick.bCanEverTick = true;
-    stateManager->PrimaryComponentTick.bCanEverTick = true;
-    
-    pOwnerCharacter = Cast<AVal_Character>(ownerCharacter);
-    if (const auto* e = pOwnerCharacter->GetValPlayerController()->GetLocalPlayer(); pOwnerCharacter && e)
-    {
-        pSubsystem = e->GetSubsystem<UVal_LocalPlayerSubsystem>();
-    }
-
-    // the player could just pick up the weapon but might still have another weapon equipped
-    SetActorHiddenInGame(true);
-    
-}
-
-void ACommonWeapon::InternalEquipped()
-{
-    PrimaryActorTick.bCanEverTick = true;
-    stateManager->PrimaryComponentTick.bCanEverTick = true;
-    stateManager->TryTransitionToState(EWeaponLogicState::Equip_Default);
-
-    SetActorHiddenInGame(false);
-    pOwnerCharacter->PlayLocalSound(animAsset->equipSFX);
-}
-
-void ACommonWeapon::InternalUnequipped()
-{
-    stateManager->ForceTransitionToState(EWeaponLogicState::None);
-    PrimaryActorTick.bCanEverTick = false;
-    stateManager->PrimaryComponentTick.bCanEverTick = false;
-    isFireStarted = false;
-
-    SetActorHiddenInGame(true);
-}
-
-void ACommonWeapon::InternalDropped()
-{
-    PrimaryActorTick.bCanEverTick = false;
-    stateManager->PrimaryComponentTick.bCanEverTick = false;
-    SetActorHiddenInGame(false);
-    
-    pOwnerCharacter = nullptr;
-    pSubsystem = nullptr;
-}
-
-
-bool ACommonWeapon::CanFire() const
-{
-    if (currentMagAmmoCount <= 0)
-    {
-        UE_LOG(LogTemp, Display, TEXT("cannot fire: no ammo"));
-        return false;
-    }
-
-
-    if (!stateManager->CanTransitionToState(EWeaponLogicState::FireShot))
-    {
-        UE_LOG(LogTemp, Display, TEXT("cannot fire: state transition denied"));
-        return false;
-    }
-
-    
-    if (defaultProperties.weaponIsAutomatic)
-    {
-        const float fireRateSecs = defaultProperties.fireRate > 0.0f ?
-            1.0f / defaultProperties.fireRate - 0.05f :
-            0.1f;
-        const float timeSinceLastFire = stateManager->GetTimeSinceLastState();
-
-        if (timeSinceLastFire >= fireRateSecs) return true;        
-
-        UE_LOG(LogTemp, Display, TEXT("cannot fire: still in fire cooldown (%.3f seconds left)"), fireRateSecs - timeSinceLastFire);
-        return false;
-    }
-
-    
-    // for semi-automatic weapons
-    const EWeaponLogicState lastState = stateManager->GetLastState();
-    if (lastState != EWeaponLogicState::FireShot) return true;
-
-    UE_LOG(LogTemp, Display, TEXT("cannot fire: semi-auto fire already triggered and waiting for release"));
-    return false;
-}
-
-

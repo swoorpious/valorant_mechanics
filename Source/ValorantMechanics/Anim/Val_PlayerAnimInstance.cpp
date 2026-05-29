@@ -7,21 +7,18 @@
 #include "ValorantMechanics/Core/Val_LocalPlayerSubsystem.h"
 #include "ValorantMechanics/Player/Controller/Val_PlayerController.h"
 #include "ValorantMechanics/Player/PlayerComponents/Val_CharacterMovementComponent.h"
-#include "ValorantMechanics/ValorantMechanics.h"
 #include "ValorantMechanics/Player/Val_Character.h"
 
 
 void UVal_PlayerAnimInstance::NativeBeginPlay()
 {
     Super::NativeBeginPlay();
-
-
+	
     if (AVal_Character* e = Cast<AVal_Character>(TryGetPawnOwner()))
     {
-		UVal_LocalPlayerSubsystem* j = e->GetValPlayerController()->GetLocalPlayer()->GetSubsystem<UVal_LocalPlayerSubsystem>();
-        j->GetMovementStateChangeDelegate().AddUObject(this, &UVal_PlayerAnimInstance::UpdateMovementState);
-        j->GetWeaponAnimStateChangeRequestDelegate().AddUObject(this, &UVal_PlayerAnimInstance::UpdateWeaponAnimState);
-        
+    	e->getOnWeaponChangedDelegate().AddUObject(this, &UVal_PlayerAnimInstance::_updateWeaponAnimAsset);
+    	e->getOnWeaponStateChangedDelegate().AddUObject(this, &UVal_PlayerAnimInstance::_updateWeaponStateChange);
+
         valInput = e->GetValPlayerController()->GetInputSystem();
         pMovement = e->GetValMovementComponent();
     }
@@ -33,95 +30,46 @@ void UVal_PlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
     Super::NativeUpdateAnimation(DeltaSeconds);
 
     if (valInput)
-        lastLookVector = valInput->GetLastLookVector();
+        _lastLookVector = valInput->GetLastLookVector();
 
     if (pMovement)
-        pVelocity = pMovement->Velocity;
+        _playerVelocity = pMovement->Velocity;
 }
 
-
-void UVal_PlayerAnimInstance::UpdateWeaponAnimState(EWeaponType weaponType, EWeaponAnimState oldState, EWeaponAnimState newState)
+void UVal_PlayerAnimInstance::NativeUninitializeAnimation()
 {
-    /*
-    if (weaponType == EWeaponType::Empty) return;
-    if (weaponType == EWeaponType::Melee) wAnimStates.melee = newState;
-    if (weaponType == EWeaponType::Secondary) wAnimStates.secondary = newState;
-    if (weaponType == EWeaponType::Primary) wAnimStates.primary = newState;
-    */
+	Super::NativeUninitializeAnimation();
+	
+	if (AVal_Character* e = Cast<AVal_Character>(TryGetPawnOwner()))
+	{
+		e->getOnWeaponChangedDelegate().RemoveAll(this);
+		e->getOnWeaponStateChangedDelegate().RemoveAll(this);
 
-    wAnimStates.state = newState;
-    
-    if (newState == EWeaponAnimState::Equip_Default || newState == EWeaponAnimState::Equip_Fast)
-        wAnimStates.currentWeaponType = weaponType;
-
-    if (newState == EWeaponAnimState::Idle) UE_LOG(LogTemp, Display, TEXT("Idle"))
+	}
+	
+	valInput = nullptr;
+	pMovement = nullptr;
 }
 
 
-#pragma region ANIM DATA
-void UVal_PlayerAnimInstance::UpdateAnimDataAsset(ACommonWeapon* equippedWeapon)
+bool UVal_PlayerAnimInstance::_canTransitionToMovementAnimState(EMovementState state) const
 {
-    TObjectPtr<UWeaponAnimDataAsset> const animDataAsset = equippedWeapon->GetAnimAsset();
-    EWeaponType const weaponType = equippedWeapon->GetWeaponType();
-    HasAnimDataForType(weaponType) ?
-        animAssets.animDataMap[weaponType] = animDataAsset :
-        animAssets.animDataMap.Add(weaponType, animDataAsset);
-
+    return _movementState == state;
 }
 
-
-void UVal_PlayerAnimInstance::UpdateCurrentWeapon(EWeaponType weaponType)
+bool UVal_PlayerAnimInstance::_canTransitionToWeaponAnimState(EWeaponState state) const
 {
-    if (!HasAnimDataForType(weaponType)) return;
-    wAnimStates.currentWeaponType = weaponType;
-    animAssets.currentAnimDataAsset = GetAnimDataAsset(weaponType);
+    return _weaponState == state;
 }
 
-
-void UVal_PlayerAnimInstance::RemoveAnimDataAsset(EWeaponType weaponType)
+void UVal_PlayerAnimInstance::_updateWeaponAnimAsset(UVal_WeaponAnimConfig* newAnimConfig)
 {
-    if (weaponType == EWeaponType::Empty || !HasAnimDataForType(weaponType)) return;
-    animAssets.animDataMap.Remove(weaponType);
+	_currAnimAsset = newAnimConfig;
 }
 
-
-const TObjectPtr<UWeaponAnimDataAsset> UVal_PlayerAnimInstance::GetAnimDataAsset(EWeaponType weaponType)
+void UVal_PlayerAnimInstance::_updateWeaponStateChange(const EWeaponState newState)
 {
-	if (weaponType == EWeaponType::Empty || !HasAnimDataForType(weaponType)) return nullptr;
-    return animAssets.animDataMap[weaponType];
-}
-
-bool UVal_PlayerAnimInstance::HasAnimDataForType(EWeaponType weaponType) const
-{
-    return animAssets.animDataMap.FindRef(weaponType) != nullptr;
+	_weaponState = newState;
 }
 
 
-UWeaponAnimDataAsset* UVal_PlayerAnimInstance::GetCurrentAnimDataAsset()
-{
-    if (!HasAnimDataForType(wAnimStates.currentWeaponType)) return nullptr;
-    
-    return animAssets.animDataMap[wAnimStates.currentWeaponType];
-}
-
-bool UVal_PlayerAnimInstance::CanTransitionToMovementAnimState(EMovementState state) const
-{
-    return mState == state;
-}
-
-bool UVal_PlayerAnimInstance::CanTransitionToWeaponAnimState(EWeaponAnimState state) const
-{
-    /*
-    const EWeaponType e = wAnimStates.currentWeaponType;
-
-    if (e == EWeaponType::Melee) return wAnimStates.melee == state;
-    if (e == EWeaponType::Secondary) return wAnimStates.secondary == state;
-    if (e == EWeaponType::Primary) return wAnimStates.primary == state;
-    */
-
-
-    return wAnimStates.state == state;
-}
-
-
-#pragma endregion ANIM DATA
