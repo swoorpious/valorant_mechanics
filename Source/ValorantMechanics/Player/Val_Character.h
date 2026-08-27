@@ -10,6 +10,7 @@
 #include "ValorantMechanics/Core/Shared/PlayerStates.h"
 
 #include "GameFramework/Character.h"
+#include "PlayerComponents/Val_PlayerInventory.h"
 #include "Val_Character.generated.h"
 
 
@@ -44,9 +45,12 @@ public:
     UVal_PlayerAnimInstance* GetValAnimInstance() const;
     UVal_PlayerInventory* GetPlayerInventory() const;
 
-	FOnWeaponChanged& getOnWeaponChangedDelegate() { return _onWeaponChangedDelegate_; }
-	FOnWeaponStateChanged& getOnWeaponStateChangedDelegate() { return _onWeaponStateChangedDelegate_; }
-	
+    ACommonWeapon* getEquippedWeapon() const { return _inventory->getEquippedWeapon(); }
+    UVal_WeaponAnimConfig* getCurrentAnimAsset() const;
+    
+    FOnWeaponChanged* getOnWeaponChangedDelegate() { return &_onWeaponChangedDelegate_; }
+    FOnWeaponStateChanged* getOnWeaponStateChangedDelegate() { return &_onWeaponStateChangedDelegate_; }
+    
 
 #pragma region COMPONENT SETUP
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valorant Character|Character Setup|Scene")
@@ -54,19 +58,25 @@ public:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Valorant Character|Character Setup|Scene|Mesh", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<USkeletalMeshComponent> characterMesh;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Valorant Character|Character Setup|Scene|Mesh", meta = (AllowPrivateAccess = "true"))
+    float targetFOV = 60.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Valorant Character|Character Setup|Scene|Mesh", meta = (AllowPrivateAccess = "true"))
+    float targetRenderScaleInDepth = 0.1f;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Valorant Character|Character Setup|Scene|Mesh|Camera", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UCameraComponent> characterMeshCamera;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Valorant Character|Character Setup|Scene|Mesh|Camera", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UAudioComponent> audioComponent;
-	
+    
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Valorant Character|Mesh|Sockets")
     FPlayerSocketNames socketData;
 
 #pragma endregion COMPONENT SETUP
-	
-	
+    
+    
     // TODO: move these functions to protected scope and add try<action>weapon type functions
     void SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn, bool shouldAutoEquip);
     void EquipWeapon(const EWeaponType weaponType, const EEquipType equipType);
@@ -79,18 +89,18 @@ public:
     
 protected:
     virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
+    virtual void Tick(float DeltaTime) override;
     virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
-	
+    
     // caching for some reason
     UPROPERTY() TObjectPtr<UVal_CharacterMovementComponent> _charMovementComponent = nullptr;
     UPROPERTY() TObjectPtr<UVal_PlayerAnimInstance> _playerAnimInstance = nullptr;
     UPROPERTY() TObjectPtr<UVal_PlayerInventory> _inventory = nullptr;
 
 private:
-	FOnWeaponChanged _onWeaponChangedDelegate_;
-	FOnWeaponStateChanged _onWeaponStateChangedDelegate_;
+    FOnWeaponChanged _onWeaponChangedDelegate_;
+    FOnWeaponStateChanged _onWeaponStateChangedDelegate_;
 
 };
 

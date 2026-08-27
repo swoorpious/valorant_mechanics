@@ -19,7 +19,7 @@ enum class EMovementState : uint8
     Walk,
     Run,
     Jump_Up,
-	Jump_Fall,
+    Jump_Fall,
 
     // stackable states
     Crouched,

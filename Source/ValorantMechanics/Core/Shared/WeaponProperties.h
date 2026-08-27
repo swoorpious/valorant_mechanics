@@ -17,15 +17,15 @@
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
 {
-	None, // when the weapon is dropped or not picked up yet
-	Equip_Default,
-	Equip_Fast,
-	Idle, // equipped -> idle
-	Reloading,
-	Firing, // state for single tick
-	Heat_Cooldown, // firing -> gun heats -> cooldown (gun cannot fire at all) -> idle/firing
-	Inspecting,
-	Blocked,
+    None, // when the weapon is dropped or not picked up yet
+    Equip_Default,
+    Equip_Fast,
+    Idle, // equipped -> idle
+    Reloading,
+    Firing, // state for single tick
+    Heat_Cooldown, // firing -> gun heats -> cooldown (gun cannot fire at all) -> idle/firing
+    Inspecting,
+    Blocked,
 };
 
 UENUM(BlueprintType)
@@ -69,11 +69,11 @@ struct VALORANTMECHANICS_API FAltWeaponProperties
 {
     GENERATED_BODY()
 
-	/*
-	 * alternate fire and ADS/scope-in are treated differently
-	 * for example, a knife may alternative fire but cannot ADS/scope-in, 
-	 * whereas a rifle can alternate fire and ADS
-	 */
+    /*
+     * alternate fire and ADS/scope-in are treated differently
+     * for example, a knife may alternative fire but cannot ADS/scope-in, 
+     * whereas a rifle can alternate fire and ADS
+     */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire Properties|Alternate Fire")
     bool canAltFire = false;
     
@@ -83,13 +83,13 @@ struct VALORANTMECHANICS_API FAltWeaponProperties
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire Properties|Alternate Fire", meta = (EditCondition = "canAltFire", EditConditionHides, DisplayName = "First Shot Spread when Alt Fire"))
     float altFirstShotSpread = 0.0f; // degrees
     
-	/*
-	 * ADS can be both ADS and scope-in
-	 */
+    /*
+     * ADS can be both ADS and scope-in
+     */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire Properties|Alternate Fire", meta = (EditCondition = "canAltFire", EditConditionHides, DisplayName = "Can ADS"))
     bool canADS = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire Properties|Alternate Fire", meta = (EditCondition = "canAltFire", EditConditionHides, DisplayName = "First Shot Spread when Alt Fire"))
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire Properties|Alternate Fire", meta = (EditCondition = "canAltFire", EditConditionHides, DisplayName = "First Shot Spread when Alt Fire"))
     float timeToADS = 0.0f; // degrees
     
     // zoom FOV for the weapon when ADS. this is used for FOV scaling 

@@ -12,7 +12,6 @@
 
 #include "Camera/CameraComponent.h"
 #include "GameFramework/InputSettings.h"
-#include "ValorantMechanics/Core/Systems/Val_PlayerInventory.h"
 
 
 AVal_PlayerController::AVal_PlayerController()
@@ -127,22 +126,24 @@ void AVal_PlayerController::PlayerLook(const FVector2D lookVector) const
     AddLookInput(lookVector * Sensitivity);
 }
 
-
 void AVal_PlayerController::WeaponFire(const FInputActionInstance& inputInstance)
 {
-    ACommonWeapon* weapon = pCharacter->GetPlayerInventory()->getEquippedWeapon();
-    const FString actionName = inputInstance.GetSourceAction()->GetName();
+    ACommonWeapon* w = pCharacter->getEquippedWeapon();
+    const FString action_name = inputInstance.GetSourceAction()->GetName();
+    const ETriggerEvent action_trigger = inputInstance.GetTriggerEvent();
 
-    if (const ETriggerEvent actionTrigger = inputInstance.GetTriggerEvent(); actionTrigger == ETriggerEvent::Started)
+    if (!action_trigger || !w) return;
+    
+    if (action_trigger == ETriggerEvent::Started)
     {
-        if (actionName == "VIA_Attack") weapon->fireStart();
-        if (actionName == "VIA_Alt_Attack") weapon->tryAltFire();
+        if (action_name == "VIA_Attack") w->fireStart();
+        if (action_name == "VIA_Alt_Attack") w->altFireStart();
 
     }
-	else if (actionTrigger == ETriggerEvent::Canceled || actionTrigger == ETriggerEvent::Completed)
+    else if (action_trigger == ETriggerEvent::Canceled || action_trigger == ETriggerEvent::Completed)
     {
-        if (actionName == "VIA_Attack") weapon->fireEnd();
-        // if (actionName == "VIA_Alt_Attack") weapon->ExternAltFireEnd();
+        if (action_name == "VIA_Attack") w->fireEnd();
+        if (action_name == "VIA_Alt_Attack") w->altFireEnd();
         
     }
 }

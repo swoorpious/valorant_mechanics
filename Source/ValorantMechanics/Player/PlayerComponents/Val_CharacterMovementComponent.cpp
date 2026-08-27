@@ -19,14 +19,14 @@ UVal_CharacterMovementComponent::UVal_CharacterMovementComponent()
 {
     PrimaryComponentTick.bCanEverTick = true;
     bOrientRotationToMovement = false;
-	
+    
 }
 
 
 void UVal_CharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	
+    
     HandleAirMovement(DeltaTime);
 }
 

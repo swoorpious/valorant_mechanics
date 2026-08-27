@@ -9,14 +9,14 @@
 #include "ValorantMechanics/Core/Val_DefaultGameMode.h"
 
 #include "PlayerComponents/Val_CharacterMovementComponent.h"
-#include "ValorantMechanics/Core/systems/Val_PlayerInventory.h"
+#include "PlayerComponents/Val_PlayerInventory.h"
 #include "Controller/Val_PlayerController.h"
 
 #include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/AudioComponent.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "Engine/LocalPlayer.h"
+// #include "Engine/LocalPlayer.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "ValorantMechanics/Weapon/Val_WeaponAnimConfig.h"
 
@@ -82,7 +82,25 @@ void AVal_Character::BeginPlay()
         if (e->secondaryToSpawn) SpawnWeapon(e->secondaryToSpawn, !e->primaryToSpawn);
         if (e->primaryToSpawn)   SpawnWeapon(e->primaryToSpawn,   true);
     }
+
+    
+    /*
+     * make mesh render always on top
+     *
+     * this requires the base mesh material to have
+     * MF_FOV_and_clip_fix applied to the world position offset node
+     */
+    UMaterialInterface* const base_mat = characterMesh->GetMaterial(0);
+    if (base_mat)
+    {
+        UMaterialInstanceDynamic* const mid = UMaterialInstanceDynamic::Create(base_mat, this, FName("AVal_Character"));
+        characterMesh->SetMaterial(0, mid);
+        mid->SetScalarParameterValue(TEXT("Target FOV"), targetFOV);
+        mid->SetScalarParameterValue(TEXT("Scale in Depth"), targetRenderScaleInDepth);
         
+        LOG(Val_Player, Warning, "[AVal_Character] FOV and clip fix material created at for characterMesh");
+        
+    } else LOG(Val_Player, Warning, "[AVal_Character] characterMesh has no material at index 0");
 }
 
 
@@ -99,8 +117,6 @@ void AVal_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 {
     Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
-
-
 
 
 void AVal_Character::SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn, bool shouldAutoEquip)
@@ -127,18 +143,17 @@ void AVal_Character::EquipWeapon(const EWeaponType weaponType, const EEquipType 
 {
     if (const auto& e = _inventory->getEquippedWeapon())
     {
-    	// return if trying to switch to the already equipped weapon
+        // return if trying to switch to the already equipped weapon
         if (e->getWeaponType() == weaponType) return;
         if (_inventory->hasWeapon(weaponType)) UnequipWeapon(e->getWeaponType());
     }
-	
+    
     ACommonWeapon* inv_weapon = _inventory->getWeaponByType(weaponType);
     if (!inv_weapon)
     {
         UE_LOG(LogTemp, Warning, TEXT("EquipWeapon: no weapon of type %d in inventory"), static_cast<int32>(weaponType));
         return;
     }
-  
     inv_weapon->weaponEquip(equipType);
     _inventory->switchEquippedWeapon(weaponType);
     
@@ -154,7 +169,7 @@ void AVal_Character::UnequipWeapon(const EWeaponType weaponType) const
 
 // void AVal_Character::pickupWeapon(EWeaponType weaponType)
 // {
-// 	
+//     
 // }
 
 
@@ -166,10 +181,10 @@ void AVal_Character::DropWeapon(EWeaponType weaponType)
 
     if (equipped->getWeaponType() == weaponType)
     {
-    	// assuming that the player has a melee weapon at all times
-    	const bool has_primary = _inventory->hasWeapon(EWeaponType::Primary);
-    	const bool has_secondary = _inventory->hasWeapon(EWeaponType::Secondary);  
-    	
+        // assuming that the player has a melee weapon at all times
+        const bool has_primary = _inventory->hasWeapon(EWeaponType::Primary);
+        const bool has_secondary = _inventory->hasWeapon(EWeaponType::Secondary);  
+        
         switch (weaponType)
         {
             case EWeaponType::Melee:
@@ -190,7 +205,7 @@ void AVal_Character::DropWeapon(EWeaponType weaponType)
 
     // TODO: change this when implementing weapon drop and physics for weapon 
     ACommonWeapon* weapon_to_drop = _inventory->getWeaponByType(weaponType);
-	weapon_to_drop->tryWeaponDrop();
+    weapon_to_drop->tryWeaponDrop();
     if (weapon_to_drop) weapon_to_drop->Destroy();
     _inventory->removeWeaponFromInventory(weaponType);
     
@@ -211,3 +226,9 @@ AVal_Character* AVal_Character::GetValCharacter() { return this; }
 UVal_CharacterMovementComponent* AVal_Character::GetValMovementComponent() const { return Cast<UVal_CharacterMovementComponent>(GetCharacterMovement()); }
 UVal_PlayerAnimInstance* AVal_Character::GetValAnimInstance() const { return Cast<UVal_PlayerAnimInstance>(characterMesh->GetAnimInstance()); }
 UVal_PlayerInventory* AVal_Character::GetPlayerInventory() const { return _inventory; }
+
+UVal_WeaponAnimConfig* AVal_Character::getCurrentAnimAsset() const
+{
+    ACommonWeapon* w = _inventory->getEquippedWeapon();
+    return w ? w->getAnimAsset() : nullptr;
+}

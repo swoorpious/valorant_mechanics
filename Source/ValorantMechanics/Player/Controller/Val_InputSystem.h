@@ -14,8 +14,6 @@ class AVal_PlayerController;
 class UEnhancedInputComponent;
 
 
-
-
 UCLASS(BlueprintType, Blueprintable, ClassGroup=(Input), meta=(BlueprintSpawnableComponent))
 class VALORANTMECHANICS_API UVal_InputSystem : public UObject
 {

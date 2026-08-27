@@ -9,9 +9,9 @@
 UENUM(BlueprintType)
 enum class EFireMode : uint8
 {
-	Manual,
-	Semi_Automatic,
-	Automatic,
+    Manual,
+    Semi_Automatic,
+    Automatic,
 };
 
 /**
@@ -23,10 +23,10 @@ enum class EFireMode : uint8
 UCLASS()
 class VALORANTMECHANICS_API UVal_WeaponFireConfig : public UDataAsset
 {
-	GENERATED_BODY()
-	
+    GENERATED_BODY()
+    
 public:
-	
+    
 #pragma region REGULAR_FIRE_PROPERTIES
     // default FOV for the weapon, unused property
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Range")
@@ -40,10 +40,10 @@ public:
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fire Properties", meta = (Unit = "cm/s"))
     EFireMode fireMode = EFireMode::Manual;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fire Properties", meta = (Unit = "cm/s"))
+    
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fire Properties", meta = (Unit = "cm/s"))
     bool canSwitchFireMode = false;
-	
+    
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fire Properties", meta = (Unit = "cm/s"))
     float runSpeed = 0.0f; // cm/s
     
@@ -68,42 +68,42 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fire Properties", meta=(DisplayName="Fire Rate (bullets/s)"))
     float fireRate = 0.0f; // bullets/s
     
-	// TODO: add vectors that define bullet spread
+    // TODO: add vectors that define bullet spread
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fire Properties")
     float firstShotSpread_HipFire = 0.0f; // degrees
-	
+    
 #pragma endregion REGULAR_FIRE_PROPERTIES
-	
+    
 #pragma region ALTERNATE_FIRE_PROPERTIES
-	/*
-	 * alternate fire and ADS/scope-in are treated differently
-	 * for example, a knife may alternative fire but cannot ADS/scope-in, 
-	 * whereas a rifle can alternate fire and ADS
-	 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Alternate Fire Properties")
-	bool canAltFire = false;
+    /*
+     * alternate fire and ADS/scope-in are treated differently
+     * for example, a knife may alternative fire but cannot ADS/scope-in, 
+     * whereas a rifle can alternate fire and ADS
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Alternate Fire Properties")
+    bool canAltFire = false;
     
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Alternate Fire Properties", meta = (EditCondition = "canAltFire", EditConditionHides))
-	float alrFireRate = 0.0f; // bullets/s
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Alternate Fire Properties", meta = (EditCondition = "canAltFire", EditConditionHides))
+    float alrFireRate = 0.0f; // bullets/s
     
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Alternate Fire Properties", meta = (EditCondition = "canAltFire", EditConditionHides, DisplayName = "First Shot Spread when Alt Fire"))
-	float altFirstShotSpread = 0.0f; // degrees
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Alternate Fire Properties", meta = (EditCondition = "canAltFire", EditConditionHides, DisplayName = "First Shot Spread when Alt Fire"))
+    float altFirstShotSpread = 0.0f; // degrees
     
-	/*
-	 * ADS can be both ADS and scope-in
-	 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Alternate Fire Properties", meta = (EditCondition = "canAltFire", EditConditionHides, DisplayName = "Can ADS"))
-	bool canADS = false;
+    /*
+     * ADS can be both ADS and scope-in
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Alternate Fire Properties", meta = (EditCondition = "canAltFire", EditConditionHides, DisplayName = "Can ADS"))
+    bool canADS = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Alternate Fire Properties", meta = (EditCondition = "canADS", EditConditionHides, DisplayName = "Time to ADS (ms)"))
-	float timeToADS = 0.0f; // ms
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Alternate Fire Properties", meta = (EditCondition = "canADS", EditConditionHides, DisplayName = "Time to ADS (ms)"))
+    float timeToADS = 0.0f; // ms
     
-	// zoom FOV for the weapon when ADS. this is used for FOV scaling 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Alternate Fire Properties", meta = (EditCondition = "canADS", EditConditionHides, DisplayName = "FOV when ADS (degrees)"))
-	float fovADS = 90.0f; // degrees
+    // zoom FOV for the weapon when ADS. this is used for FOV scaling 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Alternate Fire Properties", meta = (EditCondition = "canADS", EditConditionHides, DisplayName = "FOV when ADS (degrees)"))
+    float fovADS = 90.0f; // degrees
     
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Alternate Fire Properties", meta = (EditCondition = "canADS", EditConditionHides, DisplayName = "Run Speed when ADS (cm/s)"))
-	float runSpeedADS = 0.0f; // cm/s
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Alternate Fire Properties", meta = (EditCondition = "canADS", EditConditionHides, DisplayName = "Run Speed when ADS (cm/s)"))
+    float runSpeedADS = 0.0f; // cm/s
 
 #pragma endregion ALTERNATE_FIRE_PROPERTIES
 };
