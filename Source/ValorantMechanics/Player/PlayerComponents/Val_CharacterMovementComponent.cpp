@@ -11,6 +11,7 @@
 
 
 #include "ValorantMechanics/ValorantMechanics.h"
+#include "ValorantMechanics/Core/Log.h"
 
 
 
@@ -28,6 +29,11 @@ void UVal_CharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick 
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
     
     HandleAirMovement(DeltaTime);
+    
+    if (pCharacter)
+    {
+        
+    }
 }
 
 
@@ -41,11 +47,8 @@ void UVal_CharacterMovementComponent::BeginPlay()
     if (pCharacter)
     {
         valInputSystem = pCharacter->GetValPlayerController()->GetInputSystem();
-        
     }
 
-    // movementManager = NewObject<UMovementStateManager>(this);
-    
 }
 
 
@@ -104,7 +107,7 @@ void UVal_CharacterMovementComponent::HandleAirMovement(float DeltaTime)
         // gain momentum when strafing with the view direction
         case EAirMovementInputDirection::Matching: 
 
-            LOG(Val_Player, Warning, "Matching Direction");
+            LOGObjName(this, Val_Player, Warning, "Matching Direction");
         
             airStrafeTime += DeltaTime;
             currentAirStrafeMultiplier = FMath::Min(
@@ -117,7 +120,7 @@ void UVal_CharacterMovementComponent::HandleAirMovement(float DeltaTime)
         // reduce speed when strafing against view direction
         case EAirMovementInputDirection::Opposing: 
 
-            LOG(Val_Player, Warning, "Opposing Direction");
+            LOGObjName(this, Val_Player, Warning, "Opposing Direction");
                     
             airStrafeTime = FMath::Max(0.0f, airStrafeTime - DeltaTime * 2.0f);
             currentAirStrafeMultiplier = FMath::Max(
@@ -130,7 +133,7 @@ void UVal_CharacterMovementComponent::HandleAirMovement(float DeltaTime)
         // to maintain momentum when not strafing
         case EAirMovementInputDirection::Neutral: 
         
-            LOG(Val_Player, Warning, "Neutral Direction");
+            LOGObjName(this, Val_Player, Warning, "Neutral Direction");
             
             airStrafeTime = FMath::Max(0.0f, airStrafeTime - DeltaTime * 0.5f);
             currentAirStrafeMultiplier = FMath::Lerp(
@@ -168,7 +171,3 @@ void UVal_CharacterMovementComponent::HandleAirMovement(float DeltaTime)
     lastAirInputDirection = currentAirMovementDirection;
     
 }
-
-
-
-

@@ -8,7 +8,7 @@
 #include "ValorantMechanics/Core/Shared/PlayerDelegateDefinition.h"
 #include "ValorantMechanics/Core/Shared/SocketData.h"
 #include "ValorantMechanics/Core/Shared/PlayerStates.h"
-
+#include "ValorantMechanics/Weapon/CommonWeapon.h"
 #include "GameFramework/Character.h"
 #include "PlayerComponents/Val_PlayerInventory.h"
 #include "Val_Character.generated.h"
@@ -23,8 +23,7 @@ class AVal_PlayerController;
 
 class USkeletalMeshComponent;
 class UCameraComponent;
-class ACommonWeapon;
-
+// class ACommonWeapon;
 
 
 
@@ -45,11 +44,14 @@ public:
     UVal_PlayerAnimInstance* GetValAnimInstance() const;
     UVal_PlayerInventory* GetPlayerInventory() const;
 
-    ACommonWeapon* getEquippedWeapon() const { return _inventory->getEquippedWeapon(); }
+    UFUNCTION(BlueprintType, BlueprintPure, Category = "Valorant Character")
+    ACommonWeapon* getEquippedWeapon() const;
+
     UVal_WeaponAnimConfig* getCurrentAnimAsset() const;
     
-    FOnWeaponChanged* getOnWeaponChangedDelegate() { return &_onWeaponChangedDelegate_; }
-    FOnWeaponStateChanged* getOnWeaponStateChangedDelegate() { return &_onWeaponStateChangedDelegate_; }
+    FOnWeaponChanged* getOnWeaponChangedDelegate();
+    FOnWeaponStateChanged* getOnWeaponStateChangedDelegate();
+    FOnMovementStateChanged* getOnMovementStateChangedDelegate();
     
 
 #pragma region COMPONENT SETUP
@@ -83,27 +85,44 @@ public:
     void UnequipWeapon(const EWeaponType weaponType) const;
     void pickupWeapon(EWeaponType weaponType);
     void DropWeapon(EWeaponType weaponType);
+    bool isHoldingGun(); // melee is not a gun
 
     void PlayLocalSound(USoundBase* sound) const;
     
+    void AddMovementInput(FVector WorldDirection, float ScaleValue = 1, bool bForce = false) override;
+    void Jump() override;
+    void Walk(bool started);
+    void Crouch(bool bClientSimulation = false) override;
+    void UnCrouch(bool bClientSimulation = false) override;
     
 protected:
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaTime) override;
     virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
-    
     // caching for some reason
     UPROPERTY() TObjectPtr<UVal_CharacterMovementComponent> _charMovementComponent = nullptr;
     UPROPERTY() TObjectPtr<UVal_PlayerAnimInstance> _playerAnimInstance = nullptr;
     UPROPERTY() TObjectPtr<UVal_PlayerInventory> _inventory = nullptr;
 
+    /*
+     * movement state tracking - updated every tick from actual input/movement
+     * (see _updateMovementStateFromInput), broadcast through _onMovementStateChangedDelegate_
+     * whenever it changes so the anim instance can react.
+     */
+    EMovementState _movementState = EMovementState::None;
+    bool _isWalking = false; // true while the walk key (alternate movement) is held
+
+    void _updateMovementState(EMovementState newState);
+    void _updateMovementStateFromInput();
+
 private:
+    
+    // the character doesn't hold any state/calls to these delegates.
+    // weapon and related components broadcast to these delegates, 
+    // and (atm) anim instance subscribes to these.
     FOnWeaponChanged _onWeaponChangedDelegate_;
     FOnWeaponStateChanged _onWeaponStateChangedDelegate_;
+    FOnMovementStateChanged _onMovementStateChangedDelegate_;
 
 };
-
-
-
-

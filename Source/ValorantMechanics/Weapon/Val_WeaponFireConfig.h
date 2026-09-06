@@ -44,6 +44,8 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fire Properties", meta = (Unit = "cm/s"))
     bool canSwitchFireMode = false;
     
+    // walk speed is calculated as follows
+    // runSpeed * .67f
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fire Properties", meta = (Unit = "cm/s"))
     float runSpeed = 0.0f; // cm/s
     
@@ -71,9 +73,9 @@ public:
     // TODO: add vectors that define bullet spread
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fire Properties")
     float firstShotSpread_HipFire = 0.0f; // degrees
-    
+
 #pragma endregion REGULAR_FIRE_PROPERTIES
-    
+
 #pragma region ALTERNATE_FIRE_PROPERTIES
     /*
      * alternate fire and ADS/scope-in are treated differently

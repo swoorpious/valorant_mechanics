@@ -21,7 +21,7 @@ struct VALORANTMECHANICS_API FWeaponSocketData
 public: 
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Mesh|Sockets")
-    FName leftHandTargetSocket = "Left_Hand_Target";
+    FName leftHandTargetSocket = "Left_Hand_TargetSocket";
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Valorant Character|Mesh|Sockets")
     FName magazineMainSocket = "Magazine_Main";

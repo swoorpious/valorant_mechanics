@@ -1,12 +1,12 @@
 ﻿// Copyright 2025 swaroop. Personal Unreal Engine project inspired by VALORANT.
 
 
-
 #include "Val_PlayerController.h"
 
 #include "../Val_Character.h"
 #include "Val_InputSystem.h"
 #include "ValorantMechanics/ValorantMechanics.h"
+#include "ValorantMechanics/Core/Log.h"
 #include "ValorantMechanics/Player/PlayerComponents/Val_CharacterMovementComponent.h"
 #include "ValorantMechanics/Weapon/CommonWeapon.h"
 
@@ -17,7 +17,6 @@
 AVal_PlayerController::AVal_PlayerController()
 {
     inputSystem = CreateDefaultSubobject<UVal_InputSystem>(TEXT("Val Input System"));
-    
 }
 
 TObjectPtr<UVal_InputSystem> AVal_PlayerController::GetInputSystem()
@@ -28,19 +27,20 @@ TObjectPtr<UVal_InputSystem> AVal_PlayerController::GetInputSystem()
 void AVal_PlayerController::OnPossess(APawn* aPawn)
 {
     Super::OnPossess(aPawn);
-    
+
     pCharacter = Cast<AVal_Character>(aPawn);
-    if (!pCharacter) LOG(Val_Player, Error, "This controller and its descendants should only possess AMySpecificCharacterClass derived pawns!");
+    if (!pCharacter)
+        LOGObjName(this, Val_Player, Error,
+        "This controller and its descendants should only possess AMySpecificCharacterClass derived pawns!");
     pMovement = pCharacter->GetValMovementComponent();
-    
+
     inputSystem->Init(this, InputComponent);
-    
+
     InputComponent->bBlockInput = false;
 
     UInputSettings* inputSettings = UInputSettings::GetInputSettings();
     inputSettings->bUseMouseForTouch = false;
     bEnableMouseOverEvents = true;
-    
 }
 
 void AVal_PlayerController::OnUnPossess()
@@ -53,7 +53,7 @@ FVector2D AVal_PlayerController::GetLastLookVector() const
 {
     if (&inputSystem)
         return inputSystem->GetLastLookVector();
-        
+
     return FVector2d(0.0f, 0.0f);
 }
 
@@ -65,7 +65,7 @@ void AVal_PlayerController::AddLookInput(FVector2D Look) const
     // would use scaleFOV instead later
     FVector2D const viewportSize = GetWorld()->GetGameViewport()->Viewport->GetSizeXY();
     float const cameraFOV = pCharacter->characterMeshCamera->FieldOfView;
-    
+
     // pCharacter handles yaw
     FRotator const yaw = pCharacter->GetActorRotation() + FRotator(
         0,
@@ -80,14 +80,13 @@ void AVal_PlayerController::AddLookInput(FVector2D Look) const
         0, 0);
     pitch.Pitch = FMath::Clamp(pitch.Pitch, -89.9f, 89.9f);
     pCharacter->sceneComponent->SetRelativeRotation(pitch); // update pitch (up/down)
-
 }
 
 
 void AVal_PlayerController::PlayerMove() const
 {
     if (!inputSystem->HasMovementInput()) return;
-    
+
     FVector2d moveVector = inputSystem->GetAdditiveMovementInput();
     constexpr float minThreshold = 0.05f;
     constexpr float maxScale = 10.0f;
@@ -102,23 +101,22 @@ void AVal_PlayerController::PlayerMove() const
     if (FMath::Abs(inputSystem->GetLastLookVector().X) > minThreshold)
     {
         float scaleFactor = FMath::Clamp(
-            1.0f / FMath::Pow(FMath::Abs(inputSystem->GetLastLookVector().X), 0.5f), 
+            1.0f / FMath::Pow(FMath::Abs(inputSystem->GetLastLookVector().X), 0.5f),
             1.0f / maxScale,
             maxScale
         );
-    
+
         moveVector.X *= scaleFactor;
     }
-    
-    
+
+
     const FVector playerRight = pCharacter->GetActorRightVector();
     const FVector playerForward = pCharacter->GetActorForwardVector();
     const FVector worldVector = playerRight * moveVector.X +
         playerForward * moveVector.Y;
-    
-        
+
+
     pCharacter->AddMovementInput(worldVector.GetSafeNormal(), 1.0f);
-    
 }
 
 void AVal_PlayerController::PlayerLook(const FVector2D lookVector) const
@@ -133,18 +131,16 @@ void AVal_PlayerController::WeaponFire(const FInputActionInstance& inputInstance
     const ETriggerEvent action_trigger = inputInstance.GetTriggerEvent();
 
     if (!action_trigger || !w) return;
-    
+
     if (action_trigger == ETriggerEvent::Started)
     {
         if (action_name == "VIA_Attack") w->fireStart();
         if (action_name == "VIA_Alt_Attack") w->altFireStart();
-
     }
     else if (action_trigger == ETriggerEvent::Canceled || action_trigger == ETriggerEvent::Completed)
     {
         if (action_name == "VIA_Attack") w->fireEnd();
         if (action_name == "VIA_Alt_Attack") w->altFireEnd();
-        
     }
 }
 
@@ -156,7 +152,8 @@ void AVal_PlayerController::PlayerJump(const FInputActionInstance& inputInstance
 {
     // TODO: implement jump start/held/finished on character that can be overridden on agent actors
 
-    if (const ETriggerEvent actionTrigger = inputInstance.GetTriggerEvent(); actionTrigger == ETriggerEvent::Started)
+    const ETriggerEvent actionTrigger = inputInstance.GetTriggerEvent();
+    if (actionTrigger == ETriggerEvent::Started)
     {
         pCharacter->UnCrouch();
         pCharacter->Jump();
@@ -165,27 +162,40 @@ void AVal_PlayerController::PlayerJump(const FInputActionInstance& inputInstance
 
 void AVal_PlayerController::PlayerCrouch(const FInputActionInstance& inputInstance)
 {
+    switch (inputInstance.GetTriggerEvent())
+    {
+        case ETriggerEvent::Started:
+            pCharacter->Crouch();
+            break;
+
+        case ETriggerEvent::Canceled:
+        case ETriggerEvent::Completed:
+            pCharacter->UnCrouch();
+            break;
+
+        default: break;
+    }
 }
 
 
 void AVal_PlayerController::PlayerWalk(const FInputActionInstance& inputInstance)
 {
-    // switch (inputInstance.GetTriggerEvent()) {
-    //     case ETriggerEvent::Started:
-    //     case ETriggerEvent::Triggered:
-    //     case ETriggerEvent::Ongoing:
-    //         e->TryTransitionToState(EMovementState::Walking);
-    //         break;
-    //     
-    //     case ETriggerEvent::Canceled:
-    //     case ETriggerEvent::Completed:
-    //         inputSystem->HasMovementInput() ? 
-    //             e->TryTransitionToState(EMovementState::Running) :
-    //             e->TryTransitionToState(EMovementState::Idle);
-    //         break;
-    //
-    //     default: break;
-    // }
+    // walking is the alternate (slow, quiet) movement mode; letting go
+    // returns the character to its regular running speed.
+    switch (inputInstance.GetTriggerEvent())
+    {
+        case ETriggerEvent::Started:
+        case ETriggerEvent::Ongoing:
+            pCharacter->Walk(true);
+            break;
+
+        case ETriggerEvent::Canceled:
+        case ETriggerEvent::Completed:
+            pCharacter->Walk(false);
+            break;
+
+        default: break;
+    }
 }
 
 void AVal_PlayerController::PlayerUse(const FInputActionInstance& inputInstance)
@@ -197,9 +207,3 @@ void AVal_PlayerController::TryWeaponEquip(const EWeaponType weaponType) const
 {
     pCharacter->EquipWeapon(weaponType, EEquipType::EquipDefault);
 }
-
-
-
-
-
-

@@ -7,7 +7,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PlayerMovementProperties.h"
 #include "ValorantMechanics/Core/Shared/PlayerStates.h"
-#include "ValorantMechanics/Core/StateManager/StateManagerOwner.h"
 
 #include "Val_CharacterMovementComponent.generated.h"
 

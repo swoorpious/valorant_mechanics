@@ -12,4 +12,4 @@ class UVal_WeaponAnimConfig;
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnWeaponChanged, UVal_WeaponAnimConfig*);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnWeaponStateChanged, EWeaponState);
 
-
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnMovementStateChanged, EMovementState);

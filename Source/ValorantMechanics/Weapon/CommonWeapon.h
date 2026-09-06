@@ -65,16 +65,19 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Body")
     TObjectPtr<USkeletalMeshComponent> weaponMesh = nullptr;
     
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Body")
+    TObjectPtr<USceneComponent> leftHandIK;
+    
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Body")
     TObjectPtr<UStaticMeshComponent> magazineMesh = nullptr;
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Body")
     TObjectPtr<UStaticMeshComponent> scopeMesh = nullptr;
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Valorant Character|Character Setup|Scene|Mesh", meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Weapon|Body", meta = (AllowPrivateAccess = "true"))
     float targetFOV = 60.f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Valorant Character|Character Setup|Scene|Mesh", meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Weapon|Body", meta = (AllowPrivateAccess = "true"))
     float targetRenderScaleInDepth = 0.1f;
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Body")
@@ -95,38 +98,42 @@ public:
 
 
 #pragma endregion UPROPERTY_DECLARATIONS
-    
-    /*
-     * public getter functions
-     */
-    EWeaponType getWeaponType() const { return _weaponType; }
-    EWeaponPickupType getWeaponPickupType() const { return _weaponPickupType; }
-    UVal_WeaponAnimConfig* getAnimAsset() const { return _animConfig; }
-    EFireMode getWeaponFireMode() const
-    {
-        return _weaponConfig ? _weaponConfig->fireMode : EFireMode::Manual;
-    }
-    
-    
+
+#pragma region PUBLIC_GETTER_FUNCTIONS
+    UFUNCTION(BlueprintType, BlueprintPure, Category="Weapon")
+    USceneComponent* getLeftHandIKComponent() const;
+
+    UFUNCTION(BlueprintType, BlueprintPure, Category="Weapon")
+    UVal_WeaponFireConfig* getWeaponFireConfig() const;
+
+    EWeaponType getWeaponType() const;
+    EWeaponPickupType getWeaponPickupType() const;
+    UVal_WeaponAnimConfig* getAnimAsset() const;
+    EFireMode getWeaponFireMode() const;
+    float getWeaponRunSpeed();
+    float getWeaponWalkSpeed();
+
     bool canDrop() const { return _weaponPickupType != EWeaponPickupType::NonPickupable; }
+
     /*
      * canAltFire: _weaponConfig->canAltFire
      * canADS: _weaponConfig->canADS
      */
     bool canAltFire() const { return _weaponConfig && _weaponConfig->canAltFire; }
     bool canADS() const { return _weaponConfig && _weaponConfig->canADS; }
-    
+#pragma endregion //PUBLIC_GETTER_FUNCTIONS
+
     // fireStart() will only shoot one bullet for manual weapons
     virtual void fireStart() override;
     virtual void fireEnd() override;
-    
+
     /*
      * if the weapon has both canAltFire and canADS, the function will cause the weapon to switch to alt fire mode.
      * if the weapons only has canAltFire, the function will just alt fire. 
      */
     virtual void altFireStart() override { }
     virtual void altFireEnd() override { }
-    
+
     virtual void tryWeaponReload() override;
 
     virtual bool tryWeaponPickUp(AVal_Character* ownerCharacter) override;
@@ -134,19 +141,17 @@ public:
     virtual bool trySwitchFireMode(EFireMode newMode) override;
     virtual void weaponEquip(EEquipType type);
     virtual void weaponUnequip();
-    
+
 protected:
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaTime) override;
-    
+
     /*
      * can call multiple times in one fire shot
      * for example a shot gun
      */
     virtual void _shootBullet();
-    
     bool _canFire() const;
-    
     virtual void _onWeaponEquipped();
 
     /**
@@ -157,6 +162,15 @@ protected:
      * by the AnimInstance. Always prefer this over setting _weaponState directly.
      */
     void _updateState(EWeaponState newState);
+
+    /**
+     * _broadcastAssetChanged — always fires OnWeaponChanged for this weapon's
+     * _animConfig (even if null), unconditionally, so the AnimInstance's
+     * cached anim asset is NEVER left stale/pointing at a previous weapon.
+     * Always called first, immediately before _updateState(Equip_*), from
+     * weaponEquip() so both delegates fire as one paired, ordered unit.
+     */
+    void _broadcastAssetChanged();
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon", meta=(DisplayName="Weapon Fire Config")) 
     TObjectPtr<UVal_WeaponFireConfig> _weaponConfig;
@@ -182,6 +196,15 @@ protected:
     bool _isADS = false;
     bool _isOnCooldown = false;
     bool _isFireHeld = false;
+
+    /*
+     * true from the moment weaponEquip() is called until weaponUnequip() is called.
+     * _updateState() uses this to refuse broadcasting non-None states for a weapon
+     * that is no longer the one being equipped — this is what stops a stale/late
+     * broadcast (e.g. a delayed timer callback) from one weapon overlapping with
+     * the next weapon's own equip sequence.
+     */
+    bool _isEquipActive_ = false;
     
     // exponential function accumulates heat per bullet fire
     int _heatAccumulated = 0;

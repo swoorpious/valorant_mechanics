@@ -3,8 +3,8 @@
 
 #include "ValorantMechanics.h"
 #include "Modules/ModuleManager.h"
+#include "Core/Log.h"
 
-IMPLEMENT_PRIMARY_GAME_MODULE( FDefaultGameModuleImpl, ValorantMechanics, "ValorantMechanics" );
-
+IMPLEMENT_PRIMARY_GAME_MODULE(FDefaultGameModuleImpl, ValorantMechanics, "ValorantMechanics" );
 
 DEFINE_LOG_CATEGORY(Val_Player);

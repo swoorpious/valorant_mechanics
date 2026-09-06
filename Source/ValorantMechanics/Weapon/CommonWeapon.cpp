@@ -19,7 +19,9 @@
 #include "DrawDebugHelpers.h"
 
 #include "ValorantMechanics/Player/Val_Character.h"
+#include "ValorantMechanics/Player/PlayerComponents/Val_CharacterMovementComponent.h"
 #include "ValorantMechanics/Core/Val_LocalPlayerSubsystem.h"
+#include "ValorantMechanics/Core/Log.h"
 // #include "ValorantMechanics/Player/Controller/Val_PlayerController.h"
 
 
@@ -34,6 +36,8 @@ ACommonWeapon::ACommonWeapon()
     weaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     weaponMesh->SetGenerateOverlapEvents(false);
     weaponMesh->SetSimulatePhysics(false);
+
+    leftHandIK = CreateDefaultSubobject<USceneComponent>(TEXT("Left Hand IK Scene"));
 
     magazineMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Magazine Mesh"));
     magazineMesh->CastShadow = false;
@@ -60,6 +64,39 @@ ACommonWeapon::ACommonWeapon()
 
     this->_setupAttachments_();
 }
+
+
+#pragma region PUBLIC_GETTER_FUNCTIONS
+
+USceneComponent* ACommonWeapon::getLeftHandIKComponent() const { return leftHandIK.Get(); }
+UVal_WeaponFireConfig* ACommonWeapon::getWeaponFireConfig() const { return _weaponConfig.Get(); } 
+EWeaponType ACommonWeapon::getWeaponType() const { return _weaponType; }
+EWeaponPickupType ACommonWeapon::getWeaponPickupType() const { return _weaponPickupType; }
+UVal_WeaponAnimConfig* ACommonWeapon::getAnimAsset() const { return _animConfig; }
+EFireMode ACommonWeapon::getWeaponFireMode() const
+{
+    return _weaponConfig ? _weaponConfig->fireMode : EFireMode::Manual;
+}
+float ACommonWeapon::getWeaponRunSpeed()
+{
+    // a weapon with no fire config (e.g. melee), or one whose runSpeed hasn't
+    // been authored yet (still the 0.0f default), has no usable speed of its
+    // own - fall back to the character's base movement speed rather than
+    // freezing movement by writing a 0 into MaxWalkSpeed.
+    if (_weaponConfig && _weaponConfig->runSpeed > 0.f) return _weaponConfig->runSpeed;
+    const auto* movement = _ownerCharacter_ ? _ownerCharacter_->GetValMovementComponent() : nullptr;
+    return movement ? movement->movementProperties.runSpeed : 0.f;
+}
+
+float ACommonWeapon::getWeaponWalkSpeed()
+{
+    if (_weaponConfig && _weaponConfig->runSpeed > 0.f) return _weaponConfig->runSpeed * .67f;
+    const auto* movement = _ownerCharacter_ ? _ownerCharacter_->GetValMovementComponent() : nullptr;
+    return movement ? movement->movementProperties.walkSpeed : 0.f;
+}
+
+#pragma endregion //PUBLIC_GETTER_FUNCTIONS
+
 
 
 void ACommonWeapon::fireStart()
@@ -133,9 +170,8 @@ void ACommonWeapon::weaponEquip(EEquipType type)
     PrimaryActorTick.bCanEverTick = true;
     SetActorHiddenInGame(false);
 
-    // broadcast weapon change
-    if (_ownerCharacter_ && _animConfig)
-        _ownerCharacter_->getOnWeaponChangedDelegate()->Broadcast(_animConfig);
+    _isEquipActive_ = true;
+    _broadcastAssetChanged();
 
     // set correct equip state BEFORE starting the timer, and don't call
     // _onWeaponEquipped() immediately — let the timer do it.
@@ -170,6 +206,8 @@ void ACommonWeapon::weaponUnequip()
     PrimaryActorTick.bCanEverTick = false;
     SetActorHiddenInGame(true);
     _isFireHeld = false;
+    _isEquipActive_ = false;
+
     GetWorldTimerManager().ClearTimer(_timerHandle_handleEquip_);
     GetWorldTimerManager().ClearTimer(_timerHandle_handleRefire_);
     _updateState(EWeaponState::None);
@@ -193,6 +231,28 @@ void ACommonWeapon::BeginPlay()
 void ACommonWeapon::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
+    
+    if (GEngine && _isEquipActive_)
+    {
+        GEngine->AddOnScreenDebugMessage(
+            -1,
+            DeltaTime,
+            FColor::White,
+            FString::Printf(
+                TEXT("current weapon: %s"),
+                *StaticClass()->GetName()
+            ));
+        GEngine->AddOnScreenDebugMessage(
+            -1,
+            DeltaTime,
+            FColor::White,
+            FString::Printf(
+                TEXT("state: %s"),
+                *StaticEnum<EWeaponState>()->GetDisplayNameTextByValue(static_cast<int8>(_weaponState)).ToString()
+            ));
+        
+    }
+    
 }
 
 
@@ -205,6 +265,8 @@ void ACommonWeapon::_onWeaponEquipped()
 
 void ACommonWeapon::_updateState(EWeaponState newState)
 {
+    if (newState != EWeaponState::None && !_isEquipActive_) return;
+
     // const EWeaponState oldState = _weaponState;
     _weaponState = newState;
 
@@ -212,16 +274,24 @@ void ACommonWeapon::_updateState(EWeaponState newState)
     if (_ownerCharacter_)
     {
         _ownerCharacter_->getOnWeaponStateChangedDelegate()->Broadcast(newState);
-        UE_LOGFMT(LogActor, Display, "broadcasting state change to owner characters delegate: {0}",
+        LOGObjName(this, LogActor, Display, "broadcasting state change to owner characters delegate: %d",
                   static_cast<uint8>(newState));
-        UE_LOGFMT(
+        LOGObjName(
+            this,
             LogActor,
             Display,
-            "broadcasting on character: {0}, bound: {1}",
-            reinterpret_cast<uintptr_t>(_ownerCharacter_.Get()),
+            "broadcasting on character: %p, bound: %d",
+            _ownerCharacter_.Get(),
             _ownerCharacter_->getOnWeaponStateChangedDelegate()->IsBound()
         );
     }
+}
+
+
+void ACommonWeapon::_broadcastAssetChanged()
+{
+    if (!_ownerCharacter_) return;
+    _ownerCharacter_->getOnWeaponChangedDelegate()->Broadcast(_animConfig);
 }
 
 
@@ -248,35 +318,37 @@ void ACommonWeapon::_shootBullet(
     const FVector startPoint = e->GetComponentLocation();
     const FVector endPoint = e->GetForwardVector() * _weaponConfig->maxRange + startPoint;
 
-    if (GetWorld()->LineTraceSingleByChannel(hit, startPoint, endPoint, ECC_Visibility, queryParams))
+    const bool bHitSomething = GetWorld()->LineTraceSingleByChannel(hit, startPoint, endPoint, ECC_Visibility, queryParams);
+
+    if (bHitSomething && impactParticle)
     {
-        if (impactParticle)
-        {
-            UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-                GetWorld(),
-                impactParticle,
-                hit.ImpactPoint,
-                hit.ImpactNormal.Rotation(),
-                FVector(1, 1, 1),
-                true,
-                true,
-                ENCPoolMethod::AutoRelease,
-                true);
-        }
+        UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+            GetWorld(),
+            impactParticle,
+            hit.ImpactPoint,
+            hit.ImpactNormal.Rotation(),
+            FVector(1, 1, 1),
+            true,
+            true,
+            ENCPoolMethod::AutoRelease,
+            true);
+    }
 
 #if WITH_EDITOR
-        DrawDebugLine(
-            GetWorld(),
-            startPoint,
-            endPoint,
-            FColor::Red,
-            false,
-            5.0f,
-            0,
-            5.0f
-        );
+    // always draw the weapon's fire trace out to its range, hit or not,
+    // so range/spread can be sanity checked in the editor: red up to the
+    // hit point when something was hit, green out to maxRange otherwise.
+    DrawDebugLine(
+        GetWorld(),
+        startPoint,
+        bHitSomething ? hit.ImpactPoint : endPoint,
+        bHitSomething ? FColor::Red : FColor::Green,
+        false,
+        5.0f,
+        0,
+        5.0f
+    );
 #endif
-    }
 
     if (muzzleParticle)
     {
@@ -299,8 +371,8 @@ void ACommonWeapon::_shootBullet(
 
     // pOwnerCharacter->PlayLocalSound(animAsset->GetRandomAttackSFX());
 
-    UE_LOG(LogTemp, Warning, TEXT("weapon trace start: %s"), *startPoint.ToString())
-    UE_LOG(LogTemp, Warning, TEXT("weapon trace end:   %s"), *endPoint.ToString())
+    LOGObjName(this, LogTemp, Warning, "weapon trace start: %s", *startPoint.ToString());
+    LOGObjName(this, LogTemp, Warning, "weapon trace end:   %s", *endPoint.ToString());
 }
 
 
@@ -312,7 +384,7 @@ bool ACommonWeapon::_canFire() const
     // since total ammo can be non-zero but currently available is still zero
     if (_currentMagAmmoCount_ <= 0)
     {
-        UE_LOG(LogTemp, Display, TEXT("cannot fire: no ammo"));
+        LOGObjName(this, LogTemp, Display, "cannot fire: no ammo");
         return false;
     }
 
@@ -325,6 +397,7 @@ void ACommonWeapon::_setupAttachments_() const
     magazineMesh->SetupAttachment(weaponMesh, _socketData.magazineMainSocket);
     scopeMesh->SetupAttachment(weaponMesh, _socketData.reflexSocket);
     collisionBox->SetupAttachment(weaponMesh);
+    leftHandIK->SetupAttachment(weaponMesh, _socketData.leftHandTargetSocket);
 }
 
 void ACommonWeapon::_applyRenderOnTopParams_(bool isPickup)
@@ -349,3 +422,4 @@ void ACommonWeapon::_applyRenderOnTopParams_(bool isPickup)
     createAndApply(magazineMesh, _midMag_);
     createAndApply(scopeMesh, _midScope_);
 }
+

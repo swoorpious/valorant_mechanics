@@ -7,6 +7,7 @@
 #include "ValorantMechanics/Weapon/CommonWeapon.h"
 #include "ValorantMechanics/ValorantMechanics.h"
 #include "ValorantMechanics/Core/Val_DefaultGameMode.h"
+#include "ValorantMechanics/Core/Log.h"
 
 #include "PlayerComponents/Val_CharacterMovementComponent.h"
 #include "PlayerComponents/Val_PlayerInventory.h"
@@ -73,8 +74,8 @@ void AVal_Character::BeginPlay()
     
     _charMovementComponent = Cast<UVal_CharacterMovementComponent>(GetCharacterMovement());
     _playerAnimInstance = Cast<UVal_PlayerAnimInstance>(characterMesh->GetAnimInstance());
-    if (!_charMovementComponent) LOG(Val_Player, Error, "_charMovementComponent is likely a nullptr.");
-    if (!_playerAnimInstance) LOG(Val_Player, Error, "_playerAnimInstance is likely a nullptr.");
+    if (!_charMovementComponent) LOGObjName(this, Val_Player, Error, "_charMovementComponent is likely a nullptr.");
+    if (!_playerAnimInstance) LOGObjName(this, Val_Player, Error, "_playerAnimInstance is likely a nullptr.");
 
     if (const auto* e = GetWorld()->GetAuthGameMode<AVal_DefaultGameMode>())
     {
@@ -98,9 +99,9 @@ void AVal_Character::BeginPlay()
         mid->SetScalarParameterValue(TEXT("Target FOV"), targetFOV);
         mid->SetScalarParameterValue(TEXT("Scale in Depth"), targetRenderScaleInDepth);
         
-        LOG(Val_Player, Warning, "[AVal_Character] FOV and clip fix material created at for characterMesh");
+        LOGObjName(this, Val_Player, Warning, "FOV and clip fix material created at for characterMesh");
         
-    } else LOG(Val_Player, Warning, "[AVal_Character] characterMesh has no material at index 0");
+    } else LOGObjName(this, Val_Player, Warning, "characterMesh has no material at index 0");
 }
 
 
@@ -110,6 +111,7 @@ void AVal_Character::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
+    _updateMovementStateFromInput();
 }
 
 
@@ -151,12 +153,15 @@ void AVal_Character::EquipWeapon(const EWeaponType weaponType, const EEquipType 
     ACommonWeapon* inv_weapon = _inventory->getWeaponByType(weaponType);
     if (!inv_weapon)
     {
-        UE_LOG(LogTemp, Warning, TEXT("EquipWeapon: no weapon of type %d in inventory"), static_cast<int32>(weaponType));
+        LOGObjName(this, LogTemp, Warning, "EquipWeapon: no weapon of type %d in inventory", static_cast<int32>(weaponType));
         return;
     }
     inv_weapon->weaponEquip(equipType);
     _inventory->switchEquippedWeapon(weaponType);
-    
+
+    // each weapon can define its own regular/alternate movement speed,
+    // so refresh MaxWalkSpeed for whichever mode (walk/run) is currently active.
+    Walk(_isWalking);
 }
 
 
@@ -211,6 +216,15 @@ void AVal_Character::DropWeapon(EWeaponType weaponType)
     
 }
 
+bool AVal_Character::isHoldingGun()
+{
+    const ACommonWeapon* weapon = _inventory->getEquippedWeapon();
+    if (!weapon) return false;
+
+    const EWeaponType e = weapon->getWeaponType();
+    return e != EWeaponType::Melee && e != EWeaponType::Empty;
+}
+
 void AVal_Character::PlayLocalSound(USoundBase* sound) const
 {
     if (audioComponent && sound)
@@ -220,6 +234,76 @@ void AVal_Character::PlayLocalSound(USoundBase* sound) const
     }
 }
 
+void AVal_Character::AddMovementInput(FVector WorldDirection, float ScaleValue, bool bForce)
+{
+    Super::AddMovementInput(WorldDirection, ScaleValue, bForce);
+}
+
+void AVal_Character::Jump()
+{
+    Super::Jump();
+}
+
+void AVal_Character::Walk(bool started)
+{
+    // walking is the alternate (slow/quiet) movement mode, running is the regular one.
+    // each weapon defines its own regular/alternate speed (heavier weapons slow you down).
+    _isWalking = started;
+
+    // crouch owns MaxWalkSpeed while crouched - UnCrouch() calls back into Walk()
+    // to restore whichever mode was active once it lets go.
+    if (bIsCrouched || !_charMovementComponent) return;
+
+    ACommonWeapon* weapon = _inventory->getEquippedWeapon();
+    if (!weapon) return;
+
+    _charMovementComponent->MaxWalkSpeed = started ? weapon->getWeaponWalkSpeed() : weapon->getWeaponRunSpeed();
+}
+
+void AVal_Character::Crouch(bool bClientSimulation)
+{
+    Super::Crouch(bClientSimulation);
+    if (_charMovementComponent) _charMovementComponent->MaxWalkSpeed = _charMovementComponent->movementProperties.crouchSpeed;
+}
+
+void AVal_Character::UnCrouch(bool bClientSimulation)
+{
+    Super::UnCrouch(bClientSimulation);
+    Walk(_isWalking); // restore run/walk speed for the currently equipped weapon
+}
+
+void AVal_Character::_updateMovementState(EMovementState newState)
+{
+    if (_movementState == newState) return;
+    _movementState = newState;
+    _onMovementStateChangedDelegate_.Broadcast(newState);
+}
+
+// drives _movementState off of actual input/movement every tick.
+// crouching and being airborne take priority over the walk/run/idle states.
+void AVal_Character::_updateMovementStateFromInput()
+{
+    if (bIsCrouched)
+    {
+        _updateMovementState(EMovementState::Crouched);
+        return;
+    }
+
+    if (GetCharacterMovement() && GetCharacterMovement()->IsFalling())
+    {
+        _updateMovementState(GetVelocity().Z >= 0.f ? EMovementState::Jump_Up : EMovementState::Jump_Fall);
+        return;
+    }
+
+    if (GetLastMovementInputVector().IsNearlyZero())
+    {
+        _updateMovementState(EMovementState::Idle);
+        return;
+    }
+
+    _updateMovementState(_isWalking ? EMovementState::Walk : EMovementState::Run);
+}
+
 
 AVal_PlayerController* AVal_Character::GetValPlayerController() const { return Cast<AVal_PlayerController>(GetController()); }
 AVal_Character* AVal_Character::GetValCharacter() { return this; }
@@ -227,8 +311,28 @@ UVal_CharacterMovementComponent* AVal_Character::GetValMovementComponent() const
 UVal_PlayerAnimInstance* AVal_Character::GetValAnimInstance() const { return Cast<UVal_PlayerAnimInstance>(characterMesh->GetAnimInstance()); }
 UVal_PlayerInventory* AVal_Character::GetPlayerInventory() const { return _inventory; }
 
+ACommonWeapon* AVal_Character::getEquippedWeapon() const
+{
+    return _inventory->getEquippedWeapon();
+}
+
 UVal_WeaponAnimConfig* AVal_Character::getCurrentAnimAsset() const
 {
     ACommonWeapon* w = _inventory->getEquippedWeapon();
     return w ? w->getAnimAsset() : nullptr;
+}
+
+FOnWeaponChanged* AVal_Character::getOnWeaponChangedDelegate() 
+{
+    return &_onWeaponChangedDelegate_;
+}
+
+FOnWeaponStateChanged* AVal_Character::getOnWeaponStateChangedDelegate()
+{
+    return &_onWeaponStateChangedDelegate_;
+}
+
+FOnMovementStateChanged* AVal_Character::getOnMovementStateChangedDelegate()
+{
+    return &_onMovementStateChangedDelegate_;
 }
