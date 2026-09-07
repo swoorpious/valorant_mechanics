@@ -124,7 +124,7 @@ void AVal_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 void AVal_Character::SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn, bool shouldAutoEquip)
 {
     if (!weaponToSpawn) return;
-    
+
     if (ACommonWeapon* spawned_weapon = GetWorld()->SpawnActor<ACommonWeapon>(weaponToSpawn))
     {
         spawned_weapon->SetOwner(this);
@@ -180,7 +180,6 @@ void AVal_Character::UnequipWeapon(const EWeaponType weaponType) const
 
 void AVal_Character::DropWeapon(EWeaponType weaponType)
 {
-    // FIX: null-check getEquippedWeapon() before dereferencing
     ACommonWeapon* equipped = _inventory->getEquippedWeapon();
     if (!equipped) return;
 
@@ -263,7 +262,9 @@ void AVal_Character::Walk(bool started)
 void AVal_Character::Crouch(bool bClientSimulation)
 {
     Super::Crouch(bClientSimulation);
-    if (_charMovementComponent) _charMovementComponent->MaxWalkSpeed = _charMovementComponent->movementProperties.crouchSpeed;
+    ACommonWeapon* weapon = _inventory->getEquippedWeapon();
+    if (!weapon) return;
+    if (_charMovementComponent) _charMovementComponent->MaxWalkSpeed = weapon->getWeaponWalkSpeed();
 }
 
 void AVal_Character::UnCrouch(bool bClientSimulation)

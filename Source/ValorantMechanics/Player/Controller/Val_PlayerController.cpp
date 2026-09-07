@@ -154,10 +154,7 @@ void AVal_PlayerController::PlayerJump(const FInputActionInstance& inputInstance
 
     const ETriggerEvent actionTrigger = inputInstance.GetTriggerEvent();
     if (actionTrigger == ETriggerEvent::Started)
-    {
-        pCharacter->UnCrouch();
         pCharacter->Jump();
-    }
 }
 
 void AVal_PlayerController::PlayerCrouch(const FInputActionInstance& inputInstance)
@@ -180,12 +177,11 @@ void AVal_PlayerController::PlayerCrouch(const FInputActionInstance& inputInstan
 
 void AVal_PlayerController::PlayerWalk(const FInputActionInstance& inputInstance)
 {
-    // walking is the alternate (slow, quiet) movement mode; letting go
-    // returns the character to its regular running speed.
     switch (inputInstance.GetTriggerEvent())
     {
         case ETriggerEvent::Started:
         case ETriggerEvent::Ongoing:
+        case ETriggerEvent::Triggered:
             pCharacter->Walk(true);
             break;
 

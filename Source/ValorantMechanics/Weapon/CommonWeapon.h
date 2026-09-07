@@ -149,32 +149,27 @@ protected:
     /*
      * can call multiple times in one fire shot
      * for example a shot gun
+     * 
+     * add bullet error here by casting to the player character/controller
      */
+    UFUNCTION(BlueprintCallable, Category="Weapon")
     virtual void _shootBullet();
+    
+    UFUNCTION(BlueprintCallable, Category="Weapon")
+    virtual void _perGunShootBullet();
+    
     bool _canFire() const;
     virtual void _onWeaponEquipped();
 
-    /**
-     * _broadcastStateUpdate — the single choke-point for all weapon state changes.
-     *
-     * updates _weaponState, fires the weapon-level two-param delegate
-     * (old → new), and fires the character-level one-param delegate consumed
-     * by the AnimInstance. Always prefer this over setting _weaponState directly.
-     */
     void _updateState(EWeaponState newState);
-
-    /**
-     * _broadcastAssetChanged — always fires OnWeaponChanged for this weapon's
-     * _animConfig (even if null), unconditionally, so the AnimInstance's
-     * cached anim asset is NEVER left stale/pointing at a previous weapon.
-     * Always called first, immediately before _updateState(Equip_*), from
-     * weaponEquip() so both delegates fire as one paired, ordered unit.
-     */
     void _broadcastAssetChanged();
+
+    void _reduceMagAmmoCount(uint8 count);
+    void _reduceMagCount(uint8 count);
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon", meta=(DisplayName="Weapon Fire Config")) 
     TObjectPtr<UVal_WeaponFireConfig> _weaponConfig;
-    
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (DisplayName = "SFX Data Asset"))
     TObjectPtr<UVal_WeaponSFXConfig> _sfxConfig;
 
@@ -196,14 +191,6 @@ protected:
     bool _isADS = false;
     bool _isOnCooldown = false;
     bool _isFireHeld = false;
-
-    /*
-     * true from the moment weaponEquip() is called until weaponUnequip() is called.
-     * _updateState() uses this to refuse broadcasting non-None states for a weapon
-     * that is no longer the one being equipped — this is what stops a stale/late
-     * broadcast (e.g. a delayed timer callback) from one weapon overlapping with
-     * the next weapon's own equip sequence.
-     */
     bool _isEquipActive_ = false;
     
     // exponential function accumulates heat per bullet fire
@@ -215,12 +202,10 @@ private:
     
     UFUNCTION(CallInEditor, Category = "Weapon|Body")
     void _setupAttachments_() const;
-    
-    uint8 _currentMagAmmoCount_ = 0;
-    uint8 _currentMagCount_ = 0;
-    uint8 _totalAmmoCount_ = 0;
-    float _timeBetweenConsecutiveShots_ = 0.f;
-    
+
+    uint8 _currMagAmmoCount_ = 0;
+    uint8 _currMagCount_ = 0;
+
     UPROPERTY() TObjectPtr<AVal_Character> _ownerCharacter_ = nullptr;
     
     /*

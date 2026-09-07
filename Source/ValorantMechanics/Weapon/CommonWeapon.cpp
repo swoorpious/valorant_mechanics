@@ -101,9 +101,29 @@ float ACommonWeapon::getWeaponWalkSpeed()
 
 void ACommonWeapon::fireStart()
 {
-    if (_isFireHeld || _currentMagAmmoCount_ == 0) return;
+    if (_isFireHeld || _currMagAmmoCount_ == 0) return;
     _isFireHeld = true;
 
+    switch (_weaponConfig->fireMode)
+    {
+    case EFireMode::Manual:
+        _perGunShootBullet();
+        break;
+    case EFireMode::Semi_Automatic:
+        // might need 
+        _perGunShootBullet();
+        break;
+    case EFireMode::Automatic:
+        _perGunShootBullet();
+        GetWorldTimerManager().SetTimer(
+            _timerHandle_handleRefire_,
+            this,
+            &ACommonWeapon::_perGunShootBullet,
+            _weaponConfig ? 1.f / _weaponConfig->fireRate : 0.1f,
+           true 
+        );
+        break;
+    }
     /*
      * override this function and implement firing logic 
      */
@@ -112,6 +132,8 @@ void ACommonWeapon::fireStart()
 void ACommonWeapon::fireEnd()
 {
     _isFireHeld = false;
+    GetWorldTimerManager().ClearTimer(_timerHandle_handleRefire_);
+    _updateState(EWeaponState::Idle);
 }
 
 
@@ -119,20 +141,12 @@ void ACommonWeapon::tryWeaponReload()
 {
     // only reload if the mag is not already full and we have spare mags
     if (!_weaponConfig) return;
-    if (_currentMagCount_ == 0) return;
-    if (_currentMagAmmoCount_ >= _weaponConfig->magSize) return;
+    if (_currMagCount_ == 0) return;
+    
+    if (_currMagCount_ > 0)
+        --_currMagCount_;
 
-    const int32 magCapacity = _weaponConfig->magSize;
-    const int32 ammoNeeded = magCapacity - _currentMagAmmoCount_;
-    const int32 ammoAvailable = _currentMagCount_ * magCapacity; // total reserve rounds
-
-    const int32 ammoToAdd = FMath::Min(ammoNeeded, ammoAvailable);
-    _currentMagAmmoCount_ += ammoToAdd;
-
-    const int32 magsUsed = FMath::DivideAndRoundUp(ammoToAdd, magCapacity);
-    _currentMagCount_ = FMath::Max(0, _currentMagCount_ - magsUsed);
-
-    _totalAmmoCount_ = _currentMagAmmoCount_ + _currentMagCount_ * magCapacity;
+    _currMagAmmoCount_ = _weaponConfig->magSize;
 }
 
 bool ACommonWeapon::tryWeaponPickUp(AVal_Character* ownerCharacter)
@@ -220,9 +234,8 @@ void ACommonWeapon::BeginPlay()
 
     if (_weaponConfig)
     {
-        _currentMagAmmoCount_ = static_cast<uint8>(FMath::Clamp(_weaponConfig->magSize, 0, 255));
-        _currentMagCount_ = static_cast<uint8>(FMath::Clamp(_weaponConfig->magCount, 0, 255));
-        _totalAmmoCount_ = static_cast<uint8>(FMath::Clamp(_weaponConfig->magSize * _weaponConfig->magCount, 0, 255));
+        _currMagAmmoCount_ = static_cast<uint8>(FMath::Clamp(_weaponConfig->magSize, 0, 255));
+        _currMagCount_ = static_cast<uint8>(FMath::Clamp(_weaponConfig->magCount, 0, 255));
     }
 }
 
@@ -294,6 +307,18 @@ void ACommonWeapon::_broadcastAssetChanged()
     _ownerCharacter_->getOnWeaponChangedDelegate()->Broadcast(_animConfig);
 }
 
+void ACommonWeapon::_reduceMagAmmoCount(uint8 count)
+{
+    if (_currMagAmmoCount_ > 0)
+        _currMagAmmoCount_ -= count;
+}
+
+void ACommonWeapon::_reduceMagCount(uint8 count)
+{
+    if (_currMagCount_ > 0)
+        _currMagCount_ -= count;
+}
+
 
 /*
  * this function does not play bullet sound effects
@@ -305,8 +330,7 @@ void ACommonWeapon::_shootBullet(
      */
 )
 {
-    // FIX: guard against null owner or config before dereferencing
-    if (!_ownerCharacter_ || !_weaponConfig) return;
+    if (!_ownerCharacter_ || !_weaponConfig || _currMagAmmoCount_ <= 0) return;
 
     FHitResult hit;
     FCollisionQueryParams queryParams = FCollisionQueryParams(SCENE_QUERY_STAT(WeaponTrace), false, _ownerCharacter_);
@@ -369,10 +393,16 @@ void ACommonWeapon::_shootBullet(
         if (spawnedSystem) spawnedSystem->Activate();
     }
 
-    // pOwnerCharacter->PlayLocalSound(animAsset->GetRandomAttackSFX());
+    _reduceMagAmmoCount(1);
+    _updateState(EWeaponState::Firing);
 
     LOGObjName(this, LogTemp, Warning, "weapon trace start: %s", *startPoint.ToString());
     LOGObjName(this, LogTemp, Warning, "weapon trace end:   %s", *endPoint.ToString());
+}
+
+void ACommonWeapon::_perGunShootBullet()
+{
+    _shootBullet();
 }
 
 
@@ -382,7 +412,7 @@ bool ACommonWeapon::_canFire() const
 
     // check current mag ammo instead of total ammo available
     // since total ammo can be non-zero but currently available is still zero
-    if (_currentMagAmmoCount_ <= 0)
+    if (_currMagAmmoCount_ <= 0)
     {
         LOGObjName(this, LogTemp, Display, "cannot fire: no ammo");
         return false;
