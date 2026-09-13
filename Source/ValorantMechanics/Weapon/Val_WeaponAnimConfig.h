@@ -138,5 +138,21 @@ public:
 
 
 #pragma endregion CHARACTER_ANIMATIONS
+    
+    UFUNCTION(BlueprintType, BlueprintPure, Category="Character|Animations")
+    UAnimMontage* getRandomAttackAnim() const
+    {
+        if (attackAnims.Num() == 0)
+        {
+            return nullptr;
+        }
+
+        if (attackAnims.Num() == 1)
+        {
+            return attackAnims[0].Get();
+        }
+
+        return attackAnims[FMath::RandRange(0, attackAnims.Num() - 1)].Get();
+    }
 
 };

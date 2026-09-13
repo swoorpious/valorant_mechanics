@@ -79,7 +79,7 @@ void UVal_InputSystem::SetInputActions()
     enhancedInputComponent->BindAction(weaponActions.Action_Equip_Melee, ETriggerEvent::Started, this, &UVal_InputSystem::HandleEquipInput);
     enhancedInputComponent->BindAction(weaponActions.Action_Equip_Secondary, ETriggerEvent::Started, this, &UVal_InputSystem::HandleEquipInput);
     enhancedInputComponent->BindAction(weaponActions.Action_Equip_Primary, ETriggerEvent::Started, this, &UVal_InputSystem::HandleEquipInput);
-    // enhancedInputComponent->BindAction(weaponActions.Action_Reload, ETriggerEvent::Started, this, &AVal_PlayerController::TryReload);
+    enhancedInputComponent->BindAction(weaponActions.Action_Reload, ETriggerEvent::Started, pController, &AVal_PlayerController::WeaponReload);
 }
 
 

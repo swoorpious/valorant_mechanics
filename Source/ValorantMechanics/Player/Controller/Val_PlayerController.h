@@ -28,16 +28,13 @@ public:
     AVal_PlayerController();
     virtual TObjectPtr<UVal_InputSystem> GetInputSystem();
 
-    
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Input")
     float Sensitivity = 1.0f;
 
     FVector2D GetLastLookVector() const;
 
 
-    
 protected:
-    void AddLookInput(FVector2D Look) const;
 
     UPROPERTY() TObjectPtr<AVal_Character> pCharacter = nullptr;
     UPROPERTY() TObjectPtr<UVal_CharacterMovementComponent> pMovement = nullptr;
@@ -61,6 +58,7 @@ protected:
      * functions for weapon actions
      */
     void WeaponFire(const FInputActionInstance& InputActionInstance);
+    void WeaponReload(const FInputActionInstance& InputActionInstance);
 
     
     void TryWeaponEquip(const EWeaponType weaponType) const;

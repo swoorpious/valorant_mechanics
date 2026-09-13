@@ -57,31 +57,6 @@ FVector2D AVal_PlayerController::GetLastLookVector() const
     return FVector2d(0.0f, 0.0f);
 }
 
-void AVal_PlayerController::AddLookInput(FVector2D Look) const
-{
-    if (!pCharacter || !pCharacter->sceneComponent) return;
-
-    // TODO: implement FOV scaling for ads weapons -> scaleFOV = currentFOV / baseFOV
-    // would use scaleFOV instead later
-    FVector2D const viewportSize = GetWorld()->GetGameViewport()->Viewport->GetSizeXY();
-    float const cameraFOV = pCharacter->characterMeshCamera->FieldOfView;
-
-    // pCharacter handles yaw
-    FRotator const yaw = pCharacter->GetActorRotation() + FRotator(
-        0,
-        Look.X * (cameraFOV / viewportSize.X),
-        0);
-    pCharacter->SetActorRotation(yaw); // update yaw (left/right)
-
-
-    // SceneComponent handles pitch
-    FRotator pitch = pCharacter->sceneComponent->GetRelativeRotation() + FRotator(
-        Look.Y * (cameraFOV / viewportSize.X),
-        0, 0);
-    pitch.Pitch = FMath::Clamp(pitch.Pitch, -89.9f, 89.9f);
-    pCharacter->sceneComponent->SetRelativeRotation(pitch); // update pitch (up/down)
-}
-
 
 void AVal_PlayerController::PlayerMove() const
 {
@@ -105,7 +80,6 @@ void AVal_PlayerController::PlayerMove() const
             1.0f / maxScale,
             maxScale
         );
-
         moveVector.X *= scaleFactor;
     }
 
@@ -121,7 +95,28 @@ void AVal_PlayerController::PlayerMove() const
 
 void AVal_PlayerController::PlayerLook(const FVector2D lookVector) const
 {
-    AddLookInput(lookVector * Sensitivity);
+    FVector2D Look = lookVector * Sensitivity;
+    if (!pCharacter || !pCharacter->sceneComponent) return;
+
+    // TODO: implement FOV scaling for ads weapons -> scaleFOV = currentFOV / baseFOV
+    // would use scaleFOV instead later
+    FVector2D const viewportSize = GetWorld()->GetGameViewport()->Viewport->GetSizeXY();
+    float const cameraFOV = pCharacter->characterMeshCamera->FieldOfView;
+
+    // pCharacter handles yaw
+    FRotator const yaw = pCharacter->GetActorRotation() + FRotator(
+        0,
+        Look.X * (cameraFOV / viewportSize.X),
+        0);
+    pCharacter->SetActorRotation(yaw); // update yaw (left/right)
+
+
+    // SceneComponent handles pitch
+    FRotator pitch = pCharacter->sceneComponent->GetRelativeRotation() + FRotator(
+        Look.Y * (cameraFOV / viewportSize.X),
+        0, 0);
+    pitch.Pitch = FMath::Clamp(pitch.Pitch, -89.9f, 89.9f);
+    pCharacter->sceneComponent->SetRelativeRotation(pitch); // update pitch (up/down)
 }
 
 void AVal_PlayerController::WeaponFire(const FInputActionInstance& inputInstance)
@@ -142,6 +137,18 @@ void AVal_PlayerController::WeaponFire(const FInputActionInstance& inputInstance
         if (action_name == "VIA_Attack") w->fireEnd();
         if (action_name == "VIA_Alt_Attack") w->altFireEnd();
     }
+}
+
+void AVal_PlayerController::WeaponReload(const FInputActionInstance& inputInstance)
+{
+    ACommonWeapon* w = pCharacter->getEquippedWeapon();
+    const FString action_name = inputInstance.GetSourceAction()->GetName();
+    const ETriggerEvent action_trigger = inputInstance.GetTriggerEvent();
+
+    if (!action_trigger || !w) return;
+
+    if (action_trigger == ETriggerEvent::Started)
+        if (action_name == "VIA_Weapon_Reload") w->tryWeaponReload();
 }
 
 

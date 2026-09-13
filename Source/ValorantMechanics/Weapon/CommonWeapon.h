@@ -160,6 +160,7 @@ protected:
     
     bool _canFire() const;
     virtual void _onWeaponEquipped();
+    virtual void _onWeaponReloaded();
 
     void _updateState(EWeaponState newState);
     void _broadcastAssetChanged();
@@ -199,6 +200,7 @@ protected:
 private:
     FTimerHandle _timerHandle_handleRefire_;
     FTimerHandle _timerHandle_handleEquip_;
+    FTimerHandle _timerHandle_handleReload_;
     
     UFUNCTION(CallInEditor, Category = "Weapon|Body")
     void _setupAttachments_() const;

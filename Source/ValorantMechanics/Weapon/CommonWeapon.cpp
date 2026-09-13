@@ -69,14 +69,16 @@ ACommonWeapon::ACommonWeapon()
 #pragma region PUBLIC_GETTER_FUNCTIONS
 
 USceneComponent* ACommonWeapon::getLeftHandIKComponent() const { return leftHandIK.Get(); }
-UVal_WeaponFireConfig* ACommonWeapon::getWeaponFireConfig() const { return _weaponConfig.Get(); } 
+UVal_WeaponFireConfig* ACommonWeapon::getWeaponFireConfig() const { return _weaponConfig.Get(); }
 EWeaponType ACommonWeapon::getWeaponType() const { return _weaponType; }
 EWeaponPickupType ACommonWeapon::getWeaponPickupType() const { return _weaponPickupType; }
 UVal_WeaponAnimConfig* ACommonWeapon::getAnimAsset() const { return _animConfig; }
+
 EFireMode ACommonWeapon::getWeaponFireMode() const
 {
     return _weaponConfig ? _weaponConfig->fireMode : EFireMode::Manual;
 }
+
 float ACommonWeapon::getWeaponRunSpeed()
 {
     // a weapon with no fire config (e.g. melee), or one whose runSpeed hasn't
@@ -96,7 +98,6 @@ float ACommonWeapon::getWeaponWalkSpeed()
 }
 
 #pragma endregion //PUBLIC_GETTER_FUNCTIONS
-
 
 
 void ACommonWeapon::fireStart()
@@ -120,7 +121,7 @@ void ACommonWeapon::fireStart()
             this,
             &ACommonWeapon::_perGunShootBullet,
             _weaponConfig ? 1.f / _weaponConfig->fireRate : 0.1f,
-           true 
+            true
         );
         break;
     }
@@ -142,11 +143,20 @@ void ACommonWeapon::tryWeaponReload()
     // only reload if the mag is not already full and we have spare mags
     if (!_weaponConfig) return;
     if (_currMagCount_ == 0) return;
-    
+
     if (_currMagCount_ > 0)
         --_currMagCount_;
 
     _currMagAmmoCount_ = _weaponConfig->magSize;
+    _updateState(EWeaponState::Reloading);
+    GetWorldTimerManager().SetTimer(
+        _timerHandle_handleReload_,
+        this,
+        &ACommonWeapon::_perGunShootBullet,
+        _weaponConfig ? _weaponConfig->reloadTime : 1.f,
+        false
+    );
+    LOGObjName(this, LogActor, Display, "reloading weapon; remaining mags: %d, current ammo: %d", _currMagCount_, _currMagAmmoCount_);
 }
 
 bool ACommonWeapon::tryWeaponPickUp(AVal_Character* ownerCharacter)
@@ -244,7 +254,7 @@ void ACommonWeapon::BeginPlay()
 void ACommonWeapon::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
-    
+
     if (GEngine && _isEquipActive_)
     {
         GEngine->AddOnScreenDebugMessage(
@@ -263,9 +273,7 @@ void ACommonWeapon::Tick(float DeltaTime)
                 TEXT("state: %s"),
                 *StaticEnum<EWeaponState>()->GetDisplayNameTextByValue(static_cast<int8>(_weaponState)).ToString()
             ));
-        
     }
-    
 }
 
 
@@ -273,6 +281,11 @@ void ACommonWeapon::_onWeaponEquipped()
 {
     _updateState(EWeaponState::Idle);
     // whatever to do further    
+}
+
+void ACommonWeapon::_onWeaponReloaded()
+{
+    _updateState(EWeaponState::Idle);
 }
 
 
@@ -288,7 +301,7 @@ void ACommonWeapon::_updateState(EWeaponState newState)
     {
         _ownerCharacter_->getOnWeaponStateChangedDelegate()->Broadcast(newState);
         LOGObjName(this, LogActor, Display, "broadcasting state change to owner characters delegate: %d",
-                  static_cast<uint8>(newState));
+                   static_cast<uint8>(newState));
         LOGObjName(
             this,
             LogActor,
@@ -342,7 +355,8 @@ void ACommonWeapon::_shootBullet(
     const FVector startPoint = e->GetComponentLocation();
     const FVector endPoint = e->GetForwardVector() * _weaponConfig->maxRange + startPoint;
 
-    const bool bHitSomething = GetWorld()->LineTraceSingleByChannel(hit, startPoint, endPoint, ECC_Visibility, queryParams);
+    const bool bHitSomething = GetWorld()->LineTraceSingleByChannel(hit, startPoint, endPoint, ECC_Visibility,
+                                                                    queryParams);
 
     if (bHitSomething && impactParticle)
     {
@@ -359,19 +373,30 @@ void ACommonWeapon::_shootBullet(
     }
 
 #if WITH_EDITOR
-    // always draw the weapon's fire trace out to its range, hit or not,
-    // so range/spread can be sanity checked in the editor: red up to the
-    // hit point when something was hit, green out to maxRange otherwise.
+    // draw debug line from the gun to the hit point - green if hit, red if no hit
     DrawDebugLine(
         GetWorld(),
         startPoint,
         bHitSomething ? hit.ImpactPoint : endPoint,
-        bHitSomething ? FColor::Red : FColor::Green,
+        bHitSomething ? FColor::Emerald : FColor::Orange,
         false,
         5.0f,
         0,
-        5.0f
+        1.0f
     );
+    // hit point circle
+    if (bHitSomething)
+        DrawDebugSphere(
+            GetWorld(),
+            hit.ImpactPoint,
+            48.f,
+            16.f,
+            bHitSomething ? FColor::Emerald : FColor::Orange,
+            false,
+            5.f,
+            0,
+            1.0f
+        );
 #endif
 
     if (muzzleParticle)
@@ -394,8 +419,8 @@ void ACommonWeapon::_shootBullet(
     }
 
     _reduceMagAmmoCount(1);
-    _updateState(EWeaponState::Firing);
 
+    LOGObjName(this, LogActor, Display, "bullet shot; current ammo: %d", _currMagAmmoCount_);
     LOGObjName(this, LogTemp, Warning, "weapon trace start: %s", *startPoint.ToString());
     LOGObjName(this, LogTemp, Warning, "weapon trace end:   %s", *endPoint.ToString());
 }
@@ -403,6 +428,7 @@ void ACommonWeapon::_shootBullet(
 void ACommonWeapon::_perGunShootBullet()
 {
     _shootBullet();
+    _updateState(EWeaponState::Firing);
 }
 
 
@@ -452,4 +478,3 @@ void ACommonWeapon::_applyRenderOnTopParams_(bool isPickup)
     createAndApply(magazineMesh, _midMag_);
     createAndApply(scopeMesh, _midScope_);
 }
-

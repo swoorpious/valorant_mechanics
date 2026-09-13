@@ -147,7 +147,7 @@ void UVal_PlayerAnimInstance::_playWeaponStateBasedMontage()
         play(_currAnimAsset->equipFast);
         break;
     case EWeaponState::Firing:
-        play(_currAnimAsset->weaponFire);
+        play(_currAnimAsset->getRandomAttackAnim());
         break;
     case EWeaponState::Inspecting:
         play(_currAnimAsset->inspectLoop);
