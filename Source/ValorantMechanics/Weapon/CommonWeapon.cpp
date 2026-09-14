@@ -17,6 +17,7 @@
 #include "Val_WeaponFireConfig.h"
 
 #include "DrawDebugHelpers.h"
+#include "ValorantMechanics/Anim/Val_WeaponAnimInstace.h"
 
 #include "ValorantMechanics/Player/Val_Character.h"
 #include "ValorantMechanics/Player/PlayerComponents/Val_CharacterMovementComponent.h"
@@ -46,6 +47,13 @@ ACommonWeapon::ACommonWeapon()
     magazineMesh->SetGenerateOverlapEvents(false);
     magazineMesh->SetSimulatePhysics(false);
 
+    extraMagazineMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Extra Magazine Mesh"));
+    extraMagazineMesh->CastShadow = false;
+    extraMagazineMesh->bCastDynamicShadow = false;
+    extraMagazineMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    extraMagazineMesh->SetGenerateOverlapEvents(false);
+    extraMagazineMesh->SetSimulatePhysics(false);
+
     scopeMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Scope Mesh"));
     scopeMesh->CastShadow = false;
     scopeMesh->bCastDynamicShadow = false;
@@ -57,10 +65,7 @@ ACommonWeapon::ACommonWeapon()
     collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 
-    if (weaponMesh) _applyRenderOnTopParams_(true);
-    if (magazineMesh) _applyRenderOnTopParams_(true);
-    if (scopeMesh) _applyRenderOnTopParams_(true);
-
+    _applyRenderOnTopParams_(true);
 
     this->_setupAttachments_();
 }
@@ -242,6 +247,7 @@ void ACommonWeapon::BeginPlay()
 {
     Super::BeginPlay();
 
+    _weaponAnimInst = Cast<UVal_WeaponAnimInstace>(weaponMesh->GetAnimInstance());
     if (_weaponConfig)
     {
         _currMagAmmoCount_ = static_cast<uint8>(FMath::Clamp(_weaponConfig->magSize, 0, 255));
@@ -293,8 +299,9 @@ void ACommonWeapon::_updateState(EWeaponState newState)
 {
     if (newState != EWeaponState::None && !_isEquipActive_) return;
 
-    // const EWeaponState oldState = _weaponState;
     _weaponState = newState;
+    if (_weaponAnimInst)
+        _weaponAnimInst->updateWeaponStateChange(newState);
 
     // fire the character-level delegate (one-param consumed by AnimInstance)
     if (_ownerCharacter_)
@@ -451,6 +458,7 @@ bool ACommonWeapon::_canFire() const
 void ACommonWeapon::_setupAttachments_() const
 {
     magazineMesh->SetupAttachment(weaponMesh, _socketData.magazineMainSocket);
+    extraMagazineMesh->SetupAttachment(weaponMesh, _socketData.magazineExtraSocket);
     scopeMesh->SetupAttachment(weaponMesh, _socketData.reflexSocket);
     collisionBox->SetupAttachment(weaponMesh);
     leftHandIK->SetupAttachment(weaponMesh, _socketData.leftHandTargetSocket);
@@ -476,5 +484,6 @@ void ACommonWeapon::_applyRenderOnTopParams_(bool isPickup)
 
     createAndApply(weaponMesh, _midBody_);
     createAndApply(magazineMesh, _midMag_);
+    createAndApply(extraMagazineMesh, _exMidMag_);
     createAndApply(scopeMesh, _midScope_);
 }

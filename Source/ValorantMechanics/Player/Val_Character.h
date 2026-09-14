@@ -111,8 +111,8 @@ protected:
      * whenever it changes so the anim instance can react.
      */
     EMovementState _movementState = EMovementState::None;
-    bool _isWalking = false; // true while the walk key (alternate movement) is held
 
+    bool _isWalking = false; // true while the walk key (alternate movement) is held
     void _updateMovementState(EMovementState newState);
     void _updateMovementStateFromInput();
 

@@ -21,6 +21,7 @@ class UVal_WeaponFireConfig;
 class UVal_WeaponSFXConfig;
 class UVal_WeaponAnimConfig;
 class USoundCue;
+class UVal_WeaponAnimInstace;
 
 
 
@@ -70,6 +71,9 @@ public:
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Body")
     TObjectPtr<UStaticMeshComponent> magazineMesh = nullptr;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Body")
+    TObjectPtr<UStaticMeshComponent> extraMagazineMesh = nullptr;
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Body")
     TObjectPtr<UStaticMeshComponent> scopeMesh = nullptr;
@@ -209,6 +213,7 @@ private:
     uint8 _currMagCount_ = 0;
 
     UPROPERTY() TObjectPtr<AVal_Character> _ownerCharacter_ = nullptr;
+    UPROPERTY() TObjectPtr<UVal_WeaponAnimInstace> _weaponAnimInst = nullptr;
     
     /*
      * methods/properties for rendering on top
@@ -222,6 +227,9 @@ private:
 
     UPROPERTY()
     UMaterialInstanceDynamic* _midMag_ = nullptr;
+
+    UPROPERTY()
+    UMaterialInstanceDynamic* _exMidMag_ = nullptr;
 
     UPROPERTY()
     UMaterialInstanceDynamic* _midScope_ = nullptr;
