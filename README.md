@@ -1,6 +1,18 @@
-# Valorant Mechanics (WIP)
-Recreating some of VALORANT's mechanics in Unreal Engine 5.5
+![Ingame Preview of Project/Gameplay](Else/public/banner_dev01.png)
 
+### Valorant Mechanics (WIP)
 
-# Disclaimer
-This project is a personal, non-commercial recreation of certain gameplay mechanics from VALORANT, developed by Riot Games. All original assets, models, textures, and other visual/audio elements are the property of Riot Games, Inc. and are used here strictly for educational purposes. All gameplay logic and code in this project were written by me. No copyright infringement is intended.
+Recreating some FPS games' mechanics in Unreal Engine 5.7.
+
+The initial vision of the project was to create certain gameplay elements from VALORANT. However now, the project may include parts resembling the polished game of both VALORANT and CS2.
+
+### Legal
+
+This project is inspired by VALORANT and other FPS games, including Counter-Strike 2.
+
+The repository contains original code and does not redistribute proprietary assets belonging to Riot Games, Inc., Valve Corporation, or other third parties. Parts of the commit history may contain such assets, which have since been removed. Any assets used during development are kept locally and are *not* redistributed.
+
+Asset structure and layout may be documented where applicable. Users wishing to rebuild the project must provide their own assets.
+
+For legal inquiries, contact: [swaroopshri2019@gmail.com](mailto:swaroopshri2019@gmail.com)
+

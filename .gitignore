@@ -63,5 +63,6 @@ Saved/
 .vscode/
 
 # Else
-Else/
+Else/*
+!Else/public
 /Plugins/Developer/RiderLink/
