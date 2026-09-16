@@ -14,5 +14,5 @@ The repository contains original code and does not redistribute proprietary asse
 
 Asset structure and layout may be documented where applicable. Users wishing to rebuild the project must provide their own assets.
 
-For legal inquiries, contact: [swaroopshri2019@gmail.com](mailto:swaroopshri2019@gmail.com)
+For legal, contact: [swaroopshri2019@gmail.com](mailto:swaroopshri2019@gmail.com)
 

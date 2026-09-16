@@ -94,7 +94,9 @@ public:
     void Walk(bool started);
     void Crouch(bool bClientSimulation = false) override;
     void UnCrouch(bool bClientSimulation = false) override;
-    
+    virtual void Falling() override;
+    virtual void Landed(const FHitResult& Hit) override;
+
 protected:
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaTime) override;

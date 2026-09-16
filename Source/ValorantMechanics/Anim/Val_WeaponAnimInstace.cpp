@@ -61,6 +61,7 @@ void UVal_WeaponAnimInstace::_playWeaponStateBasedMontage()
             FAlphaBlendArgs BlendIn;
             BlendIn.BlendTime = 0.f;
             Montage_PlayWithBlendIn(montage, BlendIn, 1.f);
+            Montage_JumpToSection(begin, montage);
         }
     };
 

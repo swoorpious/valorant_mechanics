@@ -15,6 +15,9 @@ class VALORANTMECHANICS_API UVal_WeaponSFXConfig : public UDataAsset
     GENERATED_BODY()
     
 public:
+    // random pick + preload both live on the weapon now (getRandomAttackSound(),
+    // _preloadAttackSounds_()) so the sound data is already resident by the time
+    // anything asks for one - this array just holds the pool to pick from.
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Sounds", meta = (DisplayName = "Attack"))
     TArray<TObjectPtr<USoundBase>> attack;
 
@@ -24,13 +27,12 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Sounds", meta = (DisplayName = "Equip Fast"))
     TObjectPtr<USoundBase> equip_fast = nullptr;
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Sounds", meta = (DisplayName = "Reload", EditCondition= "canReload", EditConditionHides))
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Sounds", meta = (DisplayName = "Reload"))
     TObjectPtr<USoundBase> reload = nullptr;
     
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Sounds", meta = (DisplayName = "Magazine In", EditCondition= "canReload", EditConditionHides))
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Sounds", meta = (DisplayName = "Magazine In"))
     TObjectPtr<USoundBase> mag_in = nullptr;
     
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Sounds", meta = (DisplayName = "Magazine Out", EditCondition= "canReload", EditConditionHides))
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Sounds", meta = (DisplayName = "Magazine Out"))
     TObjectPtr<USoundBase> mag_out = nullptr;    
-
 };

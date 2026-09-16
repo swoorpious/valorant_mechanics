@@ -18,6 +18,7 @@
 #include "Components/AudioComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 // #include "Engine/LocalPlayer.h"
+#include "Kismet/GameplayStatics.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "ValorantMechanics/Weapon/Val_WeaponAnimConfig.h"
 
@@ -67,6 +68,11 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UVal_CharacterMovementComponent
     
 }
 
+
+void AVal_Character::Landed(const FHitResult& Hit)
+{
+    Super::Landed(Hit);
+}
 
 void AVal_Character::BeginPlay()
 {

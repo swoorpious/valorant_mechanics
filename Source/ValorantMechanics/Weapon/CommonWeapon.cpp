@@ -8,15 +8,15 @@
 #include "Components/BoxComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Sound/SoundCue.h"
 
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
-// #include "NiagaraSystem.h"
-#include "NiagaraConstants.h"
 #include "Val_WeaponFireConfig.h"
 
 #include "DrawDebugHelpers.h"
+#include "Val_WeaponSFXConfig.h"
+#include "AudioDevice.h"
+#include "Sound/SoundWave.h"
 #include "ValorantMechanics/Anim/Val_WeaponAnimInstace.h"
 
 #include "ValorantMechanics/Player/Val_Character.h"
@@ -102,6 +102,13 @@ float ACommonWeapon::getWeaponWalkSpeed()
     return movement ? movement->movementProperties.walkSpeed : 0.f;
 }
 
+USoundBase* ACommonWeapon::getRandomAttackSound() const
+{
+    if (!_sfxConfig || _sfxConfig->attack.Num() == 0) return nullptr;
+    if (_sfxConfig->attack.Num() == 1) return _sfxConfig->attack[0].Get();
+    return _sfxConfig->attack[FMath::RandRange(0, _sfxConfig->attack.Num() - 1)].Get();
+}
+
 #pragma endregion //PUBLIC_GETTER_FUNCTIONS
 
 
@@ -173,6 +180,8 @@ bool ACommonWeapon::tryWeaponPickUp(AVal_Character* ownerCharacter)
     _applyRenderOnTopParams_(true);
 
     _ownerCharacter_ = ownerCharacter;
+
+    _preloadAttackSounds_(true);
     return true;
 }
 
@@ -253,6 +262,8 @@ void ACommonWeapon::BeginPlay()
         _currMagAmmoCount_ = static_cast<uint8>(FMath::Clamp(_weaponConfig->magSize, 0, 255));
         _currMagCount_ = static_cast<uint8>(FMath::Clamp(_weaponConfig->magCount, 0, 255));
     }
+
+    _preloadAttackSounds_(false);
 }
 
 
@@ -292,6 +303,12 @@ void ACommonWeapon::_onWeaponEquipped()
 void ACommonWeapon::_onWeaponReloaded()
 {
     _updateState(EWeaponState::Idle);
+}
+
+void ACommonWeapon::_onBulletShot(bool bHitSomething)
+{
+    if (auto* sound = getRandomAttackSound())
+        UGameplayStatics::PlaySoundAtLocation(GetWorld(), sound, GetActorLocation());
 }
 
 
@@ -341,8 +358,9 @@ void ACommonWeapon::_reduceMagCount(uint8 count)
 
 
 /*
- * this function does not play bullet sound effects
- * it handled by the function that calls this function
+ * resolves the trace and spawns its vfx. sfx - and anything else a specific
+ * weapon wants to do differently on a shot - goes through the overridable
+ * _onBulletShot() below, not in here.
  */
 void ACommonWeapon::_shootBullet(
     /*
@@ -424,6 +442,8 @@ void ACommonWeapon::_shootBullet(
         // SpawnSystemAttached can return null if the pool is exhausted
         if (spawnedSystem) spawnedSystem->Activate();
     }
+    
+    _onBulletShot(bHitSomething);
 
     _reduceMagAmmoCount(1);
 
@@ -435,6 +455,11 @@ void ACommonWeapon::_shootBullet(
 void ACommonWeapon::_perGunShootBullet()
 {
     _shootBullet();
+    if (_currMagAmmoCount_ == 0 && _isFireHeld)
+    {
+        _updateState(EWeaponState::Idle);
+        return;
+    }
     _updateState(EWeaponState::Firing);
 }
 
@@ -462,6 +487,31 @@ void ACommonWeapon::_setupAttachments_() const
     scopeMesh->SetupAttachment(weaponMesh, _socketData.reflexSocket);
     collisionBox->SetupAttachment(weaponMesh);
     leftHandIK->SetupAttachment(weaponMesh, _socketData.leftHandTargetSocket);
+}
+
+void ACommonWeapon::_preloadAttackSounds_(bool bSynchronous) const
+{
+    if (!_sfxConfig) return;
+
+    const UWorld* world = GetWorld();
+    FAudioDeviceHandle audioDevice = world ? world->GetAudioDevice() : FAudioDeviceHandle();
+    if (!audioDevice) return;
+
+    for (const auto& sound : _sfxConfig->attack)
+    {
+        USoundWave* wave = Cast<USoundWave>(sound);
+        if (!wave) continue;
+
+        if (wave->IsStreaming())
+        {
+            LOGObjName(this, LogTemp, Warning,
+                "attack sfx %s is set to stream - Precache can't preload it, turn streaming off or set Loading Behavior to Retain on Load",
+                *wave->GetName());
+            continue;
+        }
+
+        audioDevice->Precache(wave, bSynchronous, /* bTrackFirstRequest */ true, /* bForceFullDecompression */ true);
+    }
 }
 
 void ACommonWeapon::_applyRenderOnTopParams_(bool isPickup)

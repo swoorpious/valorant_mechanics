@@ -21,6 +21,7 @@ class UVal_WeaponFireConfig;
 class UVal_WeaponSFXConfig;
 class UVal_WeaponAnimConfig;
 class USoundCue;
+class USoundBase;
 class UVal_WeaponAnimInstace;
 
 
@@ -117,6 +118,12 @@ public:
     float getWeaponRunSpeed();
     float getWeaponWalkSpeed();
 
+    // picks a random entry out of _sfxConfig->attack. moved here (off the data
+    // asset) so it sits next to _preloadAttackSounds_() - one owner for both
+    // picking a sound and making sure it's actually loaded when picked.
+    UFUNCTION(BlueprintType, BlueprintPure, Category="Weapon")
+    USoundBase* getRandomAttackSound() const;
+
     bool canDrop() const { return _weaponPickupType != EWeaponPickupType::NonPickupable; }
 
     /*
@@ -163,8 +170,16 @@ protected:
     virtual void _perGunShootBullet();
     
     bool _canFire() const;
+
+    // override points for derived weapons - base class gives the common behavior,
+    // subclasses only need to override the ones they actually want to change.
     virtual void _onWeaponEquipped();
     virtual void _onWeaponReloaded();
+
+    // called once per _shootBullet(), after the trace has resolved. base
+    // implementation just plays the shot sfx - override to react to
+    // bHitSomething differently (hit-confirm sound, extra vfx, etc).
+    virtual void _onBulletShot(bool bHitSomething);
 
     void _updateState(EWeaponState newState);
     void _broadcastAssetChanged();
@@ -208,6 +223,14 @@ private:
     
     UFUNCTION(CallInEditor, Category = "Weapon|Body")
     void _setupAttachments_() const;
+
+    // forces every attack sfx into memory so the first shot right after spawn
+    // or pickup doesn't miss its cue while the audio is still decompressing.
+    // bSynchronous stalls the calling thread until done - worth it on pickup,
+    // not worth it on spawn where there's no rush yet. only helps non-streaming
+    // waves - a streaming wave still loads its first chunk off disk on play
+    // no matter what this does, that has to be fixed on the asset itself.
+    void _preloadAttackSounds_(bool bSynchronous) const;
 
     uint8 _currMagAmmoCount_ = 0;
     uint8 _currMagCount_ = 0;
