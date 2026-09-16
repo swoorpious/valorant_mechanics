@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PlayerSounds.h"
 
 #include "ValorantMechanics/Core/Shared/PlayerDelegateDefinition.h"
 #include "ValorantMechanics/Core/Shared/SocketData.h"
@@ -73,11 +74,16 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Valorant Character|Character Setup|Scene|Mesh|Camera", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UAudioComponent> audioComponent;
     
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Valorant Character|Sounds", meta = (DisplayName="Movement Sound Cues"))
+    TObjectPtr<UPlayerMovementSounds> moveSoundCues;
+    
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Valorant Character|Mesh|Sockets")
     FPlayerSocketNames socketData;
 
 #pragma endregion COMPONENT SETUP
     
+    UFUNCTION(BlueprintType, Category = "Valorant Character", meta = (BlueprintThreadSafe))
+    void playMoveStateBasedAudioCue(const EMovementState state) const;
     
     // TODO: move these functions to protected scope and add try<action>weapon type functions
     void SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn, bool shouldAutoEquip);
@@ -90,11 +96,11 @@ public:
     void PlayLocalSound(USoundBase* sound) const;
     
     void AddMovementInput(FVector WorldDirection, float ScaleValue = 1, bool bForce = false) override;
-    void Jump() override;
+    virtual void Jump() override;
     void Walk(bool started);
     void Crouch(bool bClientSimulation = false) override;
     void UnCrouch(bool bClientSimulation = false) override;
-    virtual void Falling() override;
+    // virtual void Falling() override;
     virtual void Landed(const FHitResult& Hit) override;
 
 protected:

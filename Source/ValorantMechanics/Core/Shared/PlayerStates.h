@@ -21,13 +21,11 @@ enum class EMovementState : uint8
     Jump_Up,
     Jump_Fall,
 
-    // stackable states
     Crouched,
     LightStunned,
     MediumStunned,
     HeavyStunned,
 
-    UsingAbilityMovement,
 
     /*
      * TODO: implement a jumping system to keep track of players jump height

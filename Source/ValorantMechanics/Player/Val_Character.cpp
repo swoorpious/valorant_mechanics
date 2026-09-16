@@ -72,6 +72,7 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UVal_CharacterMovementComponent
 void AVal_Character::Landed(const FHitResult& Hit)
 {
     Super::Landed(Hit);
+    playMoveStateBasedAudioCue(EMovementState::Jump_Fall);
 }
 
 void AVal_Character::BeginPlay()
@@ -112,7 +113,6 @@ void AVal_Character::BeginPlay()
 
 
 
-
 void AVal_Character::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
@@ -124,6 +124,23 @@ void AVal_Character::Tick(float DeltaTime)
 void AVal_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
     Super::SetupPlayerInputComponent(PlayerInputComponent);
+}
+
+
+void AVal_Character::playMoveStateBasedAudioCue(const EMovementState state) const
+{
+    if (!moveSoundCues) return;
+
+    const FCharMovementSoundCue* cue = moveSoundCues->cues.Find(state);
+    if (!cue || cue->soundVariations.Num() == 0) return;
+
+    USoundBase* sound = cue->soundVariations[FMath::RandHelper(cue->soundVariations.Num())];
+    if (!sound) return;
+
+    const float volume = FMath::FRandRange(cue->volumeMin, cue->volumeMax);
+    const float pitch  = FMath::FRandRange(cue->pitchMin, cue->pitchMax);
+
+    UGameplayStatics::PlaySoundAtLocation(this, sound, GetActorLocation(), volume, pitch);
 }
 
 
@@ -247,6 +264,7 @@ void AVal_Character::AddMovementInput(FVector WorldDirection, float ScaleValue, 
 void AVal_Character::Jump()
 {
     Super::Jump();
+    playMoveStateBasedAudioCue(EMovementState::Jump_Up);
 }
 
 void AVal_Character::Walk(bool started)
