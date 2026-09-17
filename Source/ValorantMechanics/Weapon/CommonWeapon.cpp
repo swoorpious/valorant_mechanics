@@ -499,7 +499,7 @@ void ACommonWeapon::_preloadAttackSounds_(bool bSynchronous) const
 
     for (const auto& sound : _sfxConfig->attack)
     {
-        USoundWave* wave = Cast<USoundWave>(sound);
+        USoundWave* wave = Cast<USoundWave>(sound.Get());
         if (!wave) continue;
 
         if (wave->IsStreaming())

@@ -71,8 +71,15 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UVal_CharacterMovementComponent
 
 void AVal_Character::Landed(const FHitResult& Hit)
 {
+    const float fallSpeed = -_charMovementComponent->Velocity.Z;
     Super::Landed(Hit);
-    playMoveStateBasedAudioCue(EMovementState::Jump_Fall);
+
+    if (fallSpeed >= 2400.f)
+        playMoveStateBasedAudioCue(ECharMovementSounds::Bass, .9f, .9f);
+    else if (fallSpeed >= 1500.f)
+        playMoveStateBasedAudioCue(ECharMovementSounds::Bass, .6f, 1.1f);
+
+    playMoveStateBasedAudioCue(ECharMovementSounds::JumpLand);
 }
 
 void AVal_Character::BeginPlay()
@@ -118,6 +125,19 @@ void AVal_Character::Tick(float DeltaTime)
     Super::Tick(DeltaTime);
 
     _updateMovementStateFromInput();
+    _updateFootsteps(DeltaTime);
+    
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(
+            -1,
+            DeltaTime,
+            FColor::Magenta,
+            FString::Printf(
+                TEXT("Player Velocity: %s"),
+                *_charMovementComponent->Velocity.ToString()
+            ));
+    }
 }
 
 
@@ -127,18 +147,22 @@ void AVal_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 }
 
 
-void AVal_Character::playMoveStateBasedAudioCue(const EMovementState state) const
+void AVal_Character::playMoveStateBasedAudioCue(
+        const ECharMovementSounds state,
+        const float vol,
+        const float p
+        ) const
 {
     if (!moveSoundCues) return;
 
     const FCharMovementSoundCue* cue = moveSoundCues->cues.Find(state);
     if (!cue || cue->soundVariations.Num() == 0) return;
 
-    USoundBase* sound = cue->soundVariations[FMath::RandHelper(cue->soundVariations.Num())];
+    USoundBase* sound = cue->soundVariations[FMath::RandHelper(cue->soundVariations.Num())].Get();
     if (!sound) return;
 
-    const float volume = FMath::FRandRange(cue->volumeMin, cue->volumeMax);
-    const float pitch  = FMath::FRandRange(cue->pitchMin, cue->pitchMax);
+    const float volume = vol * FMath::FRandRange(cue->volumeMin, cue->volumeMax);
+    const float pitch  = p * FMath::FRandRange(cue->pitchMin, cue->pitchMax);
 
     UGameplayStatics::PlaySoundAtLocation(this, sound, GetActorLocation(), volume, pitch);
 }
@@ -247,14 +271,6 @@ bool AVal_Character::isHoldingGun()
     return e != EWeaponType::Melee && e != EWeaponType::Empty;
 }
 
-void AVal_Character::PlayLocalSound(USoundBase* sound) const
-{
-    if (audioComponent && sound)
-    {
-        audioComponent->SetSound(sound);
-        audioComponent->Play();
-    }
-}
 
 void AVal_Character::AddMovementInput(FVector WorldDirection, float ScaleValue, bool bForce)
 {
@@ -264,7 +280,9 @@ void AVal_Character::AddMovementInput(FVector WorldDirection, float ScaleValue, 
 void AVal_Character::Jump()
 {
     Super::Jump();
-    playMoveStateBasedAudioCue(EMovementState::Jump_Up);
+    
+    if (_charMovementComponent->Velocity.IsNearlyZero())
+        playMoveStateBasedAudioCue(ECharMovementSounds::JumpUp);
 }
 
 void AVal_Character::Walk(bool started)
@@ -327,6 +345,38 @@ void AVal_Character::_updateMovementStateFromInput()
     }
 
     _updateMovementState(_isWalking ? EMovementState::Walk : EMovementState::Run);
+}
+
+void AVal_Character::_updateFootsteps(float DeltaTime)
+{
+    // crouched walking is completely silent
+    if (!_charMovementComponent || bIsCrouched) return;
+
+    float interval;
+    switch (_movementState)
+    {
+        case EMovementState::Walk:  interval = walkStepInterval; break;
+        case EMovementState::Run:   interval = runStepInterval;  break;
+        default:
+            _distanceSinceLastStep_ = 0.f;
+            return;
+    }
+
+    const float stepDistance = _charMovementComponent->MaxWalkSpeed * interval;
+    if (stepDistance <= 0.f) return;
+
+    _distanceSinceLastStep_ += _charMovementComponent->Velocity.Size2D() * DeltaTime;
+    if (_distanceSinceLastStep_ < stepDistance) return;
+
+    _distanceSinceLastStep_ -= stepDistance;
+    playMoveStateBasedAudioCue(
+        ECharMovementSounds::Footstep,
+        _isWalking ? 0.4f : 1.f,
+        _isWalking ? .9f : 1.f
+        );
+
+    if (_movementState == EMovementState::Run)
+        playMoveStateBasedAudioCue(ECharMovementSounds::Bass, .3f, 1.f);
 }
 
 

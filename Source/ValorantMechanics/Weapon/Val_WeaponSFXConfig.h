@@ -19,7 +19,7 @@ public:
     // _preloadAttackSounds_()) so the sound data is already resident by the time
     // anything asks for one - this array just holds the pool to pick from.
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Sounds", meta = (DisplayName = "Attack"))
-    TArray<TObjectPtr<USoundBase>> attack;
+    TArray<TSoftObjectPtr<USoundBase>> attack;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Sounds", meta = (DisplayName = "Equip Default"))
     TObjectPtr<USoundBase> equip_default = nullptr;

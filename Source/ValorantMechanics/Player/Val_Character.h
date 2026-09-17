@@ -24,8 +24,6 @@ class AVal_PlayerController;
 
 class USkeletalMeshComponent;
 class UCameraComponent;
-// class ACommonWeapon;
-
 
 
 UCLASS()
@@ -83,7 +81,11 @@ public:
 #pragma endregion COMPONENT SETUP
     
     UFUNCTION(BlueprintType, Category = "Valorant Character", meta = (BlueprintThreadSafe))
-    void playMoveStateBasedAudioCue(const EMovementState state) const;
+    void playMoveStateBasedAudioCue(
+        const ECharMovementSounds state,
+        const float volume = 1.f,
+        const float pitch = 1.f
+        ) const;
     
     // TODO: move these functions to protected scope and add try<action>weapon type functions
     void SpawnWeapon(const TSubclassOf<ACommonWeapon>& weaponToSpawn, bool shouldAutoEquip);
@@ -93,8 +95,6 @@ public:
     void DropWeapon(EWeaponType weaponType);
     bool isHoldingGun(); // melee is not a gun
 
-    void PlayLocalSound(USoundBase* sound) const;
-    
     void AddMovementInput(FVector WorldDirection, float ScaleValue = 1, bool bForce = false) override;
     virtual void Jump() override;
     void Walk(bool started);
@@ -123,6 +123,17 @@ protected:
     bool _isWalking = false; // true while the walk key (alternate movement) is held
     void _updateMovementState(EMovementState newState);
     void _updateMovementStateFromInput();
+
+    
+    // footstep logic
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Valorant Character|Sounds")
+    float walkStepInterval = 0.5f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Valorant Character|Sounds")
+    float runStepInterval = 0.3f;
+
+    float _distanceSinceLastStep_ = 0.f;
+    void _updateFootsteps(float DeltaTime);
 
 private:
     
