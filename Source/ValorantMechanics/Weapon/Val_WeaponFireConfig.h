@@ -68,7 +68,7 @@ public:
     float reloadTime = 0.0f; // ms
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fire Properties", meta=(DisplayName="Fire Rate (bullets/s)"))
-    float fireRate = 0.0f; // bullets/s
+    float fireRate = 0.0f; // time between each bullet
     
     // TODO: add vectors that define bullet spread
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fire Properties")

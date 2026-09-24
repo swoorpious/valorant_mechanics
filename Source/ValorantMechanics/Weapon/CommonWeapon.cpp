@@ -132,7 +132,7 @@ void ACommonWeapon::fireStart()
             _timerHandle_handleRefire_,
             this,
             &ACommonWeapon::_perGunShootBullet,
-            _weaponConfig ? 1.f / _weaponConfig->fireRate : 0.1f,
+            _weaponConfig ? _weaponConfig->fireRate : 0.1f,
             true
         );
         break;
@@ -308,7 +308,7 @@ void ACommonWeapon::_onWeaponReloaded()
 void ACommonWeapon::_onBulletShot(bool bHitSomething)
 {
     if (auto* sound = getRandomAttackSound())
-        UGameplayStatics::PlaySoundAtLocation(GetWorld(), sound, GetActorLocation());
+        UGameplayStatics::PlaySound2D(GetWorld(), sound);
 }
 
 
@@ -491,27 +491,27 @@ void ACommonWeapon::_setupAttachments_() const
 
 void ACommonWeapon::_preloadAttackSounds_(bool bSynchronous) const
 {
-    if (!_sfxConfig) return;
-
-    const UWorld* world = GetWorld();
-    FAudioDeviceHandle audioDevice = world ? world->GetAudioDevice() : FAudioDeviceHandle();
-    if (!audioDevice) return;
-
-    for (const auto& sound : _sfxConfig->attack)
-    {
-        USoundWave* wave = Cast<USoundWave>(sound.Get());
-        if (!wave) continue;
-
-        if (wave->IsStreaming())
-        {
-            LOGObjName(this, LogTemp, Warning,
-                "attack sfx %s is set to stream - Precache can't preload it, turn streaming off or set Loading Behavior to Retain on Load",
-                *wave->GetName());
-            continue;
-        }
-
-        audioDevice->Precache(wave, bSynchronous, /* bTrackFirstRequest */ true, /* bForceFullDecompression */ true);
-    }
+    // if (!_sfxConfig) return;
+    //
+    // const UWorld* world = GetWorld();
+    // FAudioDeviceHandle audioDevice = world ? world->GetAudioDevice() : FAudioDeviceHandle();
+    // if (!audioDevice) return;
+    //
+    // for (const auto& sound : _sfxConfig->attack)
+    // {
+    //     USoundWave* wave = Cast<USoundWave>(sound.Get());
+    //     if (!wave) continue;
+    //
+    //     if (wave->IsStreaming())
+    //     {
+    //         LOGObjName(this, LogTemp, Warning,
+    //             "attack sfx %s is set to stream - Precache can't preload it, turn streaming off or set Loading Behavior to Retain on Load",
+    //             *wave->GetName());
+    //         continue;
+    //     }
+    //
+    //     audioDevice->Precache(wave, bSynchronous, /* bTrackFirstRequest */ true, /* bForceFullDecompression */ true);
+    // }
 }
 
 void ACommonWeapon::_applyRenderOnTopParams_(bool isPickup)
