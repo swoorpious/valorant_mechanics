@@ -126,6 +126,7 @@ void AVal_Character::Tick(float DeltaTime)
 
     _updateMovementStateFromInput();
     _updateFootsteps(DeltaTime);
+    _updateCrouchTransition(DeltaTime);
     
     if (GEngine)
     {
@@ -161,8 +162,8 @@ void AVal_Character::playMoveStateBasedAudioCue(
     USoundBase* sound = cue->soundVariations[FMath::RandHelper(cue->soundVariations.Num())].Get();
     if (!sound) return;
 
-    const float volume = vol * FMath::FRandRange(cue->volumeMin, cue->volumeMax);
-    const float pitch  = p * FMath::FRandRange(cue->pitchMin, cue->pitchMax);
+    const float volume = FMath::Clamp(vol, cue->volumeMin, cue->volumeMax);
+    const float pitch  = FMath::Clamp(p, cue->pitchMin, cue->pitchMax);
 
     UGameplayStatics::PlaySoundAtLocation(this, sound, GetActorLocation(), volume, pitch);
 }
@@ -285,7 +286,7 @@ void AVal_Character::Jump()
         playMoveStateBasedAudioCue(ECharMovementSounds::JumpUp);
 }
 
-void AVal_Character::Walk(bool started)
+void AVal_Character::Walk(const bool started)
 {
     // walking is the alternate (slow/quiet) movement mode, running is the regular one.
     // each weapon defines its own regular/alternate speed (heavier weapons slow you down).
@@ -303,16 +304,78 @@ void AVal_Character::Walk(bool started)
 
 void AVal_Character::Crouch(bool bClientSimulation)
 {
-    Super::Crouch(bClientSimulation);
+    if (shouldUseCustomCrouchSolution)
+    {
+        const float currHalfHeight = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+        _startCrouchTransition(crouchedCapsuleHalfHeight);
+        Super::Crouch(bClientSimulation);
+        GetCapsuleComponent()->SetCapsuleHalfHeight(currHalfHeight, true);
+    }
+    else
+        Super::Crouch(bClientSimulation);
+
     ACommonWeapon* weapon = _inventory->getEquippedWeapon();
-    if (!weapon) return;
-    if (_charMovementComponent) _charMovementComponent->MaxWalkSpeed = weapon->getWeaponWalkSpeed();
+    if (weapon && _charMovementComponent)
+        _charMovementComponent->MaxWalkSpeed = weapon->getWeaponWalkSpeed();
+
 }
 
 void AVal_Character::UnCrouch(bool bClientSimulation)
 {
-    Super::UnCrouch(bClientSimulation);
-    Walk(_isWalking); // restore run/walk speed for the currently equipped weapon
+    if (shouldUseCustomCrouchSolution)
+    {
+        const float currHalfHeight = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+        _startCrouchTransition(standingCapsuleHalfHeight);
+        
+        bIsCrouched = false;
+        if (_charMovementComponent) _charMovementComponent->bWantsToCrouch = false;
+        K2_OnEndCrouch(_crouchFromHeight_ - crouchedCapsuleHalfHeight, 0.f);
+        // GetCapsuleComponent()->SetCapsuleHalfHeight(currHalfHeight, true);
+    }
+    else
+        Super::UnCrouch(bClientSimulation);
+
+    if (_charMovementComponent)
+    {
+        ACommonWeapon* weapon = _inventory->getEquippedWeapon();
+        if (weapon)
+            _charMovementComponent->MaxWalkSpeed = _isWalking
+                ? weapon->getWeaponWalkSpeed()
+                : weapon->getWeaponRunSpeed();
+    }
+    _updateMovementState(_isWalking ? EMovementState::Walk : EMovementState::Run);
+}
+
+
+void AVal_Character::_startCrouchTransition(const float targetHeight)
+{
+    _crouchFromHeight_ = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+    _crouchToHeight_ = targetHeight;
+    _crouchAlpha_ = 0.f;
+    _isCrouchTransitioning_ = true;
+}
+
+void AVal_Character::_updateCrouchTransition(float DeltaTime)
+{
+    if (!_isCrouchTransitioning_ || !shouldUseCustomCrouchSolution) return;
+
+    _crouchAlpha_ += DeltaTime / FMath::Max(crouchTransitionDuration, 0.01f);
+    const float alpha = FMath::Clamp(_crouchAlpha_, 0.f, 1.f);
+    const float eased = FMath::InterpEaseOut(0.f, 1.f, alpha, 2.f);
+
+    const float newHalfHeight = FMath::Lerp(_crouchFromHeight_, _crouchToHeight_, eased);
+    const float oldHalfHeight = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+    const float delta = newHalfHeight - oldHalfHeight;
+
+    // when crouching down, the character may float therefore offset it by the delta
+    if (_crouchFromHeight_ > _crouchToHeight_ && _charMovementComponent && !_charMovementComponent->IsFalling())
+        AddActorWorldOffset(FVector(0.f, 0.f, delta));
+    
+    GetCapsuleComponent()->SetCapsuleHalfHeight(newHalfHeight, true);
+
+
+    if (alpha >= 1.f)
+        _isCrouchTransitioning_ = false;
 }
 
 void AVal_Character::_updateMovementState(EMovementState newState)
@@ -322,6 +385,7 @@ void AVal_Character::_updateMovementState(EMovementState newState)
     _onMovementStateChangedDelegate_.Broadcast(newState);
 }
 
+// called every tick
 // drives _movementState off of actual input/movement every tick.
 // crouching and being airborne take priority over the walk/run/idle states.
 void AVal_Character::_updateMovementStateFromInput()
@@ -371,12 +435,12 @@ void AVal_Character::_updateFootsteps(float DeltaTime)
     _distanceSinceLastStep_ -= stepDistance;
     playMoveStateBasedAudioCue(
         ECharMovementSounds::Footstep,
-        _isWalking ? 0.4f : 1.f,
-        _isWalking ? .9f : 1.f
+        _isWalking ? 0.2f : 1.f,
+        _isWalking ? 1.f : 0.8f
         );
 
-    if (_movementState == EMovementState::Run)
-        playMoveStateBasedAudioCue(ECharMovementSounds::Bass, .3f, 1.f);
+    // if (_movementState == EMovementState::Run)
+        // playMoveStateBasedAudioCue(ECharMovementSounds::Bass, .3f, 1.f);
 }
 
 

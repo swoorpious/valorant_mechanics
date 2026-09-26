@@ -80,6 +80,18 @@ public:
 
 #pragma endregion COMPONENT SETUP
     
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Valorant Character|Crouch")
+    bool shouldUseCustomCrouchSolution = true;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Valorant Character|Crouch")
+    float standingCapsuleHalfHeight = 110.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Valorant Character|Crouch")
+    float crouchedCapsuleHalfHeight = 50.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Valorant Character|Crouch")
+    float crouchTransitionDuration = 0.06f;
+
     UFUNCTION(BlueprintType, Category = "Valorant Character", meta = (BlueprintThreadSafe))
     void playMoveStateBasedAudioCue(
         const ECharMovementSounds state,
@@ -124,7 +136,13 @@ protected:
     void _updateMovementState(EMovementState newState);
     void _updateMovementStateFromInput();
 
-    
+    bool _isCrouchTransitioning_ = false;
+    float _crouchAlpha_ = 0.f;
+    float _crouchFromHeight_ = 0.f;
+    float _crouchToHeight_ = 0.f;
+    void _startCrouchTransition(float targetHeight);
+    void _updateCrouchTransition(float DeltaTime);
+
     // footstep logic
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Valorant Character|Sounds")
     float walkStepInterval = 0.5f;

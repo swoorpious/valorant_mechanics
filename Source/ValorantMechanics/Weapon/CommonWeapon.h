@@ -223,13 +223,6 @@ private:
     
     UFUNCTION(CallInEditor, Category = "Weapon|Body")
     void _setupAttachments_() const;
-
-    // forces every attack sfx into memory so the first shot right after spawn
-    // or pickup doesn't miss its cue while the audio is still decompressing.
-    // bSynchronous stalls the calling thread until done - worth it on pickup,
-    // not worth it on spawn where there's no rush yet. only helps non-streaming
-    // waves - a streaming wave still loads its first chunk off disk on play
-    // no matter what this does, that has to be fixed on the asset itself.
     void _preloadAttackSounds_(bool bSynchronous) const;
 
     uint8 _currMagAmmoCount_ = 0;

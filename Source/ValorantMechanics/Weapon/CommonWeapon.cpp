@@ -114,8 +114,9 @@ USoundBase* ACommonWeapon::getRandomAttackSound() const
 
 void ACommonWeapon::fireStart()
 {
-    if (_isFireHeld || _currMagAmmoCount_ == 0) return;
+    LOGObjName(this, LogActor, Display, "weapon fire down");
     _isFireHeld = true;
+    if (!_canFire() || _currMagAmmoCount_ == 0) return;
 
     switch (_weaponConfig->fireMode)
     {
@@ -137,13 +138,11 @@ void ACommonWeapon::fireStart()
         );
         break;
     }
-    /*
-     * override this function and implement firing logic 
-     */
 }
 
 void ACommonWeapon::fireEnd()
 {
+    LOGObjName(this, LogActor, Display, "weapon fire stop");
     _isFireHeld = false;
     GetWorldTimerManager().ClearTimer(_timerHandle_handleRefire_);
     _updateState(EWeaponState::Idle);
@@ -152,9 +151,15 @@ void ACommonWeapon::fireEnd()
 
 void ACommonWeapon::tryWeaponReload()
 {
-    // only reload if the mag is not already full and we have spare mags
-    if (!_weaponConfig) return;
-    if (_currMagCount_ == 0) return;
+    // only reload if the mag is not already full, we have spare mags
+    // and that we can actually reload
+    if (!_weaponConfig ||
+        _currMagCount_ == 0 ||
+        _weaponState == EWeaponState::Equip_Default ||
+        _weaponState == EWeaponState::Equip_Fast ||
+        _weaponState == EWeaponState::Reloading ||
+        _weaponState == EWeaponState::Blocked
+        ) return;
 
     if (_currMagCount_ > 0)
         --_currMagCount_;
@@ -164,7 +169,7 @@ void ACommonWeapon::tryWeaponReload()
     GetWorldTimerManager().SetTimer(
         _timerHandle_handleReload_,
         this,
-        &ACommonWeapon::_perGunShootBullet,
+        &ACommonWeapon::_onWeaponReloaded,
         _weaponConfig ? _weaponConfig->reloadTime : 1.f,
         false
     );
@@ -297,18 +302,25 @@ void ACommonWeapon::Tick(float DeltaTime)
 void ACommonWeapon::_onWeaponEquipped()
 {
     _updateState(EWeaponState::Idle);
+    if (_isFireHeld) fireStart();
     // whatever to do further    
 }
 
 void ACommonWeapon::_onWeaponReloaded()
 {
     _updateState(EWeaponState::Idle);
+    LOGObjName(this, LogActor, Display, "weapon reloaded");
+    if (_isFireHeld)
+    {
+        fireStart();
+        LOGObjName(this, LogActor, Display, "weapon reloaded and fire is held down");
+    }
 }
 
 void ACommonWeapon::_onBulletShot(bool bHitSomething)
 {
     if (auto* sound = getRandomAttackSound())
-        UGameplayStatics::PlaySound2D(GetWorld(), sound);
+        UGameplayStatics::PlaySoundAtLocation(GetWorld(), sound, GetActorLocation());
 }
 
 
@@ -466,7 +478,12 @@ void ACommonWeapon::_perGunShootBullet()
 
 bool ACommonWeapon::_canFire() const
 {
-    if (!_weaponConfig) return false;
+    if (!_weaponConfig ||
+        _weaponState == EWeaponState::Equip_Default ||
+        _weaponState == EWeaponState::Equip_Fast ||
+        _weaponState == EWeaponState::Reloading ||
+        _weaponState == EWeaponState::Blocked)
+        return false;
 
     // check current mag ammo instead of total ammo available
     // since total ammo can be non-zero but currently available is still zero
@@ -476,7 +493,7 @@ bool ACommonWeapon::_canFire() const
         return false;
     }
 
-    return !_isOnCooldown;
+    return !_isOnCooldown && _isFireHeld;
 }
 
 
