@@ -256,3 +256,38 @@ private:
     
 };
 
+
+#pragma region derived weapons
+UCLASS()
+class VALORANTMECHANICS_API ATacticalKnife : public ACommonWeapon
+{
+    GENERATED_BODY()
+
+public:
+    ATacticalKnife();
+
+};
+
+
+UCLASS()
+class VALORANTMECHANICS_API ASecondaryWeapon : public ACommonWeapon
+{
+    GENERATED_BODY()
+
+public:
+    ASecondaryWeapon();
+
+};
+
+
+UCLASS()
+class VALORANTMECHANICS_API APrimaryWeapon : public ACommonWeapon
+{
+    GENERATED_BODY()
+
+public:
+    APrimaryWeapon();
+
+};
+
+#pragma endregion 

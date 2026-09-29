@@ -554,3 +554,32 @@ void ACommonWeapon::_applyRenderOnTopParams_(bool isPickup)
     createAndApply(extraMagazineMesh, _exMidMag_);
     createAndApply(scopeMesh, _midScope_);
 }
+
+
+
+#pragma region derived weapons
+APrimaryWeapon::APrimaryWeapon()
+{
+    PrimaryActorTick.bCanEverTick = true;
+
+    _weaponType = EWeaponType::Primary;
+    _weaponPickupType = EWeaponPickupType::Pickupable;
+}
+
+ASecondaryWeapon::ASecondaryWeapon()
+{
+    PrimaryActorTick.bCanEverTick = true;
+
+    _weaponType = EWeaponType::Secondary;
+    _weaponPickupType = EWeaponPickupType::Pickupable;
+}
+
+ATacticalKnife::ATacticalKnife()
+{
+    PrimaryActorTick.bCanEverTick = true;
+
+    _weaponType = EWeaponType::Melee;
+    _weaponPickupType = EWeaponPickupType::NonPickupable;
+}
+
+#pragma endregion 
