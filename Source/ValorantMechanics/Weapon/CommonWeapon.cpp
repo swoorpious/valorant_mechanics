@@ -23,6 +23,7 @@
 #include "ValorantMechanics/Player/PlayerComponents/Val_CharacterMovementComponent.h"
 #include "ValorantMechanics/Core/Val_LocalPlayerSubsystem.h"
 #include "ValorantMechanics/Core/Log.h"
+#include "ValorantMechanics/Player/Controller/Val_PlayerController.h"
 // #include "ValorantMechanics/Player/Controller/Val_PlayerController.h"
 
 
@@ -128,13 +129,13 @@ void ACommonWeapon::fireStart()
         _perGunShootBullet();
         break;
     case EFireMode::Automatic:
-        _perGunShootBullet();
         GetWorldTimerManager().SetTimer(
             _timerHandle_handleRefire_,
             this,
             &ACommonWeapon::_perGunShootBullet,
             _weaponConfig ? _weaponConfig->fireRate : 0.1f,
-            true
+            true,
+            0.f
         );
         break;
     }
@@ -185,6 +186,7 @@ bool ACommonWeapon::tryWeaponPickUp(AVal_Character* ownerCharacter)
     _applyRenderOnTopParams_(true);
 
     _ownerCharacter_ = ownerCharacter;
+    SetOwner(_ownerCharacter_);
 
     _preloadAttackSounds_(true);
     return true;
@@ -197,6 +199,7 @@ bool ACommonWeapon::tryWeaponDrop()
     _applyRenderOnTopParams_(false);
 
     _ownerCharacter_ = nullptr;
+    SetOwner(nullptr);
     return true;
 }
 
@@ -281,19 +284,27 @@ void ACommonWeapon::Tick(float DeltaTime)
     {
         GEngine->AddOnScreenDebugMessage(
             -1,
-            DeltaTime,
+            0.f,
             FColor::White,
             FString::Printf(
                 TEXT("current weapon: %s"),
                 *StaticClass()->GetName()
             ));
         GEngine->AddOnScreenDebugMessage(
+           -1,
+           0.f,
+           FColor::White,
+           FString::Printf(
+               TEXT("weapon state: %s"),
+               *StaticEnum<EWeaponState>()->GetDisplayNameTextByValue(static_cast<int8>(_weaponState)).ToString()
+           ));
+        GEngine->AddOnScreenDebugMessage(
             -1,
-            DeltaTime,
+            0.f,
             FColor::White,
             FString::Printf(
-                TEXT("state: %s"),
-                *StaticEnum<EWeaponState>()->GetDisplayNameTextByValue(static_cast<int8>(_weaponState)).ToString()
+                TEXT("bullet count: %d"),
+                _currMagAmmoCount_
             ));
     }
 }
@@ -303,6 +314,8 @@ void ACommonWeapon::_onWeaponEquipped()
 {
     _updateState(EWeaponState::Idle);
     if (_isFireHeld) fireStart();
+    
+    receiveOnWeaponEquipped();
     // whatever to do further    
 }
 
@@ -315,12 +328,14 @@ void ACommonWeapon::_onWeaponReloaded()
         fireStart();
         LOGObjName(this, LogActor, Display, "weapon reloaded and fire is held down");
     }
+    receiveOnWeaponReloaded();
 }
 
 void ACommonWeapon::_onBulletShot(bool bHitSomething)
 {
     if (auto* sound = getRandomAttackSound())
         UGameplayStatics::PlaySoundAtLocation(GetWorld(), sound, GetActorLocation());
+    receiveOnBulletShot(bHitSomething, hit);
 }
 
 
@@ -368,11 +383,57 @@ void ACommonWeapon::_reduceMagCount(uint8 count)
         _currMagCount_ -= count;
 }
 
+FVector ACommonWeapon::_viewModelWPO(const FVector worldPos, const FVector offset) const
+{
+    FMinimalViewInfo view;
+    AVal_PlayerController* pc;
+    
+    if (_ownerCharacter_ && _ownerCharacter_->IsLocallyControlled())
+    {
+        pc = Cast<AVal_PlayerController>(_ownerCharacter_->GetController());
+        view = pc->PlayerCameraManager->GetCameraCacheView();
+    }
+    else 
+        return FVector::ZeroVector;
+    
+    /*
+     * following calculations are derived from the FOV/CLIP fix material function at:
+     * /Game/Content/Common/MF_FOV_and_clip_fix
+     *
+     * credits to Jack French for the code
+     * [https://www.youtube.com/watch?v=zqfzvHCcvZs]
+     */
+    const FRotationMatrix R(view.Rotation);
+    const FVector fwd   = R.GetScaledAxis(EAxis::X);
+    const FVector right = R.GetScaledAxis(EAxis::Y);
+    const FVector up    = R.GetScaledAxis(EAxis::Z);
+
+    const FVector p = (worldPos - view.Location) + right * offset.X + up * offset.Y + fwd * offset.Z;
+
+    // fov correction
+    const float TanCur    = FMath::Tan(FMath::DegreesToRadians(view.FOV * 0.5f));
+    const float TanTarget = FMath::Tan(FMath::DegreesToRadians(targetFOV * 0.5f));
+    const float Ratio     = TanCur / TanTarget;
+    const FVector Axial   = fwd * FVector::DotProduct(p, fwd);
+    const FVector Q       = Axial + (p - Axial) * Ratio;
+
+    // depth calc
+    const float Near   = GNearClippingPlane;
+    const FVector Dir  = Q.GetSafeNormal();
+    const float CosT   = FVector::DotProduct(Dir, fwd);
+    const FVector NearPt = (Dir / CosT) * Near;
+    const FVector D    = Q - NearPt;
+    const float Step   = (FVector::DotProduct(D, fwd) <= 0.f) ? 1.f : 0.f;
+    const float S      = FMath::Max(Step, targetRenderScaleInDepth);
+
+    return view.Location + NearPt + D * S;
+}
+
 
 /*
- * resolves the trace and spawns its vfx. sfx - and anything else a specific
- * weapon wants to do differently on a shot - goes through the overridable
- * _onBulletShot() below, not in here.
+ * resolves the trace and spawns its vfx. sfx - and anything else some weapon
+ * wants to do differently on a shot - goes through the overridable
+ * _onBulletShot(), not in here.
  */
 void ACommonWeapon::_shootBullet(
     /*
@@ -382,7 +443,6 @@ void ACommonWeapon::_shootBullet(
 {
     if (!_ownerCharacter_ || !_weaponConfig || _currMagAmmoCount_ <= 0) return;
 
-    FHitResult hit;
     FCollisionQueryParams queryParams = FCollisionQueryParams(SCENE_QUERY_STAT(WeaponTrace), false, _ownerCharacter_);
 
     // TODO: update to gameplay camera once implemented
@@ -409,6 +469,7 @@ void ACommonWeapon::_shootBullet(
             true);
     }
 
+/*
 #if WITH_EDITOR
     // draw debug line from the gun to the hit point - green if hit, red if no hit
     DrawDebugLine(
@@ -435,6 +496,7 @@ void ACommonWeapon::_shootBullet(
             1.0f
         );
 #endif
+*/
 
     if (muzzleParticle)
     {
@@ -466,13 +528,12 @@ void ACommonWeapon::_shootBullet(
 
 void ACommonWeapon::_perGunShootBullet()
 {
-    _shootBullet();
-    if (_currMagAmmoCount_ == 0 && _isFireHeld)
+    if (_currMagAmmoCount_ > 0 && _isFireHeld)
     {
-        _updateState(EWeaponState::Idle);
-        return;
+        _updateState(EWeaponState::Firing);
+        LOGObjName(this, LogActor, Display, "_perGunShootBullet with ammo count: %d", _currMagAmmoCount_);
     }
-    _updateState(EWeaponState::Firing);
+    _shootBullet();
 }
 
 

@@ -152,7 +152,16 @@ public:
     virtual bool trySwitchFireMode(EFireMode newMode) override;
     virtual void weaponEquip(EEquipType type);
     virtual void weaponUnequip();
-
+    
+    
+    UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName="Weapon Equipped"))
+    void receiveOnWeaponEquipped();
+    UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName="Weapon Reloaded"))
+    void receiveOnWeaponReloaded();
+    UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName="Weapon Bullet Shot"))
+    void receiveOnBulletShot(bool hitSomething, FHitResult HitResult);
+    
+    
 protected:
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaTime) override;
@@ -187,6 +196,9 @@ protected:
     void _reduceMagAmmoCount(uint8 count);
     void _reduceMagCount(uint8 count);
 
+    UPROPERTY(BlueprintReadOnly, Category="Weapon", meta=(DisplayName="Last Bullet Hit Result"))
+    FHitResult hit;
+    
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon", meta=(DisplayName="Weapon Fire Config")) 
     TObjectPtr<UVal_WeaponFireConfig> _weaponConfig;
 
@@ -199,6 +211,8 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Body|Sockets")
     FWeaponSocketData _socketData;
 
+    UFUNCTION(BlueprintCallable, BlueprintCallable, Category="Weapon|Helpers")
+    FVector _viewModelWPO(const FVector worldPos, const FVector offset) const;
     
     /*
      * properties meant to be set within the child classes 
@@ -216,6 +230,11 @@ protected:
     // exponential function accumulates heat per bullet fire
     int _heatAccumulated = 0;
 
+    UPROPERTY(BlueprintReadOnly, meta=(DisplayName="Owning Character")) 
+    TObjectPtr<AVal_Character> _ownerCharacter_ = nullptr;
+    
+    TObjectPtr<UVal_WeaponAnimInstace> _weaponAnimInst = nullptr;
+    
 private:
     FTimerHandle _timerHandle_handleRefire_;
     FTimerHandle _timerHandle_handleEquip_;
@@ -228,8 +247,6 @@ private:
     uint8 _currMagAmmoCount_ = 0;
     uint8 _currMagCount_ = 0;
 
-    UPROPERTY() TObjectPtr<AVal_Character> _ownerCharacter_ = nullptr;
-    UPROPERTY() TObjectPtr<UVal_WeaponAnimInstace> _weaponAnimInst = nullptr;
     
     /*
      * methods/properties for rendering on top
@@ -251,8 +268,6 @@ private:
     UMaterialInstanceDynamic* _midScope_ = nullptr;
     
     void _applyRenderOnTopParams_(bool isPickup);
-    
-    // UPROPERTY() TObjectPtr<UVal_LocalPlayerSubsystem> _localSubsystem_ = nullptr;
     
 };
 
